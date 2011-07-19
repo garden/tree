@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>Our Awesome Code Editor</title>
+
+<link rel=stylesheet href=./css/codemirror.css>
+<link rel=stylesheet href=./css/default.css>
+
+<script src=./js/codemirror.js></script>
+<script src=./js/xml.js></script>
+<script src=./js/javascript.js></script>
+<script src=./js/css.js></script>
+<script src=./js/htmlmixed.js></script>
+<script src=./js/diff_match_patch.js></script>
+<script src=./js/scout.js></script>
+<script src=./js/plugger.js></script>
+<script src=./js/codemirror.plug.js></script>
+
+<style>
+  html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
+  iframe body { margin: 0px; padding: 0px; }
+  iframe { height: 100%; width: 49%; border: none; }
+  .right { float: right; }
+</style>
+
+<body>
+
+  <iframe id=preview class=right></iframe>
+  
+  <script>
+  
+    var delay;
+  
+    // Create a CodeMirror2 html editor.
+    editor = CodeMirrorPlug(document.body, {
+      value: window.client.lastcopy,
+      height: "100%",
+      width: "50%",
+      mode: "text/html",
+      tabMode: "indent"
+    }, function updatedisplay() {
+      clearTimeout(delay);
+      delay = setTimeout(updatePreview, 300);
+    });
+
+    
+    // Regularily inject the code into an iframe for preview.
+    function updatePreview() {
+      var preview = document.getElementById('preview').contentDocument;
+      preview.open();
+      preview.write(editor.getValue());
+      preview.close();
+    }
+    setTimeout(updatePreview, 300);
+    
+  </script>
+  
+  
+</body>
