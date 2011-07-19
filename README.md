@@ -6,8 +6,9 @@ Collaborative file system.
 - Fork or download the [Tree] (http://github.com/garden/tree).
 
 ## Use it
--     make
-- [enjoy] (http://localhost/)
+- Make
+- [Browse] (http://localhost/)
+- Enjoy!
 
 ## Contribute
 - Watch & open [issues] (http://github.com/garden/tree/issues)
