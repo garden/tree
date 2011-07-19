@@ -1,6 +1,6 @@
 /* codemirror.plug.js: glue between our collaboration engine and CodeMirror2.
  * Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
- * Code covered by the LGPL license. */
+ * The following code is covered by the GPLv2 license. */
  
 function CodeMirrorPlug ( body, cm_params, uiactions ) { 
 

@@ -1,6 +1,6 @@
 /* plugger.js: allows plugs to have an api into the nifty collaboration engine.
- * Copyright (c) 2011 Thaddee Tyl & Jan Keromnes. All rights reserved.
- * */
+ * Copyright (c) 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
+ * The following code is covered by the GPLv2 license. */
  
 (function () {
 

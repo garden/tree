@@ -1,6 +1,6 @@
 # Makefile: Publish your website and start/stop your server.
-# Copyright (c) 2011 Jan Keromnes, Yann Tyl. All rights reserved.
-# Code covered by the LGPL license.
+# Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+# The following code is covered by the GPLv2 license.
 
 LOG = node.log
 SERVER = server.js
@@ -43,6 +43,7 @@ test:
 update:
 	@git clone git://github.com/espadrine/ScoutCamp.git
 	@mv ScoutCamp/lib/* ./lib/
+	@cp -f ./lib/scout.js ./web/js/scout.js
 	@rm -rf ScoutCamp/
 
 help:
