@@ -1,22 +1,22 @@
-#dev
-the collaborative editor
+#tree
+collaborative file system
 
-##Get it
+##get it
 1. install [Node.js] (http://nodejs.org) and [JSMin] (http://www.crockford.com/javascript/jsmin.html)
-2. fork or download [dev] (https://github.com/jankeromnes/dev)
+2. fork or download the [tree] (https://github.com/garden/tree)
 
-##Use it
+##use it
 1. run 'make'
 2. hit [localhost/] (http://localhost/)
 3. enjoy
 
-##Contribute
-- watch the [hot issues] (https://github.com/jankeromnes/dev/issues)
+##contribute
+- watch the [hot issues] (https://github.com/garden/tree/issues)
 - do some [pull requests] (http://help.github.com/send-pull-requests/)
-- contact [Jan Keromnes] (https://github.com/inbox/new/jankeromnes) or [Thaddee Tyl] (https://github.com/inbox/new/espadrine)
+- contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine) or [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
-##Includes
+##includes
 - [ScoutCamp] (http://espadrine.github.com/ScoutCamp/)
-- [codemirror2] (http://codemirror.net/)
+- [CodeMirror2] (http://codemirror.net/)
 - [diff_match_patch] (http://code.google.com/p/google-diff-match-patch/)
 
