@@ -1,7 +1,7 @@
 
 CodeMirror.defineMode("xml",function(config,parserConfig){var indentUnit=config.indentUnit;var Kludges=parserConfig.htmlMode?{autoSelfClosers:{"br":true,"img":true,"hr":true,"link":true,"input":true,"meta":true,"col":true,"frame":true,"base":true,"area":true},doNotIndent:{"pre":true,"!cdata":true},allowUnquoted:true}:{autoSelfClosers:{},doNotIndent:{"!cdata":true},allowUnquoted:false};var alignCDATA=parserConfig.alignCDATA;var tagName,type;function inText(stream,state){function chain(parser){state.tokenize=parser;return parser(stream,state);}
 var ch=stream.next();if(ch=="<"){if(stream.eat("!")){if(stream.eat("[")){if(stream.match("CDATA["))return chain(inBlock("atom","]]>"));else return null;}
-else if(stream.match("--"))return chain(inBlock("comment","-->"));else if(stream.match("DOCTYPE")){stream.eatWhile(/[\w\._\-]/);return chain(inBlock("meta",">"));}
+else if(stream.match("--"))return chain(inBlock("comment","-->"));else if(stream.match("DOCTYPE",true,true)){stream.eatWhile(/[\w\._\-]/);return chain(inBlock("meta",">"));}
 else return null;}
 else if(stream.eat("?")){stream.eatWhile(/[\w\._\-]/);state.tokenize=inBlock("meta","?>");return"meta";}
 else{type=stream.eat("/")?"closeTag":"openTag";stream.eatSpace();tagName="";var c;while((c=stream.eat(/[^\s\u00a0=<>\"\'\/?]/)))tagName+=c;state.tokenize=inTag;return"tag";}}
@@ -32,9 +32,10 @@ function endclosetag(err){return function(type){if(err)setStyle="error";if(type=
 function attributes(type){if(type=="word"){setStyle="attribute";return cont(attributes);}
 if(type=="equals")return cont(attvalue,attributes);return pass();}
 function attvalue(type){if(type=="word"&&Kludges.allowUnquoted){setStyle="string";return cont();}
-if(type=="string")return cont();return pass();}
+if(type=="string")return cont(attvaluemaybe);return pass();}
+function attvaluemaybe(type){if(type=="string")return cont(attvaluemaybe);else return pass();}
 return{startState:function(){return{tokenize:inText,cc:[],indented:0,startOfLine:true,tagName:null,context:null};},token:function(stream,state){if(stream.sol()){state.startOfLine=true;state.indented=stream.indentation();}
-if(stream.eatSpace())return null;setStyle=type=tagName=null;var style=state.tokenize(stream,state);if((style||type)&&style!="xml-comment"){curState=state;while(true){var comb=state.cc.pop()||element;if(comb(type||style))break;}}
+if(stream.eatSpace())return null;setStyle=type=tagName=null;var style=state.tokenize(stream,state);if((style||type)&&style!="comment"){curState=state;while(true){var comb=state.cc.pop()||element;if(comb(type||style))break;}}
 state.startOfLine=false;return setStyle||style;},indent:function(state,textAfter){var context=state.context;if(context&&context.noIndent)return 0;if(alignCDATA&&/<!\[CDATA\[/.test(textAfter))return 0;if(context&&/^<\//.test(textAfter))
 context=context.prev;while(context&&!context.startOfLine)
 context=context.prev;if(context)return context.indent+indentUnit;else return 0;},compareStates:function(a,b){if(a.indented!=b.indented||a.tagName!=b.tagName)return false;for(var ca=a.context,cb=b.context;;ca=ca.prev,cb=cb.prev){if(!ca||!cb)return ca==cb;if(ca.tagName!=cb.tagName)return false;}},electricChars:"/"};});CodeMirror.defineMIME("application/xml","xml");CodeMirror.defineMIME("text/html",{name:"xml",htmlMode:true});

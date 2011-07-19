@@ -7,8 +7,8 @@ return escaped;}
 var type,content;function ret(tp,style,cont){type=tp;content=cont;return style;}
 function jsTokenBase(stream,state){var ch=stream.next();if(ch=='"'||ch=="'")
 return chain(stream,state,jsTokenString(ch));else if(/[\[\]{}\(\),;\:\.]/.test(ch))
-return ret(ch);else if(ch=="0"&&stream.eat(/x/i)){stream.eatWhile(/[\da-f]/i);return ret("number","atom");}
-else if(/\d/.test(ch)){stream.match(/^\d*(?:\.\d*)?(?:e[+\-]?\d+)?/);return ret("number","atom");}
+return ret(ch);else if(ch=="0"&&stream.eat(/x/i)){stream.eatWhile(/[\da-f]/i);return ret("number","number");}
+else if(/\d/.test(ch)){stream.match(/^\d*(?:\.\d*)?(?:e[+\-]?\d+)?/);return ret("number","number");}
 else if(ch=="/"){if(stream.eat("*")){return chain(stream,state,jsTokenComment);}
 else if(stream.eat("/")){stream.skipToEnd();return ret("comment","comment");}
 else if(state.reAllowed){nextUntilUnescaped(stream,"/");stream.eatWhile(/[gimy]/);return ret("regexp","string");}
