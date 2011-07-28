@@ -89,7 +89,7 @@ var path = dir ('root',
 
 var fuzzy = function (rootdir, query, depth) {
 
-  // Given a String filename and a list of characters chars, 
+  // Given a string filename and a list of characters chars, 
   // returns a list containing a qualitative number of stars, and a
   // variable that is true if the query has been fully parsed.
   var score = function (filename, query) {
@@ -126,12 +126,14 @@ var fuzzy = function (rootdir, query, depth) {
       }
     }
 
+    // Never leave a / at the beginning.
+    if (query[0] === '/') { query = query.slice (1); }
     return [stars, query];
   };
 
   var files = filesindir (rootdir);
 
-  // scoredpath is a list of [string path, int score, bool consumed]
+  // scoredpath is a list of [string path, int score, string consumed]
   // which determines how well the path is ranked and if it
   // contains all characters in the query.
   var scoredpath = [];
