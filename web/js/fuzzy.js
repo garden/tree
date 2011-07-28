@@ -68,13 +68,13 @@ var path = dir ('root',
       ])
     ])
   ])
-,dir ('homecoming',
+,dir ('home-coming',
   [dir ('is',
     [voidfile ('around')
     ])
   ])
-,dir ('hope',
-  [dir ('in',
+,dir ('halves',
+  [dir ('on',
     [dir ('the',
       [voidfile ('garden')
       ])
@@ -95,24 +95,34 @@ var fuzzy = function (rootdir, query, depth) {
   var score = function (filename, query) {
     var stars = 0;
     var afternonalpha = false;
+    var alpha = /[a-zA-Z0-9]/;
+    var consecmatch = 0;
 
     for (var i=0; i<filename.length; i++) {
       if (filename[i] === query[0]) {
         stars++;            // match!
         stars += depth;     // Counts more if closer to cwd.
         if (i === 0) {
-          stars += 3;       // Counts more if start of filename.
-          console.log ('1st ['+query[0]+']:', stars);
+          stars += 2;       // Counts more if start of filename.
+        } else if (i === 1) {
+          stars++;
         }
-        if (/[a-zA-Z0-9]/.test (filename[i])) {
-          stars += 2;       // Counts more if after nonalpha.
-          afternonalpha = false;
-        } else afternonalpha = true;
+        var isalpha = alpha.test (filename[i]);
+        if (isalpha && afternonalpha) {
+          stars += 2; // Counts more if after nonalpha.
+        }
+        afternonalpha = !isalpha;
+        stars += consecmatch;  // Numerous consecutive matches.
+        consecmatch++;
+
+        // Treat the query.
         query = query.slice(1);
         if (query.length === 0) { break; }
       } else if (query[0] === '/') {
         query = query.slice(1);
         break;
+      } else {
+        consecmatch = 0;
       }
     }
 
