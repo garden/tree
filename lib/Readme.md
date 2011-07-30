@@ -116,9 +116,7 @@ evaluating the regular expression against the path.
 On the other side of the fence, the file `/web/first/post.html` might look like
 this:
 
-    <!doctype html>
-    <meta charset=utf-8>
-    <title></title>
+    <!doctype html><title></title>
     <p>{{=text|html}}</p>
     <ul>
     {{-comments|comment|i;
@@ -129,9 +127,7 @@ this:
 Because it will be preprocessed server-side, the browser will actually receive
 the following file:
 
-    <!doctype html>
-    <meta charset=utf-8>
-    <title></title>
+    <!doctype html><title></title>
     <p>This is the f1rst p0st!</p>
     <ul>
       <li>first comment!</li>
