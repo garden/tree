@@ -57,7 +57,7 @@ function sync (client, delta, workingcopy, applylocally, send) {
 /* Lauching the server. */
 
 var Camp = require ('./lib/camp.js');
-var arbor = require ('./arbor.js');
+var arbor = require ('./fs.js');
 
 
 // Buffering modifications.

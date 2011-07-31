@@ -19,10 +19,11 @@ startweb:
 
 clean:
 	@echo "clean"
-	@rm -rf $(TARGET)/* $(LOG)
+	@rm -rf $(TARGET) $(LOG)
 
 deploy:
 	@echo "deploy"
+	@if [ ! -d $(TARGET) ]; then mkdir $(TARGET); fi
 	@cp -r $(WEB)/* $(TARGET)
   
 minify:
