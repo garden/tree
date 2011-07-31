@@ -2,12 +2,12 @@
  * Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
  
-function CodeMirrorPlug ( body, cm_params, uiactions ) { 
+function CodeMirrorPlug ( body, params, update ) { 
 
 // Add onChange to the CodeMirror parameters.
 // Creation of the editor.
-cm_params.onChange = function onChange() {
-  uiactions();  // Page elements
+params.onChange = function onChange() {
+  if (update) update();  // Page elements
 
   if (client.notmychange) {
     client.notmychange = false;
@@ -18,7 +18,7 @@ cm_params.onChange = function onChange() {
     plug.newcontent (editor.getValue ());
   }
 };
-var editor = CodeMirror (body, cm_params);
+var editor = CodeMirror (body, params);
 
 
 // Some useful primitive that talks to the CodeMirror editor.

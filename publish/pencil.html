@@ -11,49 +11,42 @@
 <script src=/cm/codemirror.js></script>
 <script src=/cm/codemirror.plug.js></script>
 
+<script src=/cm/clike.js></script>
 <script src=/cm/css.js></script>
-<script src=/cm/htmlmixed.js></script>
+<script src=/cm/diff.js></script>
+<script src=/cm/haskell.js></script>
 <script src=/cm/javascript.js></script>
+<script src=/cm/lua.js></script>
+<script src=/cm/php.js></script>
+<script src=/cm/plsql.js></script>
+<script src=/cm/python.js></script>
+<script src=/cm/rst.js></script>
+<script src=/cm/scheme.js></script>
+<script src=/cm/smalltalk.js></script>
+<script src=/cm/sparql.js></script>
+<script src=/cm/stex.js></script>
 <script src=/cm/xml.js></script>
+<script src=/cm/yaml.js></script>
+<script src=/cm/htmlmixed.js></script>
 
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
-  iframe body { margin: 0px; padding: 0px; }
-  iframe { height: 100%; width: 49%; border: none; }
-  .right { float: right; }
+  .CodeMirror {
+    height: 100%
+  }
 </style>
 
 <body>
-
-  <iframe id=preview class=right></iframe>
-  
   <script>
   
-    var delay;
-  
-    // Create a CodeMirror2 html editor.
+    // Create a CodeMirror2 editor.
     editor = CodeMirrorPlug(document.body, {
       value: window.client.lastcopy,
       height: "100%",
-      width: "50%",
+      width: "100%",
       mode: "text/html",
       tabMode: "indent"
-    }, function updatedisplay() {
-      clearTimeout(delay);
-      delay = setTimeout(updatePreview, 300);
     });
 
-    
-    // Regularily inject the code into an iframe for preview.
-    function updatePreview() {
-      var preview = document.getElementById('preview').contentDocument;
-      preview.open();
-      preview.write(editor.getValue());
-      preview.close();
-    }
-    setTimeout(updatePreview, 300);
-    
   </script>
-  
-  
 </body>
