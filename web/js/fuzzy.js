@@ -15,7 +15,7 @@ var types = new Enum (
 /// `type` is a string taken from the `types` enumeration.
 /// `getcontent` is a function returning string information.
 var file = function (type, name, getcontent) {
-  return {type:types[type] || 'text/plain', name:name, getcontent:getcontent};
+  return {type:types[type] || types['text/plain'], name:name, getcontent:getcontent};
 };
 
 /// `files` returns a list of `file`s.
