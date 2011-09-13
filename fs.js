@@ -212,8 +212,8 @@ var addfiletodir = function (file, directory) {
 //   + Faster boot time.
 //   - Too much info to deal with; could take all memory.
 //
-// `window.root` is a file of type `dir`, which is here initialized to the
+// `exports.root` is a file of type `dir`, which is here initialized to the
 // contents of the `/root/` folder (named `/` in here).
-window.root = (function () {
+exports.root = (function () {
   return dir('', '/');       // The root folder has no name. He is the only one.
 })();
