@@ -57,7 +57,22 @@ function sync (client, delta, workingcopy, applylocally, send) {
 /* Lauching the server. */
 
 var Camp = require ('./lib/camp.js');
-var arbor = require ('./fs.js');
+
+
+// FILE-SYSTEM ACCESS
+//
+
+var root;
+var arbor = require ('./fs');
+arbor.getroot (function (err, fsroot) {
+  root = fsroot;
+});
+
+
+
+
+// REAL-TIME COLLABORATION
+//
 
 
 // Buffering modifications.

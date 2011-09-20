@@ -70,27 +70,43 @@ type ('image/svg', [types['text/plain']]);
 // Directory primitives.
 
 
-/// `type` is a string taken from the `types` enumeration.
-/// `name` is a string.
-/// `getcontent` is a function returning further information.
+/// `type` is a string taken from the `types` enumeration.  
+/// `name` is a string.  
+/// `getcontent: function ( whengot: function(err, content) )`
+/// is a function returning further information.  
 /// It is the constructor for the File object.
+///
+///     var f = new File ( 'text/plain', 'myfile', function(whengot) {
+///       …
+///       var data = whatever ();
+///       whengot ( undefined, data );
+///     });
+///
+/// File::type is the type of the file.  
+/// File::name is the name of the file (supposedly doesn't contain `/`)  
+/// File::content is a function which you feed `function(err, content) {…}`.
 var File = function (type, name, getcontent) {
   this.type = types(type) || types('text/plain');
   this.name = name;
   this._gotcontent = false;
   this._content;
-  this.content = function memoizer() {
+  this.content = function memoizer(dowithcontent) {
     if (!this._gotcontent) {
       this._gotcontent = true;
-      this._content = getcontent();
+      getcontent(function(err, content) {
+        // Give them the data.
+        dowithcontent(err, content);
+        this._content = content;
+      });
+    } else {
+      dowithcontent(err, this._content);
     }
-    return this._content;
   };
 };
 
-/// `files` returns a list of `file`s.
+/// `files` returns a list of `file`s.  
 /// `filesdata` is a list of
-/// [String type, String name, String content] arrays.
+/// [String type, String name, String content] arrays.  
 /// I think this function is only useful for testing.
 var files = function (filesdata) {
   var filelist = [];
@@ -107,12 +123,7 @@ var fileindir = function (directory, file) {
       return file;
     }
   }
-  return new File ('notfound', '', '');
-};
-
-/// Getting an object of all files, such as {"filename":<new File()>, ...}.
-var filesindir = function (directory) {
-  return directory.getcontent();
+  return new File ('notfound', '', function(whengot){ whengot(undefined,''); });
 };
 
 
@@ -120,15 +131,15 @@ var filesindir = function (directory) {
 //
 
 /// Convert a virtual path from the /root/ folder, to the filesystem path.
-/// `path`: virtual path (in the form of a String).
+/// `path`: virtual path (in the form of a String).  
 var torealpath = function (path) {
-  path = path.replace (/^(\.\.\/)+/, '');
+  path = path.replace (/^(\.\.\/)/, '');
   return nodepath.join (process.cwd(), path);
 };
 
 /// Read the path, construct the file according to the filename.
-/// `path`: String of path starting with a `/`.
-/// `callback`: function (err, <new File()>).
+/// `path`: String of "fake" path starting with a `/`.  
+/// `callback`: function (err, <new File()>).  
 var filefrompath = function (path, callback) {
   var realpath = torealpath (path);
   nodefs.stat (realpath, function (err, stats) {
@@ -174,13 +185,13 @@ var filefrompath = function (path, callback) {
           nodefs.readFile (realpath, 'utf8', function (err, data) {
             whengotfile (undefined, data);
           });
-          var newfile = new File (
-              'text/plain',
-              nodepath.basename (realpath),
-              getcontent
-          );
-          callback (undefined, newfile);
         };
+        var newfile = new File (
+            'text/plain',
+            nodepath.basename (realpath),
+            getcontent
+        );
+        callback (undefined, newfile);
       }
 
     } else {
@@ -197,7 +208,7 @@ var filefrompath = function (path, callback) {
 /// `directory` is a File of type `dir`.
 var addfiletodir = function (file, directory) {
   // First, we need to know what the directory contains.
-  var files = directory.getcontent ();
+  //var files = directory.getcontent ();
 
   // TODO nodejs apis to write to disk.
 };
@@ -214,6 +225,8 @@ var addfiletodir = function (file, directory) {
 //
 // `exports.root` is a file of type `dir`, which is here initialized to the
 // contents of the `/root/` folder (named `/` in here).
-exports.root = (function () {
-  return dir('', '/');       // The root folder has no name. He is the only one.
-})();
+exports.getroot = function (gotroot) {
+  filefrompath('./root/', function(err, root) {
+    gotroot(err, root);
+  });
+};
