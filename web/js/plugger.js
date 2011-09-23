@@ -233,7 +233,7 @@ window.onunload = function () {
 //
 
 
-//   getPlugger ( onnewcontent, onnewdiff )
+//     getPlugger ( onnewcontent, onnewdiff )
 //
 // The onnewcontent ( content ) function is fired every time there is new
 // content, and we need to clean all content up.

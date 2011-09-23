@@ -100,14 +100,14 @@ a file at `/first/post.html` (from the root of the web/ or publish/ directory).
 
     var posts = ['This is the f1rst p0st!'];
 
-    camp.format ( /\/first\/post.html/, function ( query, path ) {
+    camp.handle ( /\/first\/post.html/, function ( query, path ) {
       return {
         text: posts[0],
         comments: ['first comment!', 'second comment...']
       };
     });
 
-In this `camp.format` function, `query` is the object literal associated to the
+In this `camp.handle` function, `query` is the object literal associated to the
 query string sent in the URL. For instance, `/first/post.html?key=value` has an
 associated query of `{"key": "value"}`.  
 The path, on the other side, corresponds to the match object that comes from
@@ -142,7 +142,7 @@ of the templating language.
 
 The camp.js binding is a very straightforward function; namely:
 
-    camp.format ( paths = /pattern/, call = function ( query = {}, path = [] ) {
+    camp.handle ( paths = /pattern/, call = function ( query = {}, path = [] ) {
       return {};
     });
 
@@ -189,6 +189,16 @@ Default macros are the following:
   given to the template file) and `params` (parameters given to the macro).
 * `{{~macro; rest }}` will run the macro named `macro` (please note that this
   macro has more than one character in it, this is legit).
+
+
+## Fall through
+
+There are three steps when treating URLs. Once it has not matched any handle, it
+is matched against the web/ folder on hard drive. Finally, if nothing was found
+before, it returns a 404 message. This can be overriden by the `camp.notfound`
+function, which is identical to the `camp.handle` function. It does the same
+thing, too, but only after even searching in the file system failed to provide a
+result.
 
 
 Thaddee Tyl, author of Scout Camp.
