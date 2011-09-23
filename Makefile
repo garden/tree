@@ -23,8 +23,7 @@ clean:
 
 deploy:
 	@echo "deploy"
-	@if [ ! -d $(TARGET) ]; then mkdir $(TARGET); fi
-	@cp -r $(WEB)/* $(TARGET)
+	@cp -rf $(WEB) $(TARGET)
   
 minify:
 	@echo "minify"
