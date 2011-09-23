@@ -70,21 +70,22 @@ type ('image/svg', [types['text/plain']]);
 // Directory primitives.
 
 
-/// `type` is a string taken from the `types` enumeration.  
-/// `name` is a string.  
-/// `getcontent: function ( whengot: function(err, content) )`
-/// is a function returning further information.  
-/// It is the constructor for the File object.
-///
-///     var f = new File ( 'text/plain', 'myfile', function(whengot) {
-///       …
-///       var data = whatever ();
-///       whengot ( undefined, data );
-///     });
-///
-/// File::type is the type of the file.  
-/// File::name is the name of the file (supposedly doesn't contain `/`)  
-/// File::content is a function which you feed `function(err, content) {…}`.
+/* `type` is a string taken from the `types` enumeration.  
+ * `name` is a string.  
+ * `getcontent: function ( whengot: function(err, content) )`
+ * is a function returning further information.  
+ * It is the constructor for the File object.
+ *
+ *     var f = new File ( 'text/plain', 'myfile', function(whengot) {
+ *       …
+ *       var data = whatever ();
+ *       whengot ( undefined, data );
+ *     });
+ *
+ * File::type is the type of the file.  
+ * File::name is the name of the file (supposedly doesn't contain `/`)  
+ * File::content is a function which you feed `function(err, content) {…}`.
+ */
 var File = function (type, name, getcontent) {
   this.type = types(type) || types('text/plain');
   this.name = name;
@@ -104,19 +105,8 @@ var File = function (type, name, getcontent) {
   };
 };
 
-/// `files` returns a list of `file`s.  
-/// `filesdata` is a list of
-/// [String type, String name, String content] arrays.  
-/// I think this function is only useful for testing.
-var files = function (filesdata) {
-  var filelist = [];
-  for (var i in files) {
-    filelist.push (new File (files[i][0], files[i][1], files[i][2]));
-  }
-  return filelist;
-};
-
 /// Getting one file from the directory.
+/// Currently broken. Do not use.
 var fileindir = function (directory, file) {
   for (var file in filesindir (directory)) {
     if (file.name === file) {
@@ -130,18 +120,30 @@ var fileindir = function (directory, file) {
 // Read files from the hard drive.
 //
 
-/// Convert a virtual path from the /root/ folder, to the filesystem path.
-/// `path`: virtual path (in the form of a String).  
+/* Convert a virtual path from the /root/ folder, to the filesystem path.
+ * `path`: virtual path (in the form of a String).  
+ */
 var torealpath = function (path) {
-  path = path.replace (/^(\.\.\/)/, '');
+  path = nodepath.relative ('.', path).replace (/^(\.\.\/?)+/, '');
   return nodepath.join (process.cwd(), path);
 };
 
-/// Read the path, construct the file according to the filename.
-/// `path`: String of "fake" path starting with a `/`.  
-/// `callback`: function (err, <new File()>).  
-var filefrompath = function (path, callback) {
+/* This hashmap registers all files ever asked for.
+ * The keys are the *real* paths of those files.
+ */
+var fsfiles = {};
+
+/* Read the path, construct the file according to the filename.
+ * `path`: String of "fake" path starting with a `/`.  
+ * `callback`: function (err, <new File()>).  
+ */
+var getfile = exports.getfile = function (path, callback) {
   var realpath = torealpath (path);
+  // If this file is already in memory, return that.
+  if (fsfiles[realpath] !== undefined) {
+    callback(undefined, fsfiles[realpath]);
+  }
+
   nodefs.stat (realpath, function (err, stats) {
     if (!err) {
 
@@ -154,7 +156,7 @@ var filefrompath = function (path, callback) {
             if (!err) {
               var content = {};
               for (var i = 0; i < files; i++) {
-                filefrompath (
+                getfile (
                   nodepath.join (path, content[files[i]]),
                   function (err, file) {
                     if (!err) {
@@ -176,6 +178,7 @@ var filefrompath = function (path, callback) {
             getcontent
         );
         callback (undefined, newfile);
+        fsfiles[realpath] = newfile;
 
       } else if (stats.isFile()) {
         // When creating a file, the getcontent
@@ -192,6 +195,7 @@ var filefrompath = function (path, callback) {
             getcontent
         );
         callback (undefined, newfile);
+        fsfiles[realpath] = newfile;
       }
 
     } else {
@@ -201,11 +205,13 @@ var filefrompath = function (path, callback) {
 };
 
 
+
 // Create new files as requested.
 //
 
-/// `file` is a File (easily constructed with `new File()`).
-/// `directory` is a File of type `dir`.
+/* `file` is a File (easily constructed with `new File()`).
+ * `directory` is a File of type `dir`.
+ */
 var addfiletodir = function (file, directory) {
   // First, we need to know what the directory contains.
   //var files = directory.getcontent ();
@@ -226,7 +232,7 @@ var addfiletodir = function (file, directory) {
 // `exports.root` is a file of type `dir`, which is here initialized to the
 // contents of the `/root/` folder (named `/` in here).
 exports.getroot = function (gotroot) {
-  filefrompath('./root/', function(err, root) {
+  getfile('./root/', function(err, root) {
     gotroot(err, root);
   });
 };
