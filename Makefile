@@ -19,11 +19,11 @@ startweb:
 
 clean:
 	@echo "clean"
-	@rm -rf $(TARGET)/* $(LOG)
+	@rm -rf $(TARGET) $(LOG)
 
 deploy:
 	@echo "deploy"
-	@cp -r $(WEB)/* $(TARGET)
+	@cp -rf $(WEB) $(TARGET)
   
 minify:
 	@echo "minify"
