@@ -1,5 +1,5 @@
 # Tree
-Collaborative file system.
+Collaborative operating system.
 
 ## Get it
 - Install [Node.js] (http://nodejs.org) & [JSMin] (http://www.crockford.com/javascript/jsmin.html).
