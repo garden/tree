@@ -1,0 +1,17 @@
+{
+  "author": "Thaddee Tyl <thaddee.tyl@gmail.com>",
+  "name": "camp",
+  "description": "easy webapps",
+  "version": "0.0.1",
+  "homepage": "http://espadrine.github.com/ScoutCamp/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/espadrine/ScoutCamp.git"
+  },
+  "main": "./camp",
+  "engines": {
+    "node": ">=0.4.9"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -123,7 +123,7 @@ function sync (client, delta, workingcopy, applylocally, send) {
 function getmodif (xhr, params) {
 
   params.open.url = '/$dispatch';
-  params.data.user = client.user;
+  params.data = {user: client.user};
   console.log ('dispatched');
   
   params.resp = function receiving (xhr, resp) {
@@ -152,7 +152,7 @@ function getmodif (xhr, params) {
     Scout2.send (getmodif) ();   // We relaunch the connection.
   };
 
-  params.error = function receiveerror(xhr, status) {
+  params.error = function receiveerror(status) {
     console.log('getmodif xhr error: status',status);
     var now = +new Date ();
     if (status === 0 && now - lastnetworkissue > 5000) {
@@ -172,7 +172,7 @@ var lastnetworkissue = 0;
 
 // We want to listen to the event of code modification.
 function sending (delta) {
-  return function (xhr, params) {
+  return function (params) {
 
     // If there was no modification, we do not do anything.
     if (delta.length === 0) { return; }
@@ -183,7 +183,7 @@ function sending (delta) {
       delta: delta
     };
 
-    params.open.url = '/$new';
+    params.action = 'new';
     
     // DEBUG
     console.log('sending: ' + JSON.stringify(params.data));
@@ -191,7 +191,7 @@ function sending (delta) {
       console.log ('sent');
     };
     
-    params.error = function senderror (xhr, status) {
+    params.error = function senderror (status) {
       console.log('send error: status',JSON.stringify(status));
     };
 
@@ -205,10 +205,10 @@ function sending (delta) {
 // Get the data.
 // WARNING: If there's a delay with codemirror, this might cause a problem.
 // Best is to place this call in an onLoad function.
-Scout.send (function (xhr, params) {
-  params.open.url = '/$data';
-  params.data.user = client.user;
-  params.resp = function (xhr, resp) {
+Scout.send (function (params) {
+  params.action = 'data';
+  params.data = {user: client.user};
+  params.resp = function (resp) {
     console.log ('got content');///
 
     client.copy = client.lastcopy = resp.data;
@@ -220,9 +220,9 @@ Scout.send (function (xhr, params) {
 
 // When we leave, tell the server.
 window.onunload = function () {
-  Scout.send (function (xhr, params) {
-    params.open.url = '/$kill';
-    params.data.user = client.user;
+  Scout.send (function (params) {
+    params.action = 'kill';
+    params.data = {user: client.user};
   }) ();
 };
 

@@ -1683,7 +1683,7 @@ if (!this.JSON) {
 var Scout = function(){};
 Scout = (function Scoutmaker () {
   
-  /* xhr is a closure. */
+  /* xhr is in a closure. */
   var xhr;
   if (window.XMLHttpRequest) {
     xhr = new XMLHttpRequest();
@@ -1703,10 +1703,10 @@ Scout = (function Scoutmaker () {
   
   var params = {
     data: {},
-    open: { method: 'POST' },
-    resp: function (xhr, resp) {},
-    error: function (xhr, status) {},
-    partial: function (xhr, raw, resp) {}
+    method: 'POST',
+    resp:    function (resp, xhr) {},
+    error:   function (status, xhr) {},
+    partial: function (raw, resp, xhr) {}
   };
 
   /* Convert object literal to xhr-sendable. */
@@ -1724,8 +1724,9 @@ Scout = (function Scoutmaker () {
   };
     
   var sendxhr = function (target, params) {
+    if (params.action)  { params.url = '/$' + params.action; }
     /* XHR stuff now. */
-    if (params.open.url) {
+    if (params.url) {
       /* We have somewhere to go to. */
       xhr.onreadystatechange = function () {
         switch (xhr.readyState) {
@@ -1736,27 +1737,27 @@ Scout = (function Scoutmaker () {
               try {
                 resp = JSON.parse(raw);
               } catch (e) {}
-              params.partial.apply(target, [xhr, raw, resp]);
+              params.partial.apply(target, [raw, resp, xhr]);
             }
             break;
           case 4:
             if (xhr.status === 200) {
               var resp = JSON.parse(xhr.responseText);
-              params.resp.apply(target, [xhr, resp]);
+              params.resp.apply(target, [resp, xhr]);
             } else {
-              params.error.apply(target, [xhr, xhr.status]);
+              params.error.apply(target, [xhr.status, xhr]);
             }
             break;
         }
       };
-      xhr.open(params.open.method,
-               params.open.url + (params.open.method === 'POST'? '':
-                                  '?' + toxhrsend(params.data)),
+      xhr.open(params.method,
+               params.url + (params.method === 'POST'? '':
+                             '?' + toxhrsend(params.data)),
                true,
-               params.open.user,
-               params.open.password);
+               params.user,
+               params.password);
       
-      if (params.open.method === 'POST') {
+      if (params.method === 'POST') {
         xhr.setRequestHeader('Content-Type',
                              'application/x-www-form-urlencoded');
         xhr.send(toxhrsend(params.data));
@@ -1768,7 +1769,7 @@ Scout = (function Scoutmaker () {
 
   var onprop = function (eventName, before) {
     /* Defaults. */
-    before = before || function (xhr, e, params) {};
+    before = before || function (params, e, xhr) {};
     
     /* Event Listener callback. */
     var listenerfunc = function (e) {
@@ -1785,7 +1786,7 @@ Scout = (function Scoutmaker () {
       if (e.stopPropagation) e.stopPropagation();*/
       
       /* User action before xhr send. */
-      before.apply(target, [xhr, e, params]);
+      before.apply(target, [params, e, xhr]);
       
       sendxhr(target, params);
     };
@@ -1812,10 +1813,10 @@ Scout = (function Scoutmaker () {
     return domelt;
   };
   ret.send = function (before) {
-    before = before || function (xhr, params) {};
+    before = before || function (params, xhr) {};
 
     return function () {
-      before.apply(undefined, [xhr, params]);
+      before.apply(undefined, [params, xhr]);
       sendxhr(undefined, params);
     };
   };

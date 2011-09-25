@@ -51,11 +51,11 @@ must trigger an XHR(XML Http Request) when a specific event is fired. This is
 what you do, most of the time, anyway. Otherwise, it is also easy to attach an
 XHR upon a "setTimeout", and so on.
 
-    Scout ( '#id-of-element' ).on ( 'click', function (xhr, evt, params) {
-      params.open.url = '/$getinfo';
+    Scout ( '#id-of-element' ).on ( 'click', function (params, evt, xhr) {
+      params.action = 'getinfo';
       var sent = this.parentNode.textContent;
       params.data = { ready: true, data: sent };
-      params.resp = function ( xhr, resp ) {
+      params.resp = function ( resp, xhr ) {
         if (resp.data === sent) {
           console.log ('Got exactly what we sent.');
         }
@@ -172,6 +172,9 @@ Default macros are the following:
   which you can extend if need be). Default parsers (self-explanatory):
    * plain (text)
    * html (text)
+   * xml (text)
+   * xmlattr (text)
+   * jsonstring (text)
    * uri (text)
    * !uri (text)
    * integer (text)

@@ -2,10 +2,25 @@
 # Copyright (c) 2011 Jan Keromnes, Yann Tyl. All rights reserved.
 # Code covered by the LGPL license.
 
+# Please change those settings to your preferred choice.
+
+# The JS minifier. Change the order to your convenience.
+# Note: you must create google-closure.sh yourself if you want it.
+# It must have some JS in stdin, and must produce the result on stdout.
+JSMIN = uglifyjs jsmin google-closure.sh
+
+# The output of console.log statements goes in this file when you `make`.
+# Note: when you `make nodeploy`, the output appears on the console.
 LOG = node.log
+
+# The name you gave your main server file.
 SERVER = server.js
+
+# The folders where your minified, production-ready code rests.
 TARGET = publish
-JSMIN = jsmin
+
+# This is no longer the settings section.
+
 MIN = min
 WEB = web
 
@@ -23,18 +38,21 @@ clean:
 
 deploy:
 	@echo "deploy"
-	@cp -rf $(WEB) $(TARGET)
+	@if [ ! -d $(TARGET) ]; then mkdir $(TARGET); fi
+	@cp -r $(WEB)/* $(TARGET)
   
 minify:
 	@echo "minify"
-	@if which jsmin > /dev/null;  \
-	then  \
-	  for file in `find $(TARGET) -name '*\.js'`;  \
-	  do  \
-	    cat "$${file}" | $(JSMIN) > "$${file}$(MIN)";  \
+	@for ajsmin in $(JSMIN); do  \
+	  if which $$ajsmin > /dev/null; then chosenjsmin=$$ajsmin; break; fi;  \
+	done;  \
+	if [ "$$chosenjsmin" == "" ]; then  \
+	echo " Please install uglifyjs [https://github.com/mishoo/UglifyJS/] for minification.";  \
+	else  \
+	  for file in `find $(TARGET) -name '*\.js'`; do  \
+	    $$chosenjsmin < "$${file}" > "$${file}$(MIN)";  \
 	    mv "$${file}$(MIN)" "$${file}";  \
 	  done;  \
-	else echo "Please install jsmin [http://www.crockford.com/javascript/jsmin.c]\n  to get minification.";  \
 	fi
 
 start:
