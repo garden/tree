@@ -4,11 +4,6 @@
 
 var Camp = require ('./lib/camp.js');
 
-Camp.handle (/\/root\/(.*)/, function (query, path) {
-  path[0] = '/pencil.html';
-});
-
-
 // All data currently available in memory will be stored here.
 //
 
@@ -17,6 +12,7 @@ exports.fs = undefined;
 var nodefs = require ('fs'),
     nodepath = require ('path');
 
+var rootdir = '../root';  // directory that contains the root of the fs.
 
 // Type system.
 //
@@ -79,7 +75,7 @@ type ('image/svg', [types['text/plain']]);
  *     var f = new File ( 'text/plain', 'myfile', function(whengot) {
  *       …
  *       var data = whatever ();
- *       whengot ( undefined, data );
+ *       whengot ( err, data );
  *     });
  *
  * File::type is the type of the file.  
@@ -87,33 +83,25 @@ type ('image/svg', [types['text/plain']]);
  * File::content is a function which you feed `function(err, content) {…}`.
  */
 var File = function (type, name, getcontent) {
-  this.type = types(type) || types('text/plain');
+  this.type = types[type] || types['text/plain'];
   this.name = name;
   this._gotcontent = false;
   this._content;
   this.content = function memoizer(dowithcontent) {
     if (!this._gotcontent) {
-      this._gotcontent = true;
+      var that = this;
       getcontent(function(err, content) {
         // Give them the data.
         dowithcontent(err, content);
-        this._content = content;
+        if (!err) {
+          that._content = content;
+          that._gotcontent = true;
+        }
       });
     } else {
-      dowithcontent(err, this._content);
+      dowithcontent(undefined, this._content);
     }
   };
-};
-
-/// Getting one file from the directory.
-/// Currently broken. Do not use.
-var fileindir = function (directory, file) {
-  for (var file in filesindir (directory)) {
-    if (file.name === file) {
-      return file;
-    }
-  }
-  return new File ('notfound', '', function(whengot){ whengot(undefined,''); });
 };
 
 
@@ -125,7 +113,7 @@ var fileindir = function (directory, file) {
  */
 var torealpath = function (path) {
   path = nodepath.relative ('.', path).replace (/^(\.\.\/?)+/, '');
-  return nodepath.join (process.cwd(), path);
+  return nodepath.join (process.cwd(), rootdir, path);
 };
 
 /* This hashmap registers all files ever asked for.
@@ -142,6 +130,7 @@ var getfile = exports.getfile = function (path, callback) {
   // If this file is already in memory, return that.
   if (fsfiles[realpath] !== undefined) {
     callback(undefined, fsfiles[realpath]);
+    return;
   }
 
   nodefs.stat (realpath, function (err, stats) {
@@ -155,18 +144,24 @@ var getfile = exports.getfile = function (path, callback) {
           nodefs.readdir (realpath, function (err, files) {
             if (!err) {
               var content = {};
-              for (var i = 0; i < files; i++) {
+              for (var i = 0; i < files.length; i++) {
+                // We now wish to get all files before giving the result.
+                // We use a decrement to trace this.
+                var fileslefttoprocess = files.length;
                 getfile (
-                  nodepath.join (path, content[files[i]]),
+                  nodepath.join (path, files[i]),
                   function (err, file) {
+                    fileslefttoprocess--;
                     if (!err) {
                       // We put each file in the content.
-                      content[files[i]] = file;
+                      content[file.name] = file;
+                      if (fileslefttoprocess === 0) {
+                        whengotfile (undefined, content);
+                      }
                     }
                   }
                 );
               }
-              whengotfile (undefined, content);
             } else {
               whengotfile (err);
             }
@@ -232,7 +227,7 @@ var addfiletodir = function (file, directory) {
 // `exports.root` is a file of type `dir`, which is here initialized to the
 // contents of the `/root/` folder (named `/` in here).
 exports.getroot = function (gotroot) {
-  getfile('./root/', function(err, root) {
+  getfile('/', function(err, root) {
     gotroot(err, root);
   });
 };

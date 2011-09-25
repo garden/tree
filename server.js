@@ -1,5 +1,5 @@
 /* server.js: run this with Node.js in the publish/ folder to start your server.
- * Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+ * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
 /* Lauching the server. */
@@ -10,6 +10,14 @@ var Camp = require ('./lib/camp.js');
 // FILE-SYSTEM ACCESS
 //
 
+// Redirection of `http://<DNS>.tld/root/something`
+// to look for `/root/something`.
+Camp.handle (/\/root\/(.*)/, function (query, path) {
+  path[0] = '/pencil.html';
+  // TODO
+});
+
+
 var root;
 var arbor = require ('./fs');
 arbor.getroot (function (err, fsroot) {
@@ -17,13 +25,15 @@ arbor.getroot (function (err, fsroot) {
 });
 
 Camp.add ('fs', function (query) {
-  var data;
+  var data = {};
   switch (query['op']) {
     case 'ls':
     case 'cat':
       arbor.getfile (query['path'], function (err, dir) {
-        arbor.content (function (err, content) {
-          data = content;
+        if (err) console.error(err);
+        dir.content (function (err, content) {
+          if (err) console.error(err);
+          data.dir = content;
           Camp.Server.emit ('fs');
         });
       });
