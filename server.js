@@ -1,6 +1,55 @@
 /* server.js: run this with Node.js in the publish/ folder to start your server.
- * Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+ * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
+
+/* Lauching the server. */
+
+var Camp = require ('./lib/camp.js');
+
+
+// FILE-SYSTEM ACCESS
+//
+
+// Redirection of `http://<DNS>.tld/root/something`
+// to look for `/root/something`.
+Camp.handle (/\/root\/(.*)/, function (query, path) {
+  path[0] = '/pencil.html';
+  // TODO
+});
+
+
+var root;
+var arbor = require ('./fs');
+arbor.getroot (function (err, fsroot) {
+  root = fsroot;
+});
+
+Camp.add ('fs', function (query) {
+  var data = {};
+  switch (query['op']) {
+    case 'ls':
+    case 'cat':
+      arbor.getfile (query['path'], function (err, dir) {
+        if (err) console.error(err);
+        dir.content (function (err, content) {
+          if (err) console.error(err);
+          data.dir = content;
+          Camp.Server.emit ('fs');
+        });
+      });
+      break;
+    default:
+      return {};
+  }
+  return function fs () {
+    return data || {};
+  };
+});
+
+
+// REAL-TIME COLLABORATION
+//
+
 
 var COPY = "<!doctype html>\n<title><\/title>\n\n<body>\n  <canvas id=tutorial width=150 height=150><\/canvas>\n\n  <script>\n    var canvas = document.getElementById('tutorial');\n    var context = canvas.getContext('2d');\n\n    context.fillStyle = 'rgb(250,0,0)';\n    context.fillRect(10, 10, 55, 50);\n\n    context.fillStyle = 'rgba(0, 0, 250, 0.5)';\n    context.fillRect(30, 30, 55, 50);\n  <\/script>\n<\/body>";
 
@@ -52,11 +101,6 @@ function sync (client, delta, workingcopy, applylocally, send) {
   }
 }
 
-
-
-/* Lauching the server. */
-
-var Camp = require ('./lib/camp.js');
 
 
 // Buffering modifications.

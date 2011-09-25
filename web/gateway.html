@@ -2,10 +2,33 @@
 <meta charset=utf-8>
 <title>Our Awesome Search Engine</title>
 
-<script src=/js/fuzzy.js></script>
+<form id=req action="javascript:void 0">
+  <input id=pathreq value="/">
+</form>
+<pre id=resp></pre>
 
-<body>
+<script src="/js/scout.js"></script>
 
+<script>(function(){
 
+  var getfs = function (xhr, params) {
+    console.log('getfs[op:ls,path:' + Scout('#pathreq').value + ']');
+    params.open.url = '$fs';
+    params.data = {op:'ls', path:Scout('#pathreq').value};
+    params.resp = function (xhr, resp) {
+      console.log(resp.dir);
+      Scout('#resp').textContent = JSON.stringify (resp.dir);
+    };
+  };
+  window.onload = function (event) { Scout.send (getfs) (); };
+  Scout('#req').on('submit', function (xhr, e, params) {
+    console.log('getfs[op:ls,path:' + Scout('#pathreq').value + ']');
+    params.open.url = '$fs';
+    params.data = {op:'ls', path:Scout('#pathreq').value};
+    params.resp = function (xhr, resp) {
+      console.log(resp.dir);
+      Scout('#resp').textContent = JSON.stringify (resp.dir);
+    };
+  });
 
-</body>
+})()</script>
