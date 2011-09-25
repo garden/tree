@@ -31,6 +31,9 @@
 
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
+  .CodeMirror-scroll {
+    height: 100%;
+  }
 </style>
 
 <body>
@@ -39,10 +42,8 @@
     // Create a CodeMirror2 editor.
     editor = CodeMirrorPlug(document.body, {
       value: window.client.lastcopy,
-      height: "100%",
-      width: "100%",
       mode: "text/html",
-      tabMode: "indent"
+      tabMode: "shift"
     });
 
   </script>
