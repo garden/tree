@@ -28,7 +28,7 @@ var CodeMirror = (function() {
           '<div style="position: relative">' + // Moved around its parent to cover visible view
             '<div class="CodeMirror-gutter"><div class="CodeMirror-gutter-text"></div></div>' +
             // Provides positioning relative to (visible) text origin
-            '<div class="CodeMirror-lines"><div style="position: relative">' +
+            '<div class="CodeMirror-lines"><div style="position: relative" draggable="true">' +
               '<pre class="CodeMirror-cursor">&#160;</pre>' + // Absolutely positioned blinky cursor
               '<div></div>' + // This DIV contains the actual code
             '</div></div></div></div></div>';
@@ -60,7 +60,7 @@ var CodeMirror = (function() {
     // whether the user is holding shift. reducedSelection is a hack
     // to get around the fact that we can't create inverted
     // selections. See below.
-    var shiftSelecting, reducedSelection, lastDoubleClick;
+    var shiftSelecting, reducedSelection, lastClick, lastDoubleClick;
     // Variables used by startOperation/endOperation to track what
     // happened during the operation.
     var updateInput, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
@@ -80,11 +80,11 @@ var CodeMirror = (function() {
 
     // Register our event handlers.
     connect(scroller, "mousedown", operation(onMouseDown));
+    connect(lineSpace, "dragstart", onDragStart);
     // Gecko browsers fire contextmenu *after* opening the menu, at
     // which point we can't mess with it anymore. Context menu is
     // handled in onMouseDown for Gecko.
     if (!gecko) connect(scroller, "contextmenu", onContextMenu);
-    connect(code, "dblclick", operation(onDblClick));
     connect(scroller, "scroll", function() {
       updateDisplay([]);
       if (options.fixedGutter) gutter.style.left = scroller.scrollLeft + "px";
@@ -238,7 +238,7 @@ var CodeMirror = (function() {
       // Check whether this is a click in a widget
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == code && n != mover) return;
-      var ld = lastDoubleClick; lastDoubleClick = null;
+
       // First, see if this is a click in the gutter
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == gutterText) {
@@ -263,18 +263,25 @@ var CodeMirror = (function() {
       if (!start) {if (e_target(e) == scroller) e_preventDefault(e); return;}
 
       if (!focused) onFocus();
-      e_preventDefault(e);
-      if (ld && +new Date - ld < 400) return selectLine(start.line);
+      
+      var now = +new Date;
+      if (lastDoubleClick > now - 400) {
+        e_preventDefault(e);
+        return selectLine(start.line);
+      } else if (lastClick > now - 400) {
+        lastDoubleClick = now;
+        e_preventDefault(e);
+        return selectWordAt(start);
+      } else { lastClick = now; }
 
-      setCursor(start.line, start.ch, true);
       var last = start, going;
-      // And then we have to see if it's a drag event, in which case
-      // the dragged-over text must be selected.
-      function end() {
-        focusInput();
-        updateInput = true;
-        move(); up();
+      if (dragAndDrop && !posLess(start, sel.from) && !posLess(sel.to, start)) {
+        // Let the drag handler handle this.
+        return;
       }
+      e_preventDefault(e);
+      setCursor(start.line, start.ch, true);
+
       function extend(e) {
         var cur = posFromMouse(e, true);
         if (cur && !posEq(cur, last)) {
@@ -298,15 +305,10 @@ var CodeMirror = (function() {
         var cur = posFromMouse(e);
         if (cur) setSelectionUser(start, cur);
         e_preventDefault(e);
-        end();
+        focusInput();
+        updateInput = true;
+        move(); up();
       }), true);
-    }
-    function onDblClick(e) {
-      var pos = posFromMouse(e);
-      if (!pos) return;
-      selectWordAt(pos);
-      e_preventDefault(e);
-      lastDoubleClick = +new Date;
     }
     function onDrop(e) {
       e.preventDefault();
@@ -331,6 +333,13 @@ var CodeMirror = (function() {
         }
         catch(e){}
       }
+    }
+    function onDragStart(e) {
+      var txt = getSelection();
+      // This will reset escapeElement
+      htmlEscape(txt);
+      e.dataTransfer.setDragImage(escapeElement, 0, 0);
+      e.dataTransfer.setData("Text", txt);
     }
     function onKeyDown(e) {
       if (!focused) onFocus();
@@ -904,7 +913,8 @@ var CodeMirror = (function() {
     function updateCursor() {
       var head = sel.inverted ? sel.from : sel.to, lh = lineHeight();
       var x = charX(head.line, head.ch);
-      inputDiv.style.top = (head.line * lh - scroller.scrollTop) + "px";
+      var top = head.line * lh - scroller.scrollTop;
+      inputDiv.style.top = Math.max(Math.min(top, scroller.offsetHeight), 0) + "px";
       inputDiv.style.left = (x - scroller.scrollLeft) + "px";
       if (posEq(sel.from, sel.to)) {
         cursor.style.top = (head.line - showingFrom) * lh + "px";
@@ -1616,7 +1626,7 @@ var CodeMirror = (function() {
   CodeMirror.listMIMEs = function() {
     var list = [];
     for (var m in mimeModes)
-      if (mimeModes.propertyIsEnumerable(m)) list.push(m);
+      if (mimeModes.propertyIsEnumerable(m)) list.push({mime: m, mode: mimeModes[m]});
     return list;
   };
 
@@ -1999,6 +2009,15 @@ var CodeMirror = (function() {
     pre.innerHTML = " "; return !pre.innerHTML;
   })();
 
+  // Detect drag-and-drop
+  var dragAndDrop = (function() {
+    // IE8 has ondragstart and ondrop properties, but doesn't seem to
+    // actually support ondragstart the way it's supposed to work.
+    if (/MSIE [1-8]\b/.test(navigator.userAgent)) return false;
+    var div = document.createElement('div');
+    return "ondragstart" in div && "ondrop" in div;
+  })();
+
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
   var safari = /Apple Computer/.test(navigator.vendor);
@@ -2174,5 +2193,4 @@ var CodeMirror = (function() {
   CodeMirror.defineMIME("text/plain", "null");
 
   return CodeMirror;
-})()
-;
+})();
