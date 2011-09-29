@@ -45,13 +45,13 @@ minify:
 	@for ajsmin in $(JSMIN); do  \
 	  if which $$ajsmin > /dev/null; then chosenjsmin=$$ajsmin; break; fi;  \
 	done;  \
-	if [ "$$chosenjsmin" == "" ]; then  \
-	echo " Please install uglifyjs [https://github.com/mishoo/UglifyJS/] for minification.";  \
-	else  \
+	if which $$chosenjsmin > /dev/null ; then  \
 	  for file in `find $(TARGET) -name '*\.js'`; do  \
 	    $$chosenjsmin < "$${file}" > "$${file}$(MIN)";  \
 	    mv "$${file}$(MIN)" "$${file}";  \
 	  done;  \
+	else  \
+	  echo " Please install uglifyjs [https://github.com/mishoo/UglifyJS/] for minification.";  \
 	fi
 
 start:
