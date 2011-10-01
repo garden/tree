@@ -80,6 +80,7 @@ var CodeMirror = (function() {
 
     // Register our event handlers.
     connect(scroller, "mousedown", operation(onMouseDown));
+    connect(scroller, "dblclick", operation(onDoubleClick));
     connect(lineSpace, "dragstart", onDragStart);
     // Gecko browsers fire contextmenu *after* opening the menu, at
     // which point we can't mess with it anymore. Context menu is
@@ -103,8 +104,8 @@ var CodeMirror = (function() {
     connect(scroller, "paste", function(){focusInput(); fastPoll();});
     connect(input, "paste", function(){fastPoll();});
     connect(input, "cut", function(){fastPoll();});
-    
-    // IE throws unspecified error in certain cases, when 
+
+    // IE throws unspecified error in certain cases, when
     // trying to access activeElement before onload
     var hasFocus; try { hasFocus = (targetDocument.activeElement == input); } catch(e) { }
     if (hasFocus) setTimeout(onFocus, 20);
@@ -248,7 +249,7 @@ var CodeMirror = (function() {
         }
 
       var start = posFromMouse(e);
-      
+
       switch (e_button(e)) {
       case 3:
         if (gecko && !mac) onContextMenu(e);
@@ -263,7 +264,7 @@ var CodeMirror = (function() {
       if (!start) {if (e_target(e) == scroller) e_preventDefault(e); return;}
 
       if (!focused) onFocus();
-      
+
       var now = +new Date;
       if (lastDoubleClick > now - 400) {
         e_preventDefault(e);
@@ -275,8 +276,17 @@ var CodeMirror = (function() {
       } else { lastClick = now; }
 
       var last = start, going;
-      if (dragAndDrop && !posLess(start, sel.from) && !posLess(sel.to, start)) {
+      if (dragAndDrop && !posEq(sel.from, sel.to) &&
+          !posLess(start, sel.from) && !posLess(sel.to, start)) {
         // Let the drag handler handle this.
+        var up = connect(targetDocument, "mouseup", operation(function(e2) {
+          up();
+          if (Math.abs(e.clientX - e2.clientX) + Math.abs(e.clientY - e2.clientY) < 10) {
+            e_preventDefault(e2);
+            setCursor(start.line, start.ch, true);
+            focusInput();
+          }
+        }), true);
         return;
       }
       e_preventDefault(e);
@@ -309,6 +319,13 @@ var CodeMirror = (function() {
         updateInput = true;
         move(); up();
       }), true);
+    }
+    function onDoubleClick(e) {
+      var start = posFromMouse(e);
+      if (!start) return;
+      lastDoubleClick = +new Date;
+      e_preventDefault(e);
+      selectWordAt(start);
     }
     function onDrop(e) {
       e.preventDefault();
@@ -754,7 +771,7 @@ var CodeMirror = (function() {
             intact2.push(range);
           else {
             if (change.from > range.from)
-              intact2.push({from: range.from, to: change.from, domStart: range.domStart})
+              intact2.push({from: range.from, to: change.from, domStart: range.domStart});
             if (change.to < range.to)
               intact2.push({from: change.to + diff, to: range.to + diff,
                             domStart: range.domStart + (change.to - range.from)});
@@ -1254,7 +1271,7 @@ var CodeMirror = (function() {
         prepareInput();
         slowPoll();
       }
-      
+
       if (gecko) {
         e_stop(e);
         var mouseup = connect(window, "mouseup", function() {
@@ -1863,10 +1880,10 @@ var CodeMirror = (function() {
         span(" ", sfrom != null && sto == null ? "CodeMirror-selected" : null);
       else if (!marked && sfrom == null)
         for (var i = 0, ch = 0; ch < len; i+=2) {
-          var str = st[i], l = str.length;
+          var str = st[i], style = st[i+1], l = str.length;
           if (ch + l > len) str = str.slice(0, len - ch);
           ch += l;
-          span(str, "cm-" + st[i+1]);
+          span(str, style && "cm-" + style);
         }
       else {
         var pos = 0, i = 0, text = "", style, sg = 0;
