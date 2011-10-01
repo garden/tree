@@ -148,11 +148,13 @@ Camp.add ('new', function addnewstuff (query) {
   // Change our copy.
   console.log ('--sync', query.delta);
   var newdelta = query.delta;
-  sync (users[query.user], query.delta, COPY, function(patch) {
-    return COPY = dmp.patch_apply (patch, COPY) [0];
-  }, function(delta) {
-    newdelta = delta;
-  });
+  try {
+    sync (users[query.user], query.delta, COPY, function(patch) {
+      return COPY = dmp.patch_apply (patch, COPY) [0];
+    }, function(delta) {
+      newdelta = delta;
+    });
+  } catch (e) { console.error(e.message); console.trace(e); return {error:1};}
   var newresp = {user: query.user, delta: newdelta, rev: query.rev};
   Camp.Server.emit ('modif', newresp);
 
