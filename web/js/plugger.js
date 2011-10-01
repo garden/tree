@@ -120,13 +120,13 @@ function sync (client, delta, workingcopy, applylocally, send) {
 
 // Whenever we load the page, we shall send nothing to
 // the "in" action of the server.
-function getmodif (xhr, params) {
+function getmodif (params) {
 
-  params.open.url = '/$dispatch';
+  params.action = 'dispatch';
   params.data = {user: client.user};
   console.log ('dispatched');
   
-  params.resp = function receiving (xhr, resp) {
+  params.resp = function receiving (resp) {
     // We received new information from a collaborator!
     // (this can be fired a long time after the enclosing function.)
 
@@ -205,18 +205,20 @@ function sending (delta) {
 // Get the data.
 // WARNING: If there's a delay with codemirror, this might cause a problem.
 // Best is to place this call in an onLoad function.
-Scout.send (function (params) {
-  params.action = 'data';
-  params.data = {user: client.user};
-  params.resp = function (resp) {
-    console.log ('got content');///
+window.addEventListener('DOMContentLoaded', function () {
+  Scout.send (function (params) {
+    params.action = 'data';
+    params.data = {user: client.user};
+    params.resp = function (resp) {
+      console.log ('got content');///
 
-    client.copy = client.lastcopy = resp.data;
-    plug.onnewcontent (client.copy);
+      client.copy = client.lastcopy = resp.data;
+      plug.onnewcontent (client.copy);
 
-    Scout2.send (getmodif) ();      // Make the first dispatch link.
-  };
-}) ();
+      Scout2.send (getmodif) ();      // Make the first dispatch link.
+    };
+  }) ();
+}, false);
 
 // When we leave, tell the server.
 window.onunload = function () {
