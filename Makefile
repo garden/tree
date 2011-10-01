@@ -51,7 +51,7 @@ minify:
 	    mv "$${file}$(MIN)" "$${file}";  \
 	  done;  \
 	else  \
-	  echo " Please install uglifyjs [https://github.com/mishoo/UglifyJS/] for minification.";  \
+	  echo " Please install uglifyjs [git://github.com/mishoo/UglifyJS/] for minification.";  \
 	fi
 
 start:
