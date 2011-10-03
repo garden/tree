@@ -11,7 +11,7 @@ Collaborative Operating System.
 - Enjoy!
 
 ## Contribute
-- Watch & open [issues] (http://github.com/garden/tree/issues)
+- Open [issues] (http://github.com/garden/tree/issues)
 - Send [pull requests] (http://help.github.com/send-pull-requests)
 - Contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
