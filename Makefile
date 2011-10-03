@@ -72,6 +72,12 @@ update:
 	@cp ScoutCamp/web/js/scout.js ./web/js/scout.js
 	@rm -rf ScoutCamp/
 
+jsmin:
+	@if [ `id -u` = "0" ] ;  \
+	  then  wget "http://crockford.com/javascript/jsmin.c" && gcc -o /usr/bin/jsmin jsmin.c ;  \
+	        rm -rf jsmin.c ;  \
+	  else echo "sudo make jsmin"; fi
+
 help:
 	@cat Makefile | less
 
