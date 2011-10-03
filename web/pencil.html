@@ -11,33 +11,17 @@
 <script src=/cm/lib/codemirror.js></script>
 <script src=/cm/codemirror.plug.js></script>
 
-<script src=/cm/mode/clike/clike.js></script>
-<script src=/cm/mode/clojure/clojure.js></script>
-<script src=/cm/mode/coffeescript/coffeescript.js></script>
+{{# lang = `ls /cm/mode/` = (for now)
+clike clojure coffeescript css diff haskell javascript jinja2 lua markdown
+ntriples pascal php plsql python r rst ruby scheme smalltalk sparql stex
+velocity xml xmlpure yaml htmlmixed}}
+
+{{? lang == "htmlmixed" |
 <script src=/cm/mode/css/css.js></script>
-<script src=/cm/mode/diff/diff.js></script>
-<script src=/cm/mode/haskell/haskell.js></script>
 <script src=/cm/mode/javascript/javascript.js></script>
-<script src=/cm/mode/jinja2/jinja2.js></script>
-<script src=/cm/mode/lua/lua.js></script>
-<script src=/cm/mode/markdown/markdown.js></script>
-<script src=/cm/mode/ntriples/ntriples.js></script>
-<script src=/cm/mode/pascal/pascal.js></script>
-<script src=/cm/mode/php/php.js></script>
-<script src=/cm/mode/plsql/plsql.js></script>
-<script src=/cm/mode/python/python.js></script>
-<script src=/cm/mode/r/r.js></script>
-<script src=/cm/mode/rst/rst.js></script>
-<script src=/cm/mode/ruby/ruby.js></script>
-<script src=/cm/mode/scheme/scheme.js></script>
-<script src=/cm/mode/smalltalk/smalltalk.js></script>
-<script src=/cm/mode/sparql/sparql.js></script>
-<script src=/cm/mode/stex/stex.js></script>
-<script src=/cm/mode/velocity/velocity.js></script>
 <script src=/cm/mode/xml/xml.js></script>
-<script src=/cm/mode/xmlpure/xmlpure.js></script>
-<script src=/cm/mode/yaml/yaml.js></script>
-<script src=/cm/mode/htmlmixed/htmlmixed.js></script>
+}}
+<script src=/cm/mode/{{=lang|text}}/{{=lang|text}}.js></script>
 
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
@@ -51,8 +35,8 @@
   
     // Create a CodeMirror2 editor.
     editor = CodeMirrorPlug(document.body, {
-      value: window.client.lastcopy,
-      mode: "text/html",
+      value: "{{=content|jsonstring}}",
+      mode: "{{=mime|mimetype}}",
       tabMode: "shift"
     });
 
