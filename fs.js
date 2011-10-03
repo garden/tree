@@ -18,6 +18,8 @@ var rootdir = '../root';  // directory that contains the root of the fs.
 //
 
 var types = [];        // contains lists of parent types (all being integers).
+var typenamefromtype = [];
+exports.typenamefromtype = typenamefromtype;
 var type = (function () {
   var mime = {};       // contains link between mime type and integer.
   var nbtypes = 0;     // number of different types.
@@ -29,8 +31,9 @@ var type = (function () {
     if (mime[newtype] !== undefined) {
       return mime[newtype];
     } else {
-      types.push (parents);
+      types.push (parents || []);
       mime[newtype] = nbtypes;
+      typenamefromtype.push (newtype);
       return nbtypes++;
     }
   };
@@ -41,25 +44,46 @@ type ('notfound');
 type ('dir');            // contains a JSON string of files.
 type ('binary');
 type ('text/plain');
-type ('text/html', [types['text/plain']]);
-type ('text/xml', [types['text/plain']]);
-type ('text/css', [types['text/plain']]);
-type ('text/dtd', [types['text/plain']]);
+type ('text/html', [type('text/plain')]);
+type ('text/xml', [type('text/plain')]);
+type ('text/css', [type('text/plain')]);
+type ('text/dtd', [type('text/plain')]);
 
-type ('application/javascript', [types['text/plain']]);
-type ('application/json', [types['text/plain']]);
-type ('text/csv', [types['text/plain']]);
+type ('application/javascript', [type('text/plain')]);
+type ('application/json', [type('text/plain')]);
+type ('text/csv', [type('text/plain')]);
 
-type ('application/ps', [types['binary']]);
-type ('application/pdf', [types['binary'], types['application/ps']]);
+type ('application/ps', [type('binary')]);
+type ('application/pdf', [type('binary'), type('application/ps')]);
 
-type ('image/jpeg', [types['binary']]);
-type ('image/tiff', [types['binary']]);
-type ('image/gif', [types['binary']]);
-type ('image/vnd.microsoft.icon', [types['binary']]);
-type ('image/png', [types['binary']]);
-type ('image/svg', [types['text/plain']]);
+type ('image/jpeg', [type('binary')]);
+type ('image/tiff', [type('binary')]);
+type ('image/gif', [type('binary')]);
+type ('image/vnd.microsoft.icon', [type('binary')]);
+type ('image/png', [type('binary')]);
+type ('image/svg', [type('text/plain')]);
 
+
+// Here is the main interface to this whole type system.
+
+// Checks whether a `file` is of type `typename` (or falls back into it).
+//
+// `file`: a File.  
+// `typename`: a string, case-perfect match of a defined type.  
+//
+// Warning: this is not *cycle-safe* just yet. This is only an issue if you
+// have mistakenly created a loop. It can really screw everything up though.
+exports.isoftype = function isoftype (file, typename) {
+  return iscompatibletype(file.type, type(typename));
+};
+function iscompatibletype (typenum, ancestor) {
+  if (typenum === ancestor)
+    return true;
+  for (var i = 0;  i < types[typenum].length;  i++)
+    if (iscompatibletype(types[typenum][i], ancestor))
+      return true;
+  return false;
+};
 
 
 
@@ -82,8 +106,8 @@ type ('image/svg', [types['text/plain']]);
  * File::name is the name of the file (supposedly doesn't contain `/`)  
  * File::content is a function which you feed `function(err, content) {…}`.
  */
-var File = function (type, name, getcontent) {
-  this.type = types[type] || types['text/plain'];
+var File = exports.File = function (typename, name, getcontent) {
+  this.type = type(typename) || type('text/plain');
   this.name = name;
   this._gotcontent = false;
   this._content;

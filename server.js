@@ -14,7 +14,32 @@ var Camp = require ('./lib/camp.js');
 // to look for `/root/something`.
 Camp.handle (/\/root\/(.*)/, function (query, path) {
   path[0] = '/pencil.html';
-  // TODO
+
+  var data = {};
+  // TODO: in the future, this will be the #plug system.
+  // If they want a directory, load gateway.
+  arbor.getfile (path[1], function (err, file) {
+    if (err) console.error(err);
+    if (arbor.isoftype(file, 'text/plain')) {
+      file.content (function (err, content) {
+        if (err) console.error(err);
+        data.lang = 'htmlmixed';
+        var mime = arbor.typenamefromtype[file.type];
+        if (mime === 'text/html')  { data.lang = 'htmlmixed'; }
+        data.mime = mime;
+        data.content = content;
+        Camp.Server.emit ('fsplugged');
+      });
+    } else if (arbor.isoftype(file, 'dir')) {
+      file.content (function (err, content) {
+        if (err) console.error(err);
+        data.dir = content;
+        Camp.Server.emit ('fsplugged');
+      });
+    }
+  });
+
+  return function fsplugged () { console.log('hello!');console.log(data); return data; };
 });
 
 

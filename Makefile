@@ -1,5 +1,5 @@
 # Makefile: Publish your website and start/stop your server.
-# Copyright (c) 2011 Jan Keromnes, Yann Tyl. All rights reserved.
+# Copyright © 2011 Jan Keromnes, Yann Tyl. All rights reserved.
 # Code covered by the LGPL license.
 
 # Please change those settings to your preferred choice.
@@ -39,7 +39,7 @@ clean:
 deploy:
 	@echo "deploy"
 	@cp -rf $(WEB) $(TARGET)
-  
+
 minify:
 	@echo "minify"
 	@for ajsmin in $(JSMIN); do  \
@@ -61,7 +61,7 @@ start:
 stop:
 	@echo "stop"
 	@for pid in `ps aux | grep -v make | grep node | grep $(SERVER) | awk '{print $$2}'` ; do sudo kill -9 $$pid 2> /dev/null ; done;
-	
+
 test:
 	node test/test-plate.js
 
@@ -74,7 +74,7 @@ update:
 
 help:
 	@cat Makefile | less
-	
+
 ?: help
 
 wtf: help
