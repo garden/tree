@@ -21,6 +21,7 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
   arbor.getfile (path[1], function (err, file) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
+      path[0] = '/pencil.html';
       file.content (function (err, content) {
         if (err) console.error(err);
         data.lang = 'htmlmixed';
@@ -30,16 +31,25 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
         data.content = content;
         Camp.Server.emit ('fsplugged');
       });
+
     } else if (arbor.isoftype(file, 'dir')) {
+      path[0] = '/gateway.html';
       file.content (function (err, content) {
         if (err) console.error(err);
         data.dir = content;
+        data.files = [];
+        data.filenames = [];
+        for (var file in content) {
+          data.files.push('./' + file);
+          data.filenames.push(file);
+        }
+        console.log(data.filenames);
         Camp.Server.emit ('fsplugged');
       });
     }
   });
 
-  return function fsplugged () { console.log('hello!');console.log(data); return data; };
+  return function fsplugged () { return data; };
 });
 
 
