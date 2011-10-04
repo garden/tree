@@ -26,7 +26,7 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
         if (err) console.error(err);
         data.lang = 'htmlmixed';
         var mime = arbor.typenamefromtype[file.type];
-        if (mime === 'text/html')  { data.lang = 'htmlmixed'; }
+        if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
         data.mime = mime;
         data.content = content;
         Camp.Server.emit ('fsplugged');
