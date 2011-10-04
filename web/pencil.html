@@ -4,6 +4,11 @@
 
 <link rel=stylesheet href=/cm/lib/codemirror.css>
 <link rel=stylesheet href=/cm/theme/default.css>
+<link rel=stylesheet href=/cm/theme/neat.css>
+<link rel=stylesheet href=/cm/theme/elegant.css>
+<link rel=stylesheet href=/cm/theme/night.css>
+<link rel=stylesheet href=/cm/theme/cobalt.css>
+<link rel=stylesheet href=/cm/theme/eclipse.css>
 
 <script src=/js/diff_match_patch.js></script>
 <script src=/js/scout.js></script>
@@ -16,7 +21,7 @@ clike clojure coffeescript css diff haskell javascript jinja2 lua markdown
 ntriples pascal php plsql python r rst ruby scheme smalltalk sparql stex
 velocity xml xmlpure yaml htmlmixed}}
 
-{{? lang == "htmlmixed" |
+{{?htmlmixed|
 <script src=/cm/mode/css/css.js></script>
 <script src=/cm/mode/javascript/javascript.js></script>
 <script src=/cm/mode/xml/xml.js></script>
@@ -31,14 +36,68 @@ velocity xml xmlpure yaml htmlmixed}}
 </style>
 
 <body>
-  <script>
-  
-    // Create a CodeMirror2 editor.
-    editor = CodeMirrorPlug(document.body, {
-      value: "{{=content|jsonstring}}",
-      mode: "{{=lang|jsonstring}}",
-      tabMode: "shift"
-    });
 
-  </script>
+<select onchange="selectTheme(this)">
+    <option selected>default</option>
+    <option>night</option>
+    <option>neat</option>
+    <option>elegant</option>
+    <option>cobalt</option>
+    <option>eclipse</option>
+</select>
+<input type=text style="width: 5em" id=query placeholder=search>
+<button type=button onclick="search()">search</button>
+<input type=text style="width: 5em" id=replace placeholder=replace>
+<button type=button onclick="replace()">replace</button>
+
+<script>
+
+  // Create a CodeMirror2 editor.
+  editor = CodeMirrorPlug(document.body, {
+    value: "{{=content|jsonstring}}",
+    mode: "{{=lang|jsonstring}}",
+    tabMode: "shift"
+  });
+
+  // Change theme.
+  function selectTheme(node) {
+    var theme = node.options[node.selectedIndex].innerHTML;
+    editor.setOption("theme", theme);
+  }
+
+  // Search & Replace.
+  var lastPos = null, lastQuery = null, marked = [];
+
+  function unmark() {
+    for (var i = 0; i < marked.length; ++i) marked[i]();
+    marked.length = 0;
+  }
+
+  function search() {
+    unmark();                     
+    var text = document.getElementById("query").value;
+    if (!text) return;
+    for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
+      marked.push(editor.markText(cursor.from(), cursor.to(), "searched"));
+
+    if (lastQuery != text) lastPos = null;
+    var cursor = editor.getSearchCursor(text, lastPos || editor.getCursor());
+    if (!cursor.findNext()) {
+      cursor = editor.getSearchCursor(text);
+      if (!cursor.findNext()) return;
+    }
+    editor.setSelection(cursor.from(), cursor.to());
+    lastQuery = text; lastPos = cursor.to();
+  }
+
+  function replace() {
+    unmark();
+    var text = document.getElementById("query").value,
+        replace = document.getElementById("replace").value;
+    if (!text) return;
+    for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
+      cursor.replace(replace);
+  }
+
+</script>
 </body>
