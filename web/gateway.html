@@ -2,6 +2,14 @@
 <meta charset=utf-8>
 <title>Our Awesome Search Engine</title>
 
+<ul>
+{{-files|file;
+{{-filenames|filename;
+  <li><a href="{{=file|xmlattr}}">{{=filename|html}}</a></li>
+}}
+}}
+</ul>
+
 <form id=req action="javascript:void 0">
   <input id=pathreq value="/">
 </form>
