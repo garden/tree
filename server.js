@@ -245,5 +245,5 @@ Camp.add ('dispatch', function (query) {
 
 
 // Time to serve the meal!
-Camp.Server.start (80, true);
+Camp.Server.start (80, 5);
 console.log('dev is live! http://localhost/');
