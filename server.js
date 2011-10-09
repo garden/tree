@@ -4,7 +4,7 @@
 
 /* Lauching the server. */
 
-var Camp = require ('./lib/camp.js');
+var Camp = require ('./lib/camp');
 
 
 // FILE-SYSTEM ACCESS
@@ -54,7 +54,7 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
 
 
 var root;
-var arbor = require ('./fs');
+var arbor = require ('./lib/fs');
 arbor.getroot (function (err, fsroot) {
   root = fsroot;
 });
@@ -245,5 +245,5 @@ Camp.add ('dispatch', function (query) {
 
 
 // Time to serve the meal!
-Camp.Server.start (80, 5);
+Camp.Server.start (80, 10);
 console.log('dev is live! http://localhost/');
