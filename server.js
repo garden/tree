@@ -2,8 +2,9 @@
  * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
-/* Lauching the server. */
+/* Configuring the server. */
 
+// Import the Camp.
 var Camp = require ('./lib/camp');
 
 
@@ -240,6 +241,17 @@ Camp.add ('dispatch', function (query) {
     } else {
       return undefined;        // The user mustn't receive his own modification.
     }
+  };
+});
+
+
+// Chat
+Camp.add('talk', function(data) {
+    Camp.Server.emit('incoming', data);
+});
+Camp.add('chat', function() {
+  return function incoming(data){
+    return data;
   };
 });
 
