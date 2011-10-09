@@ -61,7 +61,7 @@ var plug = {
   }
 };
 
-var givePlug = function (onnewcontent, onnewdiff) {
+var giveplug = function (onnewcontent, onnewdiff) {
   if (onnewcontent) {
     plug.onnewcontent = onnewcontent;
     client.copy = onnewcontent (client.copy);
@@ -246,6 +246,6 @@ window.onunload = function () {
 // The result has a method newcontent ( content ) that sends the new content to
 // the server.
 //
-window.getPlugger = givePlug;
+window.getplug = giveplug;
 
 }) ();

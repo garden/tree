@@ -1,19 +1,19 @@
 # Tree
-Collaborative Operating System.
+collaborative operating system
 
 ## Get it
-- Install [Node.js] (http://nodejs.org) & [JSMin] (http://www.crockford.com/javascript/jsmin.html).
-- Fork or download the [Tree] (http://github.com/garden/tree).
+- install [node] (http://nodejs.org) & [jsmin] (http://www.crockford.com/javascript/jsmin.html)
+- fork or download the [tree] (http://github.com/garden/tree)
 
 ## Use it
-- Make
-- [Browse] (http://localhost/)
-- Enjoy!
+- `make`
+- [browse] (http://localhost/)
+- enjoy!
 
 ## Contribute
-- Open [issues] (http://github.com/garden/tree/issues)
-- Send [pull requests] (http://help.github.com/send-pull-requests)
-- Contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
+- open [issues] (http://github.com/garden/tree/issues)
+- send [pull requests] (http://help.github.com/send-pull-requests)
+- contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
 ## Includes
 The Tree (GPLv2 license) also contains code from

@@ -54,7 +54,7 @@ var extenditor = {
 }
 
 // Creation of the plugger.
-var plug = getPlugger (function onnewcontent (content) {
+var plug = getplug (function onnewcontent (content) {
   client.notmychange = true;
   editor.setValue (content);     // Put the data in the editor.
   return editor.getValue ();

@@ -1,6 +1,15 @@
 # Those are the things we need to get right before getting public.
 
 
+## /
+
+When the file system is mature enough, its root will be accessed directly by /
+instead of /root/.  In order to achieve this, some key elements of the tree will
+have to be self-hosted, like the Pencil and the Gateway.  This means we will
+have figured out a way to know when to send files directly and when to open them
+through file tree plugins.
+
+
 ## TLS
 
 We get a salt from the server.  We send a PBKDF2ed SHA256 key from the

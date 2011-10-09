@@ -2,9 +2,10 @@
  * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
-/* Lauching the server. */
+/* Configuring the server. */
 
-var Camp = require ('./lib/camp.js');
+// Import the Camp.
+var Camp = require ('./lib/camp');
 
 
 // FILE-SYSTEM ACCESS
@@ -26,7 +27,7 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
         if (err) console.error(err);
         data.lang = 'htmlmixed';
         var mime = arbor.typenamefromtype[file.type];
-        if (mime === 'text/html')  { data.lang = 'htmlmixed'; }
+        if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
         data.mime = mime;
         data.content = content;
         Camp.Server.emit ('fsplugged');
@@ -54,7 +55,7 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
 
 
 var root;
-var arbor = require ('./fs');
+var arbor = require ('./lib/fs');
 arbor.getroot (function (err, fsroot) {
   root = fsroot;
 });
@@ -244,6 +245,17 @@ Camp.add ('dispatch', function (query) {
 });
 
 
+// Chat
+Camp.add('talk', function(data) {
+    Camp.Server.emit('incoming', data);
+});
+Camp.add('chat', function() {
+  return function incoming(data){
+    return data;
+  };
+});
+
+
 // Time to serve the meal!
-Camp.Server.start (80, true);
+Camp.Server.start (80, 10);
 console.log('dev is live! http://localhost/');
