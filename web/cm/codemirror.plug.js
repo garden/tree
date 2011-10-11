@@ -1,8 +1,8 @@
 /* codemirror.plug.js: glue between our collaboration engine and CodeMirror2.
- * Copyright (c) 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+ * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
  
-function CodeMirrorPlug ( body, params, update ) { 
+function CodeMirrorPlug ( path, body, params, update ) { 
 
 // Add onChange to the CodeMirror parameters.
 // Creation of the editor.
@@ -54,7 +54,7 @@ var extenditor = {
 }
 
 // Creation of the plugger.
-var plug = getPlugger (function onnewcontent (content) {
+var plug = getplug (path, function onnewcontent (content) {
   client.notmychange = true;
   editor.setValue (content);     // Put the data in the editor.
   return editor.getValue ();

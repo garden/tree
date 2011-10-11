@@ -60,7 +60,7 @@ var CodeMirror = (function() {
     // whether the user is holding shift. reducedSelection is a hack
     // to get around the fact that we can't create inverted
     // selections. See below.
-    var shiftSelecting, reducedSelection, lastClick, lastDoubleClick;
+    var shiftSelecting, reducedSelection, lastClick, lastDoubleClick, draggingText;
     // Variables used by startOperation/endOperation to track what
     // happened during the operation.
     var updateInput, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
@@ -212,6 +212,17 @@ var CodeMirror = (function() {
       replaceRange: operation(replaceRange),
       getRange: function(from, to) {return getRange(clipPos(from), clipPos(to));},
 
+      coordsFromIndex: function(index) {        
+        var total = lines.length, pos = 0, line, ch, len;
+        
+        for (line = 0; line < total; line++) {
+          len = lines[line].text.length + 1;
+          if (pos + len > index) { ch = index - pos; break; }
+          pos += len;
+        }
+        return clipPos({line: line, ch: ch});
+      },
+
       operation: function(f){return operation(f)();},
       refresh: function(){updateDisplay(true);},
       getInputField: function(){return input;},
@@ -280,6 +291,7 @@ var CodeMirror = (function() {
           !posLess(start, sel.from) && !posLess(sel.to, start)) {
         // Let the drag handler handle this.
         var up = connect(targetDocument, "mouseup", operation(function(e2) {
+          draggingText = false;
           up();
           if (Math.abs(e.clientX - e2.clientX) + Math.abs(e.clientY - e2.clientY) < 10) {
             e_preventDefault(e2);
@@ -287,6 +299,7 @@ var CodeMirror = (function() {
             focusInput();
           }
         }), true);
+        draggingText = true;
         return;
       }
       e_preventDefault(e);
@@ -336,7 +349,11 @@ var CodeMirror = (function() {
           var reader = new FileReader;
           reader.onload = function() {
             text[i] = reader.result;
-            if (++read == n) replaceRange(text.join(""), clipPos(pos), clipPos(pos));
+            if (++read == n) {
+	      pos = clipPos(pos);
+	      var end = replaceRange(text.join(""), pos, pos);
+	      setSelectionUser(pos, end);
+	    }
           };
           reader.readAsText(file);
         }
@@ -346,7 +363,13 @@ var CodeMirror = (function() {
       else {
         try {
           var text = e.dataTransfer.getData("Text");
-          if (text) replaceRange(text, pos, pos);
+          if (text) {
+	    var end = replaceRange(text, pos, pos);
+	    var curFrom = sel.from, curTo = sel.to;
+	    setSelectionUser(pos, end);
+            if (draggingText) replaceRange("", curFrom, curTo);
+	    focusInput();
+	  }
         }
         catch(e){}
       }
@@ -715,7 +738,7 @@ var CodeMirror = (function() {
     function scrollEditorIntoView() {
       if (!cursor.getBoundingClientRect) return;
       var rect = cursor.getBoundingClientRect();
-      var winH = window.innerHeight || document.body.offsetHeight || document.documentElement.offsetHeight;
+      var winH = window.innerHeight || Math.max(document.body.offsetHeight, document.documentElement.offsetHeight);
       if (rect.top < 0 || rect.bottom > winH) cursor.scrollIntoView();
     }
     function scrollCursorIntoView() {

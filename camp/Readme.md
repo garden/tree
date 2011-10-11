@@ -72,7 +72,7 @@ directory. However, it also has the concept of actions.
 
     var camp = require ( './camp.js' );
     camp.add ( 'getinfo', function (json) { console.log (json); return json; } );
-    camp.Server.start ();
+    camp.start ();
 
 An action maps a string to the path request "/$<string>". When a client asks for
 this resource, sending in information stored in the "json" parameter, Camp.js
