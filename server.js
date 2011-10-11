@@ -5,7 +5,7 @@
 /* Configuring the server. */
 
 // Import the Camp.
-var Camp = require ('./lib/camp');
+var Camp = require ('./camp/camp');
 
 
 // FILE-SYSTEM ACCESS

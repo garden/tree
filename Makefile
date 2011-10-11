@@ -67,9 +67,9 @@ test:
 
 update:
 	@git clone git://github.com/espadrine/ScoutCamp.git
-	@cp ScoutCamp/lib/* ./lib/
-	@cp ScoutCamp/Makefile .
 	@cp ScoutCamp/web/js/scout.js ./web/js/scout.js
+	@cp ScoutCamp/camp/* ./camp/
+	@cp ScoutCamp/Makefile .
 	@rm -rf ScoutCamp/
 
 jsmin:
