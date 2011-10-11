@@ -20,9 +20,17 @@ function split(url, vertical) {
   frame1.contentDocument.body.appendChild(body);
 
   document.body.appendChild(frame2);
-  frame2.src = url;
+  frame2.src = url || 'http://nyan.cat';
 
   frame1.style.height = frame2.style.height = height;
   frame1.style.width = frame2.style.width = width;
   frame1.style.border = frame2.style.border = '0px';
 }
+
+// add a split button
+/*var button = document.createElement('input');
+button.type = "button"; button.value = "+";
+button.onclick = function() {
+  split();
+}
+document.body.appendChild(button);*/
