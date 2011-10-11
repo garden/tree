@@ -17,8 +17,11 @@ Camp.handle (/\/root\/(.*)/, function (query, path) {
   path[0] = '/pencil.html';
 
   var data = {};
+  data.path = path[1];
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
+  // UPDATE: actually, we don't need to getfile anymore.
+  // We do need the metadata, though. Must invent a system.
   arbor.getfile (path[1], function (err, file) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
@@ -94,12 +97,14 @@ var DIFF_EQUAL = DMP.DIFF_EQUAL;
 var dmp = new DMP.diff_match_patch ();
 
 
+// Each path (and the corresponding file) has several users.
+//
 // Each user is identified by a number, and has an associated lastcopy.
 // eg, users = {'1234': {lastcopy: 'foo bar...',
 //                       bufferhim: false, // Do we need to buffer for him?
 //                       buffer: [],       // Deltas to be sent on dispatch.
 //                       timeout: 0}}      // Time before we forget this user.
-var users = {};
+var usersforpath = {};
 
 
 // Update the copy corresponding to a user, because of user input.
@@ -147,18 +152,37 @@ var usertimeouts = {};
 
 // First time someone connects, he sends a data request.
 Camp.add ('data', function (query) {
-  users[query.user] = {
-    lastcopy: COPY,
+  // `query` must have user, path.
+  (usersforpath[query.path] = usersforpath[query.path] || {})[query.user] = {
+    lastcopy: arbor.fsfiles[query.path],
     bufferhim: false,
     buffer: [],
     timeout: 0
   };
-  return {data: COPY? COPY: '\n'}; // If there is something to be sent, send it.
+  // `data` is of the form: {data:'', err:''}
+  var data = {};
+  arbor.getfile (query.path, function (err, file) {
+    if (err) { console.error(err); data.err = err.message; }
+    file.content (function (err, content) {
+      if (err) { console.error(err); data.err = err.message; }
+      // If there is something to send, there we go.
+      data.data = content || '\n';
+			console.error('content: "%s"', content);
+			console.error('server: %s [%s]', Camp.Server, typeof Camp.Server);
+      Camp.Server.emit ('gotfiledata');
+			console.log('emitted gotfiledata');
+    });
+  });
+  return function gotfiledata () { console.error('gotfiledata');return data; }
 });
 
 
 // Removing a user.
-Camp.add ('kill', function (query) { delete users[query.user]; });
+Camp.add ('kill', function (query) {
+  if (usersforpath[query.path] && usersforpath[query.path][query.user]) {
+    delete usersforpath[query.path][query.user];
+  }
+});
 
 
 // We receive incoming deltas on the 'new' channel.
@@ -168,12 +192,13 @@ Camp.add ('new', function addnewstuff (query) {
   console.log ('--receiving from', query.user, JSON.stringify (query.delta));///
   
   // Does the user already exist?
-  if (!users[query.user]) {
+  if (!usersforpath[query.path][query.user]) {
     console.log ('--nonexisting user [' + query.user + ']');
     return {};
   }
   
   // Caching for users temporarily not listening to dispatch.
+  var users = usersforpath[query.path];
   for (var user in users) {
     if (users[user].bufferhim && user != query.user) {
       console.log ('--caching',query.delta,'for user',user);
@@ -185,8 +210,11 @@ Camp.add ('new', function addnewstuff (query) {
   console.log ('--sync', query.delta);
   var newdelta = query.delta;
   try {
-    sync (users[query.user], query.delta, COPY, function(patch) {
-      return COPY = dmp.patch_apply (patch, COPY) [0];
+    // The file content must be in memory here
+    // (indeed, the file.usercount is non-negative).
+    var filecontent = arbor.fsfiles[query.path];
+    sync (users[query.user], query.delta, filecontent, function(patch) {
+      return arbor.fsfiles[query.path] = dmp.patch_apply (patch, filecontent) [0];
     }, function(delta) {
       newdelta = delta;
     });
@@ -202,6 +230,8 @@ Camp.add ('new', function addnewstuff (query) {
 
 Camp.add ('dispatch', function (query) {
   console.log ('--connect dispatch [' + query.user + ']');
+
+  var users = usersforpath[query.path];
 
   // Return userbuffer if there was information to send while dispatch was off.
   var userbuffer = users[query.user].buffer;
@@ -225,7 +255,7 @@ Camp.add ('dispatch', function (query) {
       console.log ('--hence closing dispatch for', query.user);///
 
       // Since we send it, it will be synced.
-      users[query.user].lastcopy = COPY;
+      users[query.user].lastcopy = arbor.fsfiles[query.path];
 
       // Timeout adjustments.
       users[query.user].bufferhim = true;

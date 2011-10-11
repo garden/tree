@@ -53,8 +53,8 @@ velocity xml xmlpure yaml htmlmixed}}
 <script>
 
   // Create a CodeMirror2 editor.
-  editor = CodeMirrorPlug(document.body, {
-    value: "{{=content|jsonstring}}",
+  editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
+    value: "­ loading... ­",
     mode: "{{=lang|jsonstring}}",
     tabMode: "shift"
   });

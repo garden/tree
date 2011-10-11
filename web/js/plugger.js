@@ -1,5 +1,5 @@
 /* plugger.js: allows plugs to have an api into the nifty collaboration engine.
- * Copyright (c) 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
+ * Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
  * The following code is covered by the GPLv2 license. */
  
 (function () {
@@ -32,7 +32,8 @@ window.client = {
   user: +(new Date()),
   rev: 0,
   copy: '',
-  lastcopy: ''
+  lastcopy: '',
+  path: ''          // name of the path to the file.
 };
 
 
@@ -61,9 +62,10 @@ var plug = {
   }
 };
 
-var giveplug = function (onnewcontent, onnewdiff) {
+var giveplug = function (path, onnewcontent, onnewdiff) {
   if (onnewcontent) {
     plug.onnewcontent = onnewcontent;
+    client.path = path;
     client.copy = onnewcontent (client.copy);
 
     plug.onnewdiff = onnewdiff;
@@ -180,6 +182,7 @@ function sending (delta) {
     params.data = {
       rev: client.rev++,      // Newly sent delta begets new revision.
       user: client.user,
+      path: client.path,
       delta: delta
     };
 
@@ -208,7 +211,7 @@ function sending (delta) {
 window.addEventListener('DOMContentLoaded', function () {
   Scout.send (function (params) {
     params.action = 'data';
-    params.data = {user: client.user};
+    params.data = {user:client.user, path:client.path};
     params.resp = function (resp) {
       console.log ('got content');///
 
@@ -224,7 +227,7 @@ window.addEventListener('DOMContentLoaded', function () {
 window.onunload = function () {
   Scout.send (function (params) {
     params.action = 'kill';
-    params.data = {user: client.user};
+    params.data = {user:client.user, path:client.path};
   }) ();
 };
 
