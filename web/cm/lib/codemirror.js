@@ -212,6 +212,17 @@ var CodeMirror = (function() {
       replaceRange: operation(replaceRange),
       getRange: function(from, to) {return getRange(clipPos(from), clipPos(to));},
 
+      coordsFromIndex: function(index) {        
+        var total = lines.length, pos = 0, line, ch, len;
+        
+        for (line = 0; line < total; line++) {
+          len = lines[line].text.length + 1;
+          if (pos + len > index) { ch = index - pos; break; }
+          pos += len;
+        }
+        return clipPos({line: line, ch: ch});
+      },
+
       operation: function(f){return operation(f)();},
       refresh: function(){updateDisplay(true);},
       getInputField: function(){return input;},
@@ -727,7 +738,7 @@ var CodeMirror = (function() {
     function scrollEditorIntoView() {
       if (!cursor.getBoundingClientRect) return;
       var rect = cursor.getBoundingClientRect();
-      var winH = window.innerHeight || document.body.offsetHeight || document.documentElement.offsetHeight;
+      var winH = window.innerHeight || Math.max(document.body.offsetHeight, document.documentElement.offsetHeight);
       if (rect.top < 0 || rect.bottom > winH) cursor.scrollIntoView();
     }
     function scrollCursorIntoView() {
