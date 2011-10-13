@@ -79,12 +79,22 @@ this resource, sending in information stored in the "json" parameter, Camp.js
 will send it back the object literal that the callback function gives.
 
 In the example given, it merely sends back whatever information the client
-gives, which is not very relevant.
+gives, which is a very contrived example.
 
 The purpose of this distinction between normally served html pages and ajax
 actions is to treat servers more like applications. You first serve the
 graphical interface, in html and css, and then, you let the user interact with
 the server's data seemlessly through ajax calls.
+
+You may also differ the moment when you send the json back to the client. The
+basic idea is, you want to send it when an event is raised: `camp.Server.emit
+('name of the event', data)`. In that case, you need to add a third parameter to
+the definition of your action:
+
+    camp.add ( actionname, function (json) {
+      …
+      return function (data) { return json; };
+    }, 'name of the event');
 
 
 Plate.js
@@ -192,6 +202,11 @@ Default macros are the following:
   given to the template file) and `params` (parameters given to the macro).
 * `{{~macro; rest }}` will run the macro named `macro` (please note that this
   macro has more than one character in it, this is legit).
+
+You may, just as with `Camp.add` actions, return a function from `Camp.handle`,
+and give it a third parameter, a string, to specify the name of the event that
+will trigger that function (and will send the templated document back to the
+client).
 
 
 ## Fall through
