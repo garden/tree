@@ -24,6 +24,9 @@ TARGET = publish
 MIN = min
 WEB = web
 
+# Allow local makefiles for custom rules
+include local.mk
+
 all: clean deploy minify stop start
 
 nodeploy: stop startweb
@@ -56,7 +59,7 @@ minify:
 
 start:
 	@echo "start"
-	@cd $(TARGET) ; sudo node ../$(SERVER) > ../$(LOG)
+	@cd $(TARGET) ; node ../$(SERVER) > ../$(LOG)
 
 stop:
 	@echo "stop"
