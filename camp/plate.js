@@ -15,64 +15,43 @@ Plate._escape = function (text) {
   return (text? text: '').replace ('{{','{').replace ('}}','}');
 };
 Plate.format = function (text, literal) {
-  var opencurl = /(?:^|[^\{])\{\{[^\{]/,
-      closecurl = /(?:^|[^\}])\}\}(?!\})/;
-
-  // Find the first {{ there is.
-  var operation = opencurl.exec (text);
-  if (operation === null) { return Plate._escape (text); }
-  if (operation[0].length > 3) {
-    operation.index ++;
-    operation[0] = operation[0].slice (1);
-  }
-  var firstcurl = operation.index,
-      nextcurl;
-
-  var matchbraces = function () {
-    // Find the next }} there is after that.
-    nextcurl = closecurl.exec (text.slice (firstcurl)).index+1 + firstcurl;
-
-    // Count the number of {{ in between.
-    var countopencurl = 0;
-    while ((firstcurl = (opencurl.exec (text.slice (firstcurl+2)) !== null?
-                         opencurl.exec (text.slice (firstcurl+2)).index+1
-                         + firstcurl+2: 0))
-           < nextcurl  &&  firstcurl > operation.index) {
-      countopencurl ++;
-    }
-
-    // Skip as many }}.
-    for (var i=0;  i < countopencurl;  i++) {
-      nextcurl = closecurl.exec (text.slice (nextcurl+2)).index+1 +
-          nextcurl+2;
-    }
-  };
-  try {
-    matchbraces ();
-  } catch (e) {
-    // There is a mismatch.
-    console.error ('Template error: closing tag }} mismatch.\n' +
-        'That might not be recoverable.\n' +
-        'Corresponding data:\n' + text.slice (firstcurl));
-    var recoveredtext = text.slice (firstcurl).replace ('}','}}');
-    text = text.slice (0,firstcurl) + recoveredtext;
-    console.error ('Recovered data:\n' + recoveredtext);
-    try {
-      matchbraces ();
-    } catch (e) {
-      // Undo the modification
-      recoveredtext = text.slice (firstcurl).replace ('}}','}');
-      text = text.slice (0,firstcurl) + recoveredtext;
-      console.error ('Closing tag }} mismatch unrecoverable.');
-      return text;
+  var state = 0, boundaries = [], bracecount = 0;
+  for (var i = 0;  i < text.length;  i++) {
+    if (state === 0) {
+      // Toplevel.
+      if (text[i] === '{')  state = 1;
+    } else if (state === 1) {
+      // Toplevel, had an opening curly brace.
+      if (text[i] === '{' && text[i+1] !== '{') {
+        boundaries.push(i-1);
+        state = 2;
+      } else  state = 0;
+    } else if (state === 2) {
+      // Inside.
+      if (text[i] === '}')  state = 3;
+      else if (text[i] === '{')  state = 4;
+    } else if (state === 3) {
+      // Inside, had a closing curly brace.
+      if (text[i] === '}' && text[i+1] !== '}') {
+        if (bracecount === 0) {
+          boundaries.push(i);
+          break; // state = 0;
+        } else {
+          bracecount--;
+          state = 2;
+        }
+      } else  state = 2;
+    } else if (state === 4) {
+      // Inside, had an opening curly brace.
+      if (text[i] === '{')  bracecount++;
+      state = 2;
     }
   }
 
-  var span = text.slice (operation.index + 3, nextcurl);
-  ///console.log (span);
+  var span = text.slice (boundaries[0] + 3, boundaries[1] - 1),
+      macro = text[boundaries[0] + 2];
 
-  // Use macro.
-  var macro = operation[0][2];
+  if (!macro) { return text; }
 
   // Fragment the parameters.
   var params = [];
@@ -91,15 +70,15 @@ Plate.format = function (text, literal) {
   ///console.log (params);
 
   // Call the macro.
-  var result = Plate._escape (text.slice (0, operation.index));
+  var result = Plate._escape (text.slice (0, boundaries[0]));
   try {
     result += Plate._escape (Plate.macros[macro] (literal, params))
   } catch (e) {
     console.error ('Template error: macro "' + macro + '" didn\'t work.\n' +
         'Data processed up to error:\n' + result);
   }
-  result += ((nextcurl+=2) > text.length? '':
-      Plate.format (text.slice (nextcurl), literal));
+  result += ((boundaries[1]+=1) > text.length? '':
+      Plate.format (text.slice (boundaries[1]), literal));
   return result;
 };
 

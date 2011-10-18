@@ -13,48 +13,56 @@ var Camp = require ('./camp/camp');
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-Camp.handle (/\/root\/(.*)/, function (query, path) {
+Camp.handle (/\/root\/?(.*)/, function (query, path) {
+  console.log('-- In /root handler');
   path[0] = '/pencil.html';
 
   var data = {};
   data.path = path[1];
+  console.log('-- data.path is %s', data.path);
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
-  // UPDATE: actually, we don't need to getfile anymore.
-  // We do need the metadata, though. Must invent a system.
   arbor.getfile (path[1], function (err, file) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
       path[0] = '/pencil.html';
-      file.content (function (err, content) {
-        if (err) console.error(err);
-        data.lang = 'htmlmixed';
-        var mime = arbor.typenamefromtype[file.type];
-        if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
-        data.mime = mime;
-        data.content = content;
-        Camp.Server.emit ('fsplugged');
-      });
+      data.lang = 'htmlmixed';
+      var mime = arbor.typenamefromtype[file.type];
+      if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
+      data.mime = mime;
+      Camp.Server.emit ('fsplugged');
 
     } else if (arbor.isoftype(file, 'dir')) {
       path[0] = '/gateway.html';
+      console.log('-- Ready to ask for the directory\'s content');
       file.content (function (err, content) {
+        console.log('-- Got content of directory');
         if (err) console.error(err);
         data.dir = content;
-        data.files = [];
         data.filenames = [];
         for (var file in content) {
-          data.files.push('./' + file);
           data.filenames.push(file);
         }
-        console.log(data.filenames);
-        Camp.Server.emit ('fsplugged');
+        // testing
+        for (var file in data.files) {
+          console.log('-- file "%s"', data.files[file]);
+        }
+        console.log('-- Listeners of fsplugged are:');
+        var util = require('util');
+        console.log(util.inspect(Camp.Server.listeners('fsplugged')));
+        setTimeout(function() {
+          console.log(util.inspect(Camp.Server.listeners('fsplugged')));
+        }, 2000);
+        // end testing
+        Camp.Server.emit('fsplugged');
       });
     }
   });
 
-  return function fsplugged () { return data; };
-});
+  console.log('teh data', JSON.stringify(data));
+  //return data;
+  return function fsplugged () { console.log('asldkjf'); return data; };
+}, 'fsplugged');
 
 
 var root;
@@ -83,7 +91,7 @@ Camp.add ('fs', function (query) {
   return function fs () {
     return data || {};
   };
-});
+}, 'fs');
 
 
 // REAL-TIME COLLABORATION
@@ -167,14 +175,11 @@ Camp.add ('data', function (query) {
       if (err) { console.error(err); data.err = err.message; }
       // If there is something to send, there we go.
       data.data = content || '\n';
-			console.error('content: "%s"', content);
-			console.error('server: %s [%s]', Camp.Server, typeof Camp.Server);
       Camp.Server.emit ('gotfiledata');
-			console.log('emitted gotfiledata');
     });
   });
   return function gotfiledata () { console.error('gotfiledata');return data; }
-});
+}, 'gotfiledata');
 
 
 // Removing a user.
@@ -272,7 +277,7 @@ Camp.add ('dispatch', function (query) {
       return undefined;        // The user mustn't receive his own modification.
     }
   };
-});
+}, 'modif');
 
 
 // Chat
