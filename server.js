@@ -2,10 +2,16 @@
  * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
-/* Configuring the server. */
 
-// Import the Camp.
+// SERVER CONFIGURATION
+//
+
+// Import modules
 var Camp = require ('./camp/camp');
+
+// Set parameters
+var port = process.argv[2] || 80,
+    debug = process.argv[3] || 0;
 
 
 // FILE-SYSTEM ACCESS
@@ -292,5 +298,5 @@ Camp.add('chat', function() {
 
 
 // Time to serve the meal!
-Camp.Server.start (80, 10);
-console.log('dev is live! http://localhost/');
+Camp.Server.start (port, debug);
+console.log('tree is live! http://localhost' + (port!==80 ? ':'+port : '') + '/');
