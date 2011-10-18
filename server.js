@@ -133,6 +133,7 @@ function sync (client, delta, workingcopy, applylocally, send) {
   // Patch last copy.
   // Note: dmp.patch_apply returns the resulting text in the first element
   // of the array.
+  console.error('--lastcopy is', client.lastcopy,'and delta is',delta);
   var lastcopydiff = dmp.diff_fromDelta (client.lastcopy, delta);
   var lastcopypatch = dmp.patch_make (client.lastcopy, lastcopydiff);
   client.lastcopy = dmp.patch_apply (lastcopypatch, client.lastcopy) [0];
@@ -168,7 +169,7 @@ var usertimeouts = {};
 Camp.add ('data', function (query) {
   // `query` must have user, path.
   (usersforpath[query.path] = usersforpath[query.path] || {})[query.user] = {
-    lastcopy: arbor.fsfiles[query.path],
+    lastcopy: arbor.fsfiles[query.path]._content,
     bufferhim: false,
     buffer: [],
     timeout: 0
@@ -220,16 +221,16 @@ Camp.add ('new', function addnewstuff (query) {
   // Change our copy.
   console.log ('--sync', query.delta);
   var newdelta = query.delta;
-  try {
+  //try {
     // The file content must be in memory here
     // (indeed, the file.usercount is non-negative).
-    var filecontent = arbor.fsfiles[query.path];
+    var filecontent = arbor.fsfiles[query.path]._content;
     sync (users[query.user], query.delta, filecontent, function(patch) {
-      return arbor.fsfiles[query.path] = dmp.patch_apply (patch, filecontent) [0];
+      return arbor.fsfiles[query.path]._content = dmp.patch_apply (patch, filecontent) [0];
     }, function(delta) {
       newdelta = delta;
     });
-  } catch (e) { console.error(e.message); console.trace(e); return {error:1};}
+  //} catch (e) { console.error(e.message); console.trace(e); return {error:1};}
   var newresp = {user: query.user, delta: newdelta, rev: query.rev};
   Camp.Server.emit ('modif', newresp);
 
@@ -240,9 +241,10 @@ Camp.add ('new', function addnewstuff (query) {
 // We send outgoing deltas through the 'dispatch' channel.
 
 Camp.add ('dispatch', function (query) {
-  console.log ('--connect dispatch [' + query.user + ']');
+  console.log ('--connect dispatch [' + query.user + ']', query.path, usersforpath);
 
   var users = usersforpath[query.path];
+
 
   // Return userbuffer if there was information to send while dispatch was off.
   var userbuffer = users[query.user].buffer;
@@ -266,7 +268,7 @@ Camp.add ('dispatch', function (query) {
       console.log ('--hence closing dispatch for', query.user);///
 
       // Since we send it, it will be synced.
-      users[query.user].lastcopy = arbor.fsfiles[query.path];
+      users[query.user].lastcopy = arbor.fsfiles[query.path]._content;
 
       // Timeout adjustments.
       users[query.user].bufferhim = true;
@@ -294,7 +296,7 @@ Camp.add('chat', function() {
   return function incoming(data){
     return data;
   };
-});
+}, 'incoming');
 
 
 // Time to serve the meal!

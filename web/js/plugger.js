@@ -125,7 +125,10 @@ function sync (client, delta, workingcopy, applylocally, send) {
 function getmodif (params) {
 
   params.action = 'dispatch';
-  params.data = {user: client.user};
+  params.data = {
+    user: client.user,
+    path: client.path
+  };
   console.log ('dispatched');
   
   params.resp = function receiving (resp) {
