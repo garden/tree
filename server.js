@@ -31,12 +31,20 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
   arbor.getfile (path[1], function (err, file) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
+      console.log('--Is a file');
       path[0] = '/pencil.html';
       data.lang = 'htmlmixed';
       var mime = arbor.typenamefromtype[file.type];
       if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
       data.mime = mime;
+      console.log('--before fsplugged');
+      var util = require('util');
+      console.log(util.inspect(Camp.Server.listeners('fsplugged')));
+      setTimeout(function() {
+        console.log(util.inspect(Camp.Server.listeners('fsplugged')));
+      }, 2000);
       Camp.Server.emit ('fsplugged');
+      console.log('--after fsplugged');
 
     } else if (arbor.isoftype(file, 'dir')) {
       path[0] = '/gateway.html';
@@ -133,7 +141,6 @@ function sync (client, delta, workingcopy, applylocally, send) {
   // Patch last copy.
   // Note: dmp.patch_apply returns the resulting text in the first element
   // of the array.
-  console.error('--lastcopy is', client.lastcopy,'and delta is',delta);
   var lastcopydiff = dmp.diff_fromDelta (client.lastcopy, delta);
   var lastcopypatch = dmp.patch_make (client.lastcopy, lastcopydiff);
   client.lastcopy = dmp.patch_apply (lastcopypatch, client.lastcopy) [0];
@@ -169,7 +176,6 @@ var usertimeouts = {};
 Camp.add ('data', function (query) {
   // `query` must have user, path.
   (usersforpath[query.path] = usersforpath[query.path] || {})[query.user] = {
-    lastcopy: arbor.fsfiles[query.path]._content,
     bufferhim: false,
     buffer: [],
     timeout: 0
@@ -182,10 +188,13 @@ Camp.add ('data', function (query) {
       if (err) { console.error(err); data.err = err.message; }
       // If there is something to send, there we go.
       data.data = content || '\n';
+      usersforpath[query.path][query.user].lastcopy = data.data;
+      var util = require('util');
+      console.log(util.inspect(Camp.Server.listeners('gotfiledata')));
       Camp.Server.emit ('gotfiledata');
     });
   });
-  return function gotfiledata () { console.error('gotfiledata');return data; }
+  return function gotfiledata () { console.error('gotfiledata'); return data; }
 }, 'gotfiledata');
 
 
@@ -208,7 +217,7 @@ Camp.add ('new', function addnewstuff (query) {
     console.log ('--nonexisting user [' + query.user + ']');
     return {};
   }
-  
+
   // Caching for users temporarily not listening to dispatch.
   var users = usersforpath[query.path];
   for (var user in users) {
@@ -244,7 +253,6 @@ Camp.add ('dispatch', function (query) {
   console.log ('--connect dispatch [' + query.user + ']', query.path, usersforpath);
 
   var users = usersforpath[query.path];
-
 
   // Return userbuffer if there was information to send while dispatch was off.
   var userbuffer = users[query.user].buffer;
