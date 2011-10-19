@@ -50,7 +50,7 @@ var CodeMirror = (function() {
     // (see Line constructor), work an array of lines that should be
     // parsed, and history the undo history (instance of History
     // constructor).
-    var mode, lines = [new Line("")], work, history = new History(), focused;
+    var mode, lines = [new Line("")], work, focused;
     loadMode();
     // The selection. These are always maintained to point at valid
     // positions. Inverted is used to remember that the user is
@@ -77,6 +77,7 @@ var CodeMirror = (function() {
 
     // Initialize the content.
     operation(function(){setValue(options.value || ""); updateInput = false;})();
+    var history = new History();
 
     // Register our event handlers.
     connect(scroller, "mousedown", operation(onMouseDown));
@@ -93,6 +94,7 @@ var CodeMirror = (function() {
     });
     connect(window, "resize", function() {updateDisplay(true);});
     connect(input, "keyup", operation(onKeyUp));
+    connect(input, "input", function() {fastPoll(curKeyId);});
     connect(input, "keydown", operation(onKeyDown));
     connect(input, "keypress", operation(onKeyPress));
     connect(input, "focus", onFocus);
@@ -138,6 +140,7 @@ var CodeMirror = (function() {
         if (isLine(n)) indentLine(n, dir == null ? "smart" : dir ? "add" : "subtract");
       }),
       historySize: function() {return {undo: history.done.length, redo: history.undone.length};},
+      clearHistory: function() {history = new History();},
       matchBrackets: operation(function(){matchBrackets(true);}),
       getTokenAt: function(pos) {
         pos = clipPos(pos);
@@ -232,11 +235,9 @@ var CodeMirror = (function() {
     };
 
     function setValue(code) {
-      history = null;
       var top = {line: 0, ch: 0};
       updateLines(top, {line: lines.length - 1, ch: lines[lines.length-1].text.length},
                   splitLines(code), top, top);
-      history = new History();
       updateInput = true;
     }
     function getValue(code) {
@@ -1387,6 +1388,7 @@ var CodeMirror = (function() {
         line.highlight(mode, state);
         line.stateAfter = copyState(mode, state);
       }
+      changes.push({from: start, to: n});
       if (n < lines.length && !lines[n].stateAfter) work.push(n);
       return state;
     }

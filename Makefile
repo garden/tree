@@ -23,6 +23,7 @@ PUBLISH = publish
 
 MIN = min
 
+# Default server parameters.
 ifndef PORT
   PORT = 80
 endif
@@ -30,7 +31,7 @@ ifndef DEBUG
   DEBUG = 0
 endif
 
-# Define custom rules and settings in this file.
+# You can define custom rules and settings in this file:
 -include local.mk
 
 all: publish stop start

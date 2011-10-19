@@ -1,5 +1,5 @@
 # Tree
-collaborative operating system
+Collaborative Operating System
 
 ## Get it
 - install [node] (http://nodejs.org) & [jsmin] (http://www.crockford.com/javascript/jsmin.html)
@@ -16,7 +16,7 @@ collaborative operating system
 - contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
 ## Includes
-The Tree (GPLv2 license) also contains code from
+[tree] (http://github.com/garden/tree) (GPLv2 license) also contains code from
 
 - [ScoutCamp] (http://espadrine.github.com/ScoutCamp) (LGPL license)
 - [CodeMirror2] (http://codemirror.net) (MIT license)
