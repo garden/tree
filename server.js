@@ -2,6 +2,8 @@
  * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
+// Please look for documentation in `./Server.md`
+
 
 // SERVER CONFIGURATION
 //
@@ -310,3 +312,5 @@ Camp.add('chat', function() {
 // Time to serve the meal!
 Camp.Server.start (port, debug);
 console.log('tree is live! http://localhost' + (port!==80 ? ':'+port : '') + '/');
+
+
