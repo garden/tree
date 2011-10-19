@@ -1,11 +1,11 @@
-This file is documentation about `server.js`.  Please modify it if you find it
+This is documentation for the `server.js` file.  Please edit if you find it
 out-of-date or incomplete.
 
 # Rerouted paths
 
 * Paths beginning with /root/ are handled like this:
-  - If path is a file, use `web/pencil.html` to display file content.
-  - If path is a folder, use `web/gateway.html` to show folder content.
+  - If path is a file, use `web/pencil.html` to display text content.
+  - If path is a folder, use `web/gateway.html` to list folder content.
 
 # Ajax actions
 
