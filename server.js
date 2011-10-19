@@ -11,10 +11,6 @@
 // Import modules
 var Camp = require ('./camp/camp');
 
-// Set parameters
-var port = process.argv[2] || 80,
-    debug = process.argv[3] || 0;
-
 
 // FILE-SYSTEM ACCESS
 //
@@ -45,7 +41,7 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
       setTimeout(function() {
         console.log(util.inspect(Camp.Server.listeners('fsplugged')));
       }, 2000);
-      Camp.Server.emit ('fsplugged');
+      Camp.Server.emit ('fsplugged', data);
       console.log('--after fsplugged');
 
     } else if (arbor.isoftype(file, 'dir')) {
@@ -70,15 +66,15 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
           console.log(util.inspect(Camp.Server.listeners('fsplugged')));
         }, 2000);
         // end testing
-        Camp.Server.emit('fsplugged');
+        Camp.Server.emit('fsplugged', data);
       });
     }
   });
-
   console.log('teh data', JSON.stringify(data));
-  //return data;
-  return function fsplugged () { console.log('asldkjf'); return data; };
-}, 'fsplugged');
+
+}, function fsplugged(data) {
+  return data;
+});
 
 
 var root;
@@ -97,17 +93,16 @@ Camp.add ('fs', function (query) {
         dir.content (function (err, content) {
           if (err) console.error(err);
           data.dir = content;
-          Camp.Server.emit ('fs');
+          Camp.Server.emit ('fs', data);
         });
       });
       break;
     default:
       return {};
   }
-  return function fs () {
-    return data || {};
-  };
-}, 'fs');
+}, function fs(data) {
+  return data || {};
+});
 
 
 // REAL-TIME COLLABORATION
@@ -193,11 +188,13 @@ Camp.add ('data', function (query) {
       usersforpath[query.path][query.user].lastcopy = data.data;
       var util = require('util');
       console.log(util.inspect(Camp.Server.listeners('gotfiledata')));
-      Camp.Server.emit ('gotfiledata');
+      Camp.Server.emit ('gotfiledata', data);
     });
   });
-  return function gotfiledata () { console.error('gotfiledata'); return data; }
-}, 'gotfiledata');
+}, function gotfiledata(data) {
+  console.log('-- gotfiledata');
+  return data;
+});
 
 
 // Removing a user.
@@ -299,18 +296,17 @@ Camp.add ('dispatch', function (query) {
 
 
 // Chat
-Camp.add('talk', function(data) {
-    Camp.Server.emit('incoming', data);
-});
-Camp.add('chat', function() {
-  return function incoming(data){
-    return data;
-  };
-}, 'incoming');
+Camp.add('talk', function(data) { Camp.Server.emit('incoming', data); });
+Camp.add('chat', function() {}, function incoming(data) { return data; });
 
 
 // Time to serve the meal!
+
+// Set parameters
+var port = process.argv[2] || 80,
+    debug = process.argv[3] || 0;
 Camp.Server.start (port, debug);
-console.log('tree is live! http://localhost' + (port!==80 ? ':'+port : '') + '/');
+console.log('tree is live! http://localhost'
+    + (port!==80 ? ':'+port : '') + '/');
 
 

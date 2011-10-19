@@ -23,7 +23,6 @@ PUBLISH = publish
 
 MIN = min
 
-# Default server parameters.
 ifndef PORT
   PORT = 80
 endif
@@ -31,7 +30,7 @@ ifndef DEBUG
   DEBUG = 0
 endif
 
-# You can define custom rules and settings in this file:
+# Define custom rules and settings in this file.
 -include local.mk
 
 all: publish stop start
@@ -64,8 +63,12 @@ minify:
 
 stop:
 	@echo "stop"
-	@for pid in `ps aux | grep -v make | grep node | grep $(SERVER) | awk '{print $$2}'` ; do kill -9 $$pid 2> /dev/null ; done;
-
+	@for pid in `ps aux | grep -v make | grep node | grep $(SERVER) | awk '{print $$2}'` ; do  \
+	   kill -9 $$pid 2> /dev/null ;  \
+	   if [ "$$?" -ne "0" ] ; then  \
+	     sudo kill -9 $$pid 2> /dev/null ;  \
+	   fi  \
+	done;  \
 
 start:
 	@echo "start"

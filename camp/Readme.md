@@ -88,13 +88,19 @@ the server's data seemlessly through ajax calls.
 
 You may also differ the moment when you send the json back to the client. The
 basic idea is, you want to send it when an event is raised: `camp.Server.emit
-('name of the event', data)`. In that case, you need to add a third parameter to
+('name_of_the_event', data)`. In that case, you need to add a third parameter to
 the definition of your action:
 
-    camp.add ( actionname, function (json) {
-      …
-      return function (data) { return json; };
-    }, 'name of the event');
+    camp.add ( actionname, function () {
+      …  // don't return anything at all
+    }, function name_of_the_event (data) {
+      return json;
+    });
+
+    …
+
+    // Somewhere, sometime later:
+    camp.Server.emit ( 'name_of_the_event', data);
 
 
 Plate.js
@@ -203,10 +209,9 @@ Default macros are the following:
 * `{{~macro; rest }}` will run the macro named `macro` (please note that this
   macro has more than one character in it, this is legit).
 
-You may, just as with `Camp.add` actions, return a function from `Camp.handle`,
-and give it a third parameter, a string, to specify the name of the event that
-will trigger that function (and will send the templated document back to the
-client).
+You may, just as with `Camp.add` actions, give `Camp.handle` a third parameter,
+a function, to serve as a callback for the event that will trigger that function
+(and will send the templated document back to the client).
 
 
 ## Fall through

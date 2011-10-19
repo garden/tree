@@ -10,11 +10,11 @@ var Plate = exports.Plate = require ('./plate');
 
 var catches = [];
 var fallthrough = [];
-exports.handle = function (paths, literalcall, evtname) {
-  catches.push ([RegExp(paths).source, literalcall, evtname]);
+exports.handle = function (paths, literalcall, evtcb) {
+  catches.push ([RegExp(paths).source, literalcall, evtcb]);
 };
-exports.notfound = function (paths, literalcall, evtname) {
-  fallthrough.push ([RegExp(paths).source, literalcall, evtname]);
+exports.notfound = function (paths, literalcall, evtcb) {
+  fallthrough.push ([RegExp(paths).source, literalcall, evtcb]);
 };
 
 
@@ -134,14 +134,19 @@ exports.Server.start = function (port, debug) {
 
 
       /* Differed sendback function (choice between func and object).
-       * `getsentback` is the function that returns either a func or an object.
+       * `getsentback` is the function that returns either an object or ∅..
        * `treat(res)` is a func that the result goes through and is sent.
-       * `evtname` is a string identifying, if `sentback` is a function,
-       * the event associated to it. */
-      var differedresult = function (getsentback, treat, evtname) {
-        if (evtname !== undefined) {
+       * `sentback` is a function, fired by the event whose name is that
+       * that function's name. */
+      var differedresult = function (getsentback, treat, sentback) {
+        if (sentback !== undefined) {
           // Event-based ajax call.
-          var sentback;
+          var evtname = sentback.name;
+
+          if (typeof sentback !== 'function' && debug > 2) {
+            console.log ('warning: has a third parameter that isn\'t an ' +
+              'event callback (ie, a function).');
+          }
 
           req.pause ();   // We must wait for an event to happen.
           exports.Server.on (evtname, function evtnamecb () {
@@ -163,14 +168,7 @@ exports.Server.start = function (port, debug) {
               exports.Server.removeListener (evtname, evtnamecb);
             }
           });
-
-          // Then we execute the function to get sentback.
-          sentback = getsentback();
-
-          if (typeof sentback !== 'function' && debug > 2) {
-            console.log ('warning: action returns a function, but it has ' +
-              'no associated event name (third parameter).');
-          }
+          getsentback ();
 
         } else {
           // Handle the action the usual way.
@@ -195,8 +193,8 @@ exports.Server.start = function (port, debug) {
           if (exports.Server.Actions[action]) {
             var getsentback = function() {
               return exports.Server.Actions[action][0] (query);
-            },  evtname =  exports.Server.Actions[action][1];
-            differedresult (getsentback, JSON.stringify, evtname);
+            },  evtcb =  exports.Server.Actions[action][1];
+            differedresult (getsentback, JSON.stringify, evtcb);
           } else {
             res.end ('404');
           }
@@ -238,6 +236,8 @@ exports.Server.start = function (port, debug) {
             return Plate.format (data.toString (), templatedata);
           };
 
+          // `platepaths[0][2]` is the callback associated to the event,
+          // if it exists.
           differedresult (completion, treat, platepaths[0][2]);
 
         };
@@ -251,10 +251,10 @@ exports.Server.start = function (port, debug) {
 
         } else {
           // realpath is a real path!
-	  if (realpath.match (/\/$/)) {
-	    realpath = realpath + 'index.html';
-            var ext = 'html';
-	  }
+          if (realpath.match (/\/$/)) {
+            realpath = realpath + 'index.html';
+            ext = 'html';
+          }
           fs.readFile(realpath
               , exports.Server.binaries.indexOf (ext) !== -1? 'binary': 'utf8'
               , function (err, data) {
