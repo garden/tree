@@ -15,7 +15,7 @@ Collaborative Operating System
 - send [pull requests] (http://help.github.com/send-pull-requests)
 - contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
-## Includes
+## Included
 [tree] (http://github.com/garden/tree) (GPLv2 license) also contains code from
 
 - [ScoutCamp] (http://espadrine.github.com/ScoutCamp) (LGPL license)

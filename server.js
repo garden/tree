@@ -53,6 +53,7 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
         data.dir = content;
         data.filenames = [];
         for (var file in content) {
+          if (arbor.isoftype(content[file],'dir')) file += '/';
           data.filenames.push(file);
         }
         // testing
