@@ -229,7 +229,7 @@ Camp.add ('new', function addnewstuff (query) {
   // Change our copy.
   console.log ('--sync', query.delta);
   var newdelta = query.delta;
-  //try {
+  try {
     // The file content must be in memory here
     // (indeed, the file.usercount is non-negative).
     var filecontent = arbor.fsfiles[query.path]._content;
@@ -238,7 +238,23 @@ Camp.add ('new', function addnewstuff (query) {
     }, function(delta) {
       newdelta = delta;
     });
-  //} catch (e) { console.error(e.message); console.trace(e); return {error:1};}
+  } catch (e) { console.error(e.message); console.trace(e); return {error:1};}
+
+  // For each user, we update all data.
+  for (var user in users) {
+    // Since we send it, it will be synced.
+    users[user].lastcopy = arbor.fsfiles[query.path]._content;
+
+    // Timeout adjustments.
+    users[user].bufferhim = true;
+    if (users[user].timeout > 0) {
+      clearTimeout (users[user].timeout);
+    }
+    users[user].timeout = setTimeout (function activatebuffer () {
+      delete users[user];  // Forget about this guy. Not worth it.
+    }, TimeoutBetweenDispatches);
+  }
+
   var newresp = {user: query.user, delta: newdelta, rev: query.rev};
   Camp.Server.emit ('modif', newresp);
 
@@ -266,33 +282,13 @@ Camp.add ('dispatch', function (query) {
   // "A wise sufi monk once said,
   // If what you have to say is not as pleasant as silence, do not talk."
   // We wait till we have something to say.
-  return function modif (resp) {
-    var modifier = resp.user;  // The guy that did the modification.
-    if (modifier !== query.user) {
+}, function modif(resp) {
+  // The modification was not made by the one that sent it.
+  //console.log ('--sending to', query.user, JSON.stringify (resp.delta));///
+  //console.log ('--hence closing dispatch for', query.user);///
 
-      // The modification was not made by the one that sent it.
-      console.log ('--sending to', query.user, JSON.stringify (resp.delta));///
-      console.log ('--hence closing dispatch for', query.user);///
-
-      // Since we send it, it will be synced.
-      users[query.user].lastcopy = arbor.fsfiles[query.path]._content;
-
-      // Timeout adjustments.
-      users[query.user].bufferhim = true;
-      if (users[query.user].timeout > 0) {
-        clearTimeout (users[query.user].timeout);
-      }
-      users[query.user].timeout = setTimeout (function activatebuffer () {
-        delete users[query.user];  // Forget about this guy. Not worth it.
-      }, TimeoutBetweenDispatches);
-
-      return resp;             // Send the modification to the client.
-
-    } else {
-      return undefined;        // The user mustn't receive his own modification.
-    }
-  };
-}, 'modif');
+  return resp;             // Send the modification to the client.
+});
 
 
 // Chat

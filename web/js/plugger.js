@@ -137,6 +137,12 @@ function getmodif (params) {
 
     console.log ('received rev : ' + resp.rev + 
                  ', delta : ' + JSON.stringify(resp.delta));
+
+    // If it is us, we have already done the modification.
+    if (resp.user === client.user) {
+      Scout2.send (getmodif) ();   // We relaunch the connection.
+      return;
+    }
     
     // We sync it to our copy.
     sync (client, resp.delta, client.copy, function applylocally(patch) {
