@@ -7,6 +7,7 @@ function CodeMirrorPlug ( path, body, params, update ) {
 // Add onChange to the CodeMirror parameters.
 // Creation of the editor.
 params.onChange = function onChange() {
+  console.log('onChange() was triggered, notmychange is',client.notmychange);
   if (update) update();  // Page elements
 
   if (client.notmychange) {

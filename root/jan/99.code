@@ -1,0 +1,26 @@
+# 99 bottles of beer written in codex
+
+@'fs'
+
+main = {
+  do {:loop; i:99
+    n = if (i == 0) 'No more' else i
+    next = if (i == 1) 'No more' else (n-1)
+    fs.println n, 'bottles of beer on the wall,', n, 'bottles of beer.'
+    if (i != 0) {
+      fs.println 'Take one down and pass it around,',  \
+        next, 'bottles of beer on the wall'
+      loop (i-1)
+    } else {
+      fs.println 'Go to the store and buy some more,' \
+        '99 bottles of beer on the wall.' }}}
+
+
+
+
+main = {
+  t='Take one down and pass it around,';n='no more';b='bottle';o='of beer';w='on the wall'
+  do {:loop; i:99
+    B = (? (i>0) i else n),b+(? (i==1) '' else 's'),o
+    fs.println t,B,w,'.\n\n',B,w,',',B,'.'
+    loop (i-1)}} 
