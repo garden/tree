@@ -98,6 +98,12 @@ Camp.add ('fs', function (query) {
         });
       });
       break;
+    case 'touch':
+      //create file
+    case 'rm':
+      //delete file
+    case 'cp':
+      //copy file
     default:
       return {};
   }
