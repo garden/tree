@@ -16,19 +16,19 @@ var CodeMirror = (function() {
     var targetDocument = options["document"];
     // The element in which the editor lives.
     var wrapper = targetDocument.createElement("div");
-    wrapper.className = "CodeMirror";
+    wrapper.className = "CodeMirror" + (options.lineWrapping ? " CodeMirror-wrap" : "");
     // This mess creates the base DOM structure for the editor.
     wrapper.innerHTML =
       '<div style="overflow: hidden; position: relative; width: 1px; height: 0px;">' + // Wraps and hides input textarea
-        '<textarea style="position: absolute; width: 2px;" wrap="off" ' +
+        '<textarea style="position: absolute; width: 10000px;" wrap="off" ' +
           'autocorrect="off" autocapitalize="off"></textarea></div>' +
       '<div class="CodeMirror-scroll cm-s-' + options.theme + '">' +
         '<div style="position: relative">' + // Set to the height of the text, causes scrolling
-          '<div style="position: absolute; height: 0; width: 0; overflow: hidden;"></div>' +
           '<div style="position: relative">' + // Moved around its parent to cover visible view
             '<div class="CodeMirror-gutter"><div class="CodeMirror-gutter-text"></div></div>' +
             // Provides positioning relative to (visible) text origin
             '<div class="CodeMirror-lines"><div style="position: relative" draggable="true">' +
+              '<div style="position: absolute; width: 100%; height: 0; overflow: hidden; visibility: hidden"></div>' +
               '<pre class="CodeMirror-cursor">&#160;</pre>' + // Absolutely positioned blinky cursor
               '<div></div>' + // This DIV contains the actual code
             '</div></div></div></div></div>';
@@ -36,10 +36,9 @@ var CodeMirror = (function() {
     // I've never seen more elegant code in my life.
     var inputDiv = wrapper.firstChild, input = inputDiv.firstChild,
         scroller = wrapper.lastChild, code = scroller.firstChild,
-        measure = code.firstChild, mover = measure.nextSibling,
-        gutter = mover.firstChild, gutterText = gutter.firstChild,
-        lineSpace = gutter.nextSibling.firstChild,
-        cursor = lineSpace.firstChild, lineDiv = cursor.nextSibling;
+        mover = code.firstChild, gutter = mover.firstChild, gutterText = gutter.firstChild,
+        lineSpace = gutter.nextSibling.firstChild, measure = lineSpace.firstChild,
+        cursor = measure.nextSibling, lineDiv = cursor.nextSibling;
     if (options.tabindex != null) input.tabindex = options.tabindex;
     if (!options.gutter && !options.lineNumbers) gutter.style.display = "none";
 
@@ -55,11 +54,10 @@ var CodeMirror = (function() {
     // Delayed object wrap timeouts, making sure only one is active. blinker holds an interval.
     var poll = new Delayed(), highlight = new Delayed(), blinker;
 
-    // mode holds a mode API object. lines an array of Line objects
-    // (see Line constructor), work an array of lines that should be
-    // parsed, and history the undo history (instance of History
-    // constructor).
-    var mode, lines = [new Line("")], work, focused;
+    // mode holds a mode API object. doc is the tree of Line objects,
+    // work an array of lines that should be parsed, and history the
+    // undo history (instance of History constructor).
+    var mode, doc = new BranchChunk([new LeafChunk([new Line("")])]), work, focused;
     loadMode();
     // The selection. These are always maintained to point at valid
     // positions. Inverted is used to remember that the user is
@@ -74,7 +72,7 @@ var CodeMirror = (function() {
     // happened during the operation.
     var updateInput, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
     // Current visible range (may be bigger than the view window).
-    var showingFrom = 0, showingTo = 0, lastHeight = 0, curKeyId = null;
+    var displayOffset = 0, showingFrom = 0, showingTo = 0, lastHeight = 0, curKeyId = null;
     // editing will hold an object describing the things we put in the
     // textarea, to help figure out whether something changed.
     // bracketHighlighted is used to remember that a backet has been
@@ -122,7 +120,7 @@ var CodeMirror = (function() {
     if (hasFocus) setTimeout(onFocus, 20);
     else onBlur();
 
-    function isLine(l) {return l >= 0 && l < lines.length;}
+    function isLine(l) {return l >= 0 && l < doc.size;}
     // The instance object that we'll return. Mostly calls out to
     // local functions in the CodeMirror function. Some do some extra
     // range checking and/or clipping. operation is used to wrap the
@@ -135,12 +133,14 @@ var CodeMirror = (function() {
       replaceSelection: operation(replaceSelection),
       focus: function(){focusInput(); onFocus(); fastPoll();},
       setOption: function(option, value) {
+        var oldVal = options[option];
         options[option] = value;
         if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber")
           operation(gutterChanged)();
         else if (option == "mode" || option == "indentUnit") loadMode();
         else if (option == "readOnly" && value == "nocursor") input.blur();
         else if (option == "theme") scroller.className = scroller.className.replace(/cm-s-\w+/, "cm-s-" + value);
+        else if (option == "lineWrapping" && oldVal != value) operation(wrappingChanged)();
       },
       getOption: function(option) {return options[option];},
       undo: operation(undo),
@@ -153,10 +153,10 @@ var CodeMirror = (function() {
       matchBrackets: operation(function(){matchBrackets(true);}),
       getTokenAt: function(pos) {
         pos = clipPos(pos);
-        return lines[pos.line].getTokenAt(mode, getStateBefore(pos.line), pos.ch);
+        return getLine(pos.line).getTokenAt(mode, getStateBefore(pos.line), pos.ch);
       },
       getStateAfter: function(line) {
-        line = clipLine(line == null ? lines.length - 1: line);
+        line = clipLine(line == null ? doc.size - 1: line);
         return getStateBefore(line + 1);
       },
       cursorCoords: function(start){
@@ -166,14 +166,15 @@ var CodeMirror = (function() {
       charCoords: function(pos){return pageCoords(clipPos(pos));},
       coordsChar: function(coords) {
         var off = eltOffset(lineSpace);
-        var line = clipLine(Math.min(lines.length - 1, showingFrom + Math.floor((coords.y - off.top) / lineHeight())));
-        return clipPos({line: line, ch: charFromX(clipLine(line), coords.x - off.left)});
+        return coordsChar(coords.x - off.left, coords.y - off.top);
       },
       getSearchCursor: function(query, pos, caseFold) {return new SearchCursor(query, pos, caseFold);},
       markText: operation(markText),
       setMarker: operation(addGutterMarker),
       clearMarker: operation(removeGutterMarker),
       setLineClass: operation(setLineClass),
+      hideLine: operation(function(h) {return setLineHidden(h, true);}),
+      showLine: operation(function(h) {return setLineHidden(h, false);}),
       lineInfo: lineInfo,
       addWidget: function(pos, node, scroll, vert, horiz) {
         pos = localCoords(clipPos(pos));
@@ -182,7 +183,7 @@ var CodeMirror = (function() {
         code.appendChild(node);
         if (vert == "over") top = pos.y;
         else if (vert == "near") {
-          var vspace = Math.max(scroller.offsetHeight, lines.length * lineHeight()),
+          var vspace = Math.max(scroller.offsetHeight, doc.height * textHeight()),
               hspace = Math.max(code.clientWidth, lineSpace.clientWidth) - paddingLeft();
           if (pos.yBot + node.offsetHeight > vspace && pos.y > node.offsetHeight)
             top = pos.y - node.offsetHeight;
@@ -203,7 +204,7 @@ var CodeMirror = (function() {
           scrollIntoView(left, top, left + node.offsetWidth, top + node.offsetHeight);
       },
 
-      lineCount: function() {return lines.length;},
+      lineCount: function() {return doc.size;},
       getCursor: function(start) {
         if (start == null) start = sel.inverted;
         return copyPos(start ? sel.from : sel.to);
@@ -214,9 +215,9 @@ var CodeMirror = (function() {
         else setCursor(line, ch);
       }),
       setSelection: operation(function(from, to) {setSelection(clipPos(from), clipPos(to || from));}),
-      getLine: function(line) {if (isLine(line)) return lines[line].text;},
+      getLine: function(line) {if (isLine(line)) return getLine(line).text;},
       setLine: operation(function(line, text) {
-        if (isLine(line)) replaceRange(text, {line: line, ch: 0}, {line: line, ch: lines[line].text.length});
+        if (isLine(line)) replaceRange(text, {line: line, ch: 0}, {line: line, ch: getLine(line).text.length});
       }),
       removeLine: operation(function(line) {
         if (isLine(line)) replaceRange("", {line: line, ch: 0}, clipPos({line: line+1, ch: 0}));
@@ -224,15 +225,15 @@ var CodeMirror = (function() {
       replaceRange: operation(replaceRange),
       getRange: function(from, to) {return getRange(clipPos(from), clipPos(to));},
 
-      coordsFromIndex: function(index) {        
-        var total = lines.length, pos = 0, line, ch, len;
-        
-        for (line = 0; line < total; line++) {
-          len = lines[line].text.length + 1;
-          if (pos + len > index) { ch = index - pos; break; }
-          pos += len;
-        }
-        return clipPos({line: line, ch: ch});
+      coordsFromIndex: function(off) {        
+        var lineNo = 0, ch;
+        doc.iter(0, doc.size, function(line) {
+          var sz = line.text.length + 1;
+          if (sz > off) { ch = off; return true; }
+          off -= sz;
+          ++lineNo;
+        });
+        return clipPos({line: lineNo, ch: ch});
       },
 
       operation: function(f){return operation(f)();},
@@ -243,16 +244,22 @@ var CodeMirror = (function() {
       getGutterElement: function(){return gutter;}
     };
 
+    function getLine(n) { return getLineAt(doc, n); }
+    function updateLineHeight(line, height) {
+      gutterDirty = true;
+      var diff = height - line.height;
+      for (var n = line; n; n = n.parent) n.height += diff;
+    }
+
     function setValue(code) {
       var top = {line: 0, ch: 0};
-      updateLines(top, {line: lines.length - 1, ch: lines[lines.length-1].text.length},
+      updateLines(top, {line: doc.size - 1, ch: getLine(doc.size-1).text.length},
                   splitLines(code), top, top);
       updateInput = true;
     }
     function getValue(code) {
       var text = [];
-      for (var i = 0, l = lines.length; i < l; ++i)
-        text.push(lines[i].text);
+      doc.iter(0, doc.size, function(line) { text.push(line.text); });
       return text.join("\n");
     }
 
@@ -261,7 +268,7 @@ var CodeMirror = (function() {
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == code && n != mover) return;
 
-      // First, see if this is a click in the gutter
+      // See if this is a click in the gutter
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == gutterText) {
           if (options.onGutterClick)
@@ -344,6 +351,8 @@ var CodeMirror = (function() {
       }), true);
     }
     function onDoubleClick(e) {
+      for (var n = e_target(e); n != wrapper; n = n.parentNode)
+        if (n.parentNode == gutterText) return e_preventDefault(e);
       var start = posFromMouse(e);
       if (!start) return;
       lastDoubleClick = +new Date;
@@ -485,7 +494,7 @@ var CodeMirror = (function() {
     function updateLines(from, to, newText, selFrom, selTo) {
       if (history) {
         var old = [];
-        for (var i = from.line, e = to.line + 1; i < e; ++i) old.push(lines[i].text);
+        doc.iter(from.line, to.line + 1, function(line) { old.push(line.text); });
         history.addChange(from.line, newText.length, old);
         while (history.done.length > options.undoDepth) history.done.shift();
       }
@@ -495,11 +504,11 @@ var CodeMirror = (function() {
       var change = from.pop();
       if (change) {
         var replaced = [], end = change.start + change.added;
-        for (var i = change.start; i < end; ++i) replaced.push(lines[i].text);
+        doc.iter(change.start, end, function(line) { replaced.push(line.text); });
         to.push({start: change.start, added: change.old.length, old: replaced});
         var pos = clipPos({line: change.start + change.old.length - 1,
                            ch: editEnd(replaced[replaced.length-1], change.old[change.old.length-1])});
-        updateLinesNoUndo({line: change.start, ch: 0}, {line: end - 1, ch: lines[end-1].text.length}, change.old, pos, pos);
+        updateLinesNoUndo({line: change.start, ch: 0}, {line: end - 1, ch: getLine(end-1).text.length}, change.old, pos, pos);
         updateInput = true;
       }
     }
@@ -508,55 +517,64 @@ var CodeMirror = (function() {
 
     function updateLinesNoUndo(from, to, newText, selFrom, selTo) {
       var recomputeMaxLength = false, maxLineLength = maxLine.length;
-      for (var i = from.line; i <= to.line; ++i) {
-        if (lines[i].text.length == maxLineLength) {recomputeMaxLength = true; break;}
-      }
+      if (!options.lineWrapping)
+        doc.iter(from.line, to.line, function(line) {
+          if (line.text.length == maxLineLength) {recomputeMaxLength = true; return true;}
+        });
 
-      var nlines = to.line - from.line, firstLine = lines[from.line], lastLine = lines[to.line];
+      var nlines = to.line - from.line, firstLine = getLine(from.line), lastLine = getLine(to.line);
       // First adjust the line structure, taking some care to leave highlighting intact.
       if (firstLine == lastLine) {
         if (newText.length == 1)
           firstLine.replace(from.ch, to.ch, newText[0]);
         else {
           lastLine = firstLine.split(to.ch, newText[newText.length-1]);
-          var spliceargs = [from.line + 1, nlines];
+          var added = [];
           firstLine.replace(from.ch, null, newText[0]);
           for (var i = 1, e = newText.length - 1; i < e; ++i)
-            spliceargs.push(Line.inheritMarks(newText[i], firstLine));
-          spliceargs.push(lastLine);
-          lines.splice.apply(lines, spliceargs);
+            added.push(Line.inheritMarks(newText[i], firstLine));
+          added.push(lastLine);
+          doc.insert(from.line + 1, added);
         }
       }
       else if (newText.length == 1) {
         firstLine.replace(from.ch, null, newText[0]);
         lastLine.replace(null, to.ch, "");
         firstLine.append(lastLine);
-        lines.splice(from.line + 1, nlines);
+        doc.remove(from.line + 1, nlines);
       }
       else {
-        var spliceargs = [from.line + 1, nlines - 1];
+        var added = [];
         firstLine.replace(from.ch, null, newText[0]);
         lastLine.replace(null, to.ch, newText[newText.length-1]);
         for (var i = 1, e = newText.length - 1; i < e; ++i)
-          spliceargs.push(Line.inheritMarks(newText[i], firstLine));
-        lines.splice.apply(lines, spliceargs);
+          added.push(Line.inheritMarks(newText[i], firstLine));
+        if (nlines > 1) doc.remove(from.line + 1, nlines - 1);
+        doc.insert(from.line + 1, added);
       }
-
-
-      for (var i = from.line, e = i + newText.length; i < e; ++i) {
-        var l = lines[i].text;
-        if (l.length > maxLineLength) {
-          maxLine = l; maxLineLength = l.length; maxWidth = null;
-          recomputeMaxLength = false;
-        }
-      }
-      if (recomputeMaxLength) {
-        maxLineLength = 0; maxLine = ""; maxWidth = null;
-        for (var i = 0, e = lines.length; i < e; ++i) {
-          var l = lines[i].text;
+      if (options.lineWrapping) {
+        var perLine = scroller.clientWidth / charWidth() - 3;
+        doc.iter(from.line, from.line + newText.length, function(line) {
+          if (line.hidden) return;
+          var guess = Math.ceil(line.text.length / perLine) || 1;
+          if (guess != line.height) updateLineHeight(line, guess);
+        });
+      } else {
+        doc.iter(from.line, i + newText.length, function(line) {
+          var l = line.text;
           if (l.length > maxLineLength) {
-            maxLineLength = l.length; maxLine = l;
+            maxLine = l; maxLineLength = l.length; maxWidth = null;
+            recomputeMaxLength = false;
           }
+        });
+        if (recomputeMaxLength) {
+          maxLineLength = 0; maxLine = ""; maxWidth = null;
+          doc.iter(0, doc.size, function(line) {
+            var l = line.text;
+            if (l.length > maxLineLength) {
+              maxLineLength = l.length; maxLine = l;
+            }
+          });
         }
       }
 
@@ -585,7 +603,7 @@ var CodeMirror = (function() {
       setSelection(selFrom, selTo, updateLine(sel.from.line), updateLine(sel.to.line));
 
       // Make sure the scroll-size div has the correct height.
-      code.style.height = (lines.length * lineHeight() + 2 * paddingTop()) + "px";
+      code.style.height = (doc.height * textHeight() + 2 * paddingTop()) + "px";
     }
 
     function replaceRange(code, from, to) {
@@ -623,10 +641,10 @@ var CodeMirror = (function() {
 
     function getRange(from, to) {
       var l1 = from.line, l2 = to.line;
-      if (l1 == l2) return lines[l1].text.slice(from.ch, to.ch);
-      var code = [lines[l1].text.slice(from.ch)];
-      for (var i = l1 + 1; i < l2; ++i) code.push(lines[i].text);
-      code.push(lines[l2].text.slice(0, to.ch));
+      if (l1 == l2) return getLine(l1).text.slice(from.ch, to.ch);
+      var code = [getLine(l1).text.slice(from.ch)];
+      doc.iter(l1 + 1, l2, function(line) { code.push(line.text); });
+      code.push(getLine(l2).text.slice(0, to.ch));
       return code.join("\n");
     }
     function getSelection() {
@@ -734,14 +752,16 @@ var CodeMirror = (function() {
     // editor state.
     function prepareInput() {
       var text = [];
-      var from = Math.max(0, sel.from.line - 1), to = Math.min(lines.length, sel.to.line + 2);
-      for (var i = from; i < to; ++i) text.push(lines[i].text);
+      var from = Math.max(0, sel.from.line - 1), to = Math.min(doc.size, sel.to.line + 2);
+      doc.iter(from, to, function(line) { text.push(line.text); });
       text = input.value = text.join(lineSep);
       var startch = sel.from.ch, endch = sel.to.ch;
-      for (var i = from; i < sel.from.line; ++i)
-        startch += lineSep.length + lines[i].text.length;
-      for (var i = from; i < sel.to.line; ++i)
-        endch += lineSep.length + lines[i].text.length;
+      doc.iter(from, sel.from.line, function(line) {
+        startch += lineSep.length + line.text.length;
+      });
+      doc.iter(from, sel.to.line, function(line) {
+        endch += lineSep.length + line.text.length;
+      });
       editing = {text: text, from: from, to: to, start: startch, end: endch};
       setSelRange(input, startch, reducedSelection ? startch : endch);
     }
@@ -757,10 +777,11 @@ var CodeMirror = (function() {
     }
     function scrollCursorIntoView() {
       var cursor = localCoords(sel.inverted ? sel.from : sel.to);
-      return scrollIntoView(cursor.x, cursor.y, cursor.x, cursor.yBot);
+      var x = options.lineWrapping ? Math.min(cursor.x, lineSpace.offsetWidth) : cursor.x;
+      return scrollIntoView(x, cursor.y, x, cursor.yBot);
     }
     function scrollIntoView(x1, y1, x2, y2) {
-      var pl = paddingLeft(), pt = paddingTop(), lh = lineHeight();
+      var pl = paddingLeft(), pt = paddingTop(), lh = textHeight();
       y1 += pt; y2 += pt; x1 += pl; x2 += pl;
       var screen = scroller.clientHeight, screentop = scroller.scrollTop, scrolled = false, result = true;
       if (y1 < screentop) {scroller.scrollTop = Math.max(0, y1 - 2*lh); scrolled = true;}
@@ -783,16 +804,18 @@ var CodeMirror = (function() {
     }
 
     function visibleLines() {
-      var lh = lineHeight(), top = scroller.scrollTop - paddingTop();
-      return {from: Math.min(lines.length, Math.max(0, Math.floor(top / lh))),
-              to: Math.min(lines.length, Math.ceil((top + scroller.clientHeight) / lh))};
+      var lh = textHeight(), top = scroller.scrollTop - paddingTop();
+      var from_height = Math.max(0, Math.floor(top / lh));
+      var to_height = Math.ceil((top + scroller.clientHeight) / lh);
+      return {from: lineAtHeight(doc, from_height),
+              to: lineAtHeight(doc, to_height)};
     }
     // Uses a set of changes plus the current scroll position to
     // determine which DOM updates have to be made, and makes the
     // updates.
     function updateDisplay(changes) {
       if (!scroller.clientWidth) {
-        showingFrom = showingTo = 0;
+        showingFrom = showingTo = displayOffset = 0;
         return;
       }
       // First create a range of theoretically intact lines, and punch
@@ -821,7 +844,7 @@ var CodeMirror = (function() {
       // updates have to be made to get there.
       var visible = visibleLines();
       var from = Math.min(showingFrom, Math.max(visible.from - 3, 0)),
-          to = Math.min(lines.length, Math.max(showingTo, visible.to + 3)),
+          to = Math.min(doc.size, Math.max(showingTo, visible.to + 3)),
           updates = [], domPos = 0, domEnd = showingTo - showingFrom, pos = from, changedLines = 0;
 
       for (var i = 0, l = intact.length; i < l; ++i) {
@@ -842,11 +865,12 @@ var CodeMirror = (function() {
       }
 
       if (!updates.length) return;
+      var th = textHeight();
       lineDiv.style.display = "none";
       // If more than 30% of the screen needs update, just do a full
       // redraw (which is quicker than patching)
       if (changedLines > (visible.to - visible.from) * .3)
-        refreshDisplay(from = Math.max(visible.from - 10, 0), to = Math.min(visible.to + 7, lines.length));
+        refreshDisplay(from = Math.max(visible.from - 10, 0), to = Math.min(visible.to + 7, doc.size));
       // Otherwise, only update the stuff that needs updating.
       else
         patchDisplay(updates);
@@ -855,35 +879,48 @@ var CodeMirror = (function() {
       // Position the mover div to align with the lines it's supposed
       // to be showing (which will cover the visible display)
       var different = from != showingFrom || to != showingTo || lastHeight != scroller.clientHeight;
+      if (different) lastHeight = scroller.clientHeight;
       showingFrom = from; showingTo = to;
-      mover.style.top = (from * lineHeight()) + "px";
-      if (different) {
-        lastHeight = scroller.clientHeight;
-        code.style.height = (lines.length * lineHeight() + 2 * paddingTop()) + "px";
-      }
-      if (different || gutterDirty) updateGutter();
-
-      if (maxWidth == null) maxWidth = stringWidth(maxLine);
-      if (maxWidth > scroller.clientWidth) {
-        lineSpace.style.width = maxWidth + "px";
-        // Needed to prevent odd wrapping/hiding of widgets placed in here.
-        code.style.width = "";
-        code.style.width = scroller.scrollWidth + "px";
-      } else {
-        lineSpace.style.width = code.style.width = "";
-      }
+      displayOffset = heightAtLine(doc, from);
+      mover.style.top = (displayOffset * th) + "px";
+      code.style.height = (doc.height * th + 2 * paddingTop()) + "px";
 
       // Since this is all rather error prone, it is honoured with the
       // only assertion in the whole file.
       if (lineDiv.childNodes.length != showingTo - showingFrom)
         throw new Error("BAD PATCH! " + JSON.stringify(updates) + " size=" + (showingTo - showingFrom) +
                         " nodes=" + lineDiv.childNodes.length);
+
+      if (options.lineWrapping) {
+        maxWidth = scroller.clientWidth;
+        var curNode = lineDiv.firstChild;
+        doc.iter(showingFrom, showingTo, function(line) {
+          if (!line.hidden) {
+            var height = Math.round(curNode.offsetHeight / th) || 1;
+            if (line.height != height) {updateLineHeight(line, height); gutterDirty = true;}
+          }
+          curNode = curNode.nextSibling;
+        });
+      } else {
+        if (maxWidth == null) maxWidth = stringWidth(maxLine);
+        if (maxWidth > scroller.clientWidth) {
+          lineSpace.style.width = maxWidth + "px";
+          // Needed to prevent odd wrapping/hiding of widgets placed in here.
+          code.style.width = "";
+          code.style.width = scroller.scrollWidth + "px";
+        } else {
+          lineSpace.style.width = code.style.width = "";
+        }
+      }
+      if (different || gutterDirty) updateGutter();
+
       updateCursor();
     }
 
     function refreshDisplay(from, to) {
-      var html = [], start = {line: from, ch: 0}, inSel = posLess(sel.from, start) && !posLess(sel.to, start);
-      for (var i = from; i < to; ++i) {
+      var start = {line: from, ch: 0}, inSel = posLess(sel.from, start) && !posLess(sel.to, start);
+      var i = from, html = [];
+      doc.iter(from, to, function(line) {
         var ch1 = null, ch2 = null;
         if (inSel) {
           ch1 = 0;
@@ -893,8 +930,10 @@ var CodeMirror = (function() {
           if (sel.to.line == i) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
           else {inSel = true; ch1 = sel.from.ch;}
         }
-        html.push(lines[i].getHTML(ch1, ch2, true));
-      }
+        if (line.hidden) html.push("<pre></pre>");
+        else html.push(line.getHTML(ch1, ch2, true));
+        ++i;
+      });
       lineDiv.innerHTML = html.join("");
     }
     function patchDisplay(updates) {
@@ -917,26 +956,28 @@ var CodeMirror = (function() {
             lineDiv.removeChild(nodeAfter ? nodeAfter.previousSibling : lineDiv.lastChild);
         }
         var node = lineDiv.childNodes[rec.domStart + off], inSel = sfrom < rec.from && sto >= rec.from;
-        for (var j = rec.from; j < rec.to; ++j) {
+        var j = rec.from;
+        doc.iter(rec.from, rec.to, function(line) {
           var ch1 = null, ch2 = null;
           if (inSel) {
             ch1 = 0;
             if (sto == j) {inSel = false; ch2 = sel.to.ch;}
-          }
-          else if (sfrom == j) {
+          } else if (sfrom == j) {
             if (sto == j) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
             else {inSel = true; ch1 = sel.from.ch;}
           }
           if (badInnerHTML) {
-            scratch.innerHTML = lines[j].getHTML(ch1, ch2, true);
+            if (line.hidden) scratch.innerHTML = "<pre></pre>";
+            else scratch.innerHTML = line.getHTML(ch1, ch2, true);
             lineDiv.insertBefore(scratch.firstChild, nodeAfter);
-          }
-          else {
-            node.innerHTML = lines[j].getHTML(ch1, ch2, false);
-            node.className = lines[j].className || "";
+          } else {
+            if (line.hidden) node.innerHTML = "";
+            else node.innerHTML = line.getHTML(ch1, ch2, false);
+            node.className = line.className || "";
             node = node.nextSibling;
           }
-        }
+          ++j;
+        });
         off += extra;
       }
     }
@@ -945,19 +986,26 @@ var CodeMirror = (function() {
       if (!options.gutter && !options.lineNumbers) return;
       var hText = mover.offsetHeight, hEditor = scroller.clientHeight;
       gutter.style.height = (hText - hEditor < 2 ? hEditor : hText) + "px";
-      var html = [];
-      for (var i = showingFrom; i < Math.max(showingTo, showingFrom + 1); ++i) {
-        var marker = lines[i].gutterMarker;
-        var text = options.lineNumbers ? i + options.firstLineNumber : null;
-        if (marker && marker.text)
-          text = marker.text.replace("%N%", text != null ? text : "");
-        else if (text == null)
-          text = "\u00a0";
-        html.push((marker && marker.style ? '<pre class="' + marker.style + '">' : "<pre>"), text, "</pre>");
-      }
+      var html = [], i = showingFrom;
+      doc.iter(showingFrom, Math.max(showingTo, showingFrom + 1), function(line) {
+        if (line.hidden) {
+          html.push("<pre></pre>");
+        } else {
+          var marker = line.gutterMarker;
+          var text = options.lineNumbers ? i + options.firstLineNumber : null;
+          if (marker && marker.text)
+            text = marker.text.replace("%N%", text != null ? text : "");
+          else if (text == null)
+            text = "\u00a0";
+          html.push((marker && marker.style ? '<pre class="' + marker.style + '">' : "<pre>"), text);
+          for (var j = 1; j < line.height; ++j) html.push("<br>&nbsp;");
+          html.push("</pre>");
+        }
+        ++i;
+      });
       gutter.style.display = "none";
       gutterText.innerHTML = html.join("");
-      var minwidth = String(lines.length).length, firstNode = gutterText.firstChild, val = eltText(firstNode), pad = "";
+      var minwidth = String(doc.size).length, firstNode = gutterText.firstChild, val = eltText(firstNode), pad = "";
       while (val.length + pad.length < minwidth) pad += "\u00a0";
       if (pad) firstNode.insertBefore(targetDocument.createTextNode(pad), firstNode.firstChild);
       gutter.style.display = "";
@@ -965,14 +1013,14 @@ var CodeMirror = (function() {
       gutterDirty = false;
     }
     function updateCursor() {
-      var head = sel.inverted ? sel.from : sel.to, lh = lineHeight();
-      var x = charX(head.line, head.ch);
-      var top = head.line * lh - scroller.scrollTop;
-      inputDiv.style.top = Math.max(Math.min(top, scroller.offsetHeight), 0) + "px";
-      inputDiv.style.left = (x - scroller.scrollLeft) + "px";
+      var head = sel.inverted ? sel.from : sel.to, lh = textHeight();
+      var pos = localCoords(head, true);
+      var globalY = pos.y + displayOffset * textHeight();
+      inputDiv.style.top = Math.max(Math.min(globalY, scroller.offsetHeight), 0) + "px";
+      inputDiv.style.left = (pos.x - scroller.scrollLeft) + "px";
       if (posEq(sel.from, sel.to)) {
-        cursor.style.top = (head.line - showingFrom) * lh + "px";
-        cursor.style.left = x + "px";
+        cursor.style.top = pos.y + "px";
+        cursor.style.left = (options.lineWrapping ? Math.min(pos.x, lineSpace.offsetWidth) : pos.x) + "px";
         cursor.style.display = "";
       }
       else cursor.style.display = "none";
@@ -990,8 +1038,31 @@ var CodeMirror = (function() {
     // updateLines, since they have to be expressed in the line
     // numbers before the update.
     function setSelection(from, to, oldFrom, oldTo) {
+      if (oldFrom == null) {oldFrom = sel.from.line; oldTo = sel.to.line;}
       if (posEq(sel.from, from) && posEq(sel.to, to)) return;
       if (posLess(to, from)) {var tmp = to; to = from; from = tmp;}
+
+      // Skip over hidden lines.
+      function skipHidden(pos, oldLine, oldCh) {
+        function getNonHidden(dir) {
+          var lNo = pos.line + dir, end = dir == 1 ? doc.size : -1;
+          while (lNo != end) {
+            var line = getLine(lNo);
+            if (!line.hidden) {
+              var ch = pos.ch;
+              if (ch > oldCh || ch > line.text.length) ch = line.text.length;
+              return {line: lNo, ch: ch};
+            }
+            lNo += dir;
+          }
+        }
+        var line = getLine(pos.line);
+        if (!line.hidden) return pos;
+        if (pos.line > oldLine) return getNonHidden(1) || getNonHidden(-1);
+        else return getNonHidden(-1) || getNonHidden(1);
+      }
+      if (from.line != oldFrom) from = skipHidden(from, oldFrom, sel.from.ch);
+      if (to.line != oldTo) to = skipHidden(to, oldTo, sel.to.ch);
 
       if (posEq(from, to)) sel.inverted = false;
       else if (posEq(from, sel.to)) sel.inverted = false;
@@ -1000,7 +1071,6 @@ var CodeMirror = (function() {
       // Some ugly logic used to only mark the lines that actually did
       // see a change in selection as changed, rather than the whole
       // selected range.
-      if (oldFrom == null) {oldFrom = sel.from.line; oldTo = sel.to.line;}
       if (posEq(from, to)) {
         if (!posEq(sel.from, sel.to))
           changes.push({from: oldFrom, to: oldTo + 1});
@@ -1030,37 +1100,38 @@ var CodeMirror = (function() {
       (user ? setSelectionUser : setSelection)(pos, pos);
     }
 
-    function clipLine(n) {return Math.max(0, Math.min(n, lines.length-1));}
+    function clipLine(n) {return Math.max(0, Math.min(n, doc.size-1));}
     function clipPos(pos) {
       if (pos.line < 0) return {line: 0, ch: 0};
-      if (pos.line >= lines.length) return {line: lines.length-1, ch: lines[lines.length-1].text.length};
-      var ch = pos.ch, linelen = lines[pos.line].text.length;
+      if (pos.line >= doc.size) return {line: doc.size-1, ch: getLine(doc.size-1).text.length};
+      var ch = pos.ch, linelen = getLine(pos.line).text.length;
       if (ch == null || ch > linelen) return {line: pos.line, ch: linelen};
       else if (ch < 0) return {line: pos.line, ch: 0};
       else return pos;
     }
 
     function scrollPage(down) {
-      var linesPerPage = Math.floor(scroller.clientHeight / lineHeight()), head = sel.inverted ? sel.from : sel.to;
-      setCursor(head.line + (Math.max(linesPerPage - 1, 1) * (down ? 1 : -1)), head.ch, true);
+      var linesPerPage = Math.floor(scroller.clientHeight / textHeight()), head = sel.inverted ? sel.from : sel.to;
+      var target = heightAtLine(doc, head.line) + (Math.max(linesPerPage - 1, 1) * (down ? 1 : -1));
+      setCursor(lineAtHeight(doc, target), head.ch, true);
     }
     function scrollEnd(top) {
-      var pos = top ? {line: 0, ch: 0} : {line: lines.length - 1, ch: lines[lines.length-1].text.length};
+      var pos = top ? {line: 0, ch: 0} : {line: doc.size - 1, ch: getLine(doc.size-1).text.length};
       setSelectionUser(pos, pos);
     }
     function selectAll() {
-      var endLine = lines.length - 1;
-      setSelection({line: 0, ch: 0}, {line: endLine, ch: lines[endLine].text.length});
+      var endLine = doc.size - 1;
+      setSelection({line: 0, ch: 0}, {line: endLine, ch: getLine(endLine).text.length});
     }
     function selectWordAt(pos) {
-      var line = lines[pos.line].text;
+      var line = getLine(pos.line).text;
       var start = pos.ch, end = pos.ch;
       while (start > 0 && /\w/.test(line.charAt(start - 1))) --start;
       while (end < line.length && /\w/.test(line.charAt(end))) ++end;
       setSelectionUser({line: pos.line, ch: start}, {line: pos.line, ch: end});
     }
     function selectLine(line) {
-      setSelectionUser({line: line, ch: 0}, {line: line, ch: lines[line].text.length});
+      setSelectionUser({line: line, ch: 0}, {line: line, ch: getLine(line).text.length});
     }
     function handleEnter() {
       replaceSelection("\n", "end");
@@ -1093,7 +1164,7 @@ var CodeMirror = (function() {
       return true;
     }
     function smartHome() {
-      var firstNonWS = Math.max(0, lines[sel.from.line].text.search(/\S/));
+      var firstNonWS = Math.max(0, getLine(sel.from.line).text.search(/\S/));
       setCursor(sel.from.line, sel.from.ch <= firstNonWS && sel.from.ch ? 0 : firstNonWS, true);
     }
 
@@ -1103,9 +1174,9 @@ var CodeMirror = (function() {
         else var state = getStateBefore(n);
       }
 
-      var line = lines[n], curSpace = line.indentation(), curSpaceString = line.text.match(/^\s*/)[0], indentation;
+      var line = getLine(n), curSpace = line.indentation(), curSpaceString = line.text.match(/^\s*/)[0], indentation;
       if (how == "prev") {
-        if (n) indentation = lines[n-1].indentation();
+        if (n) indentation = getLine(n-1).indentation();
         else indentation = 0;
       }
       else if (how == "smart") indentation = mode.indent(state, line.text.slice(curSpaceString.length));
@@ -1130,8 +1201,7 @@ var CodeMirror = (function() {
 
     function loadMode() {
       mode = CodeMirror.getMode(options, options.mode);
-      for (var i = 0, l = lines.length; i < l; ++i)
-        lines[i].stateAfter = null;
+      doc.iter(0, doc.size, function(line) { line.stateAfter = null; });
       work = [0];
       startWorker();
     }
@@ -1141,12 +1211,32 @@ var CodeMirror = (function() {
       if (visible) gutterDirty = true;
       else lineDiv.parentNode.style.marginLeft = 0;
     }
+    function wrappingChanged(from, to) {
+      if (options.lineWrapping) {
+        wrapper.className += " CodeMirror-wrap";
+        var perLine = scroller.clientWidth / charWidth() - 3;
+        doc.iter(0, doc.size, function(line) {
+          if (line.hidden) return;
+          var guess = Math.ceil(line.text.length / perLine) || 1;
+          if (guess != 1) updateLineHeight(line, guess);
+        });
+        lineSpace.style.width = code.style.width = "";
+      } else {
+        wrapper.className = wrapper.className.replace(" CodeMirror-wrap", "");
+        maxWidth = null; maxLine = "";
+        doc.iter(0, doc.size, function(line) {
+          if (line.height != 1 && !line.hidden) updateLineHeight(line, 1);
+          if (line.text.length > maxLine.length) maxLine = line.text;
+        });
+      }
+      changes.push({from: 0, to: doc.size});
+    }
 
     function markText(from, to, className) {
       from = clipPos(from); to = clipPos(to);
       var set = [];
       function add(line, from, to, className) {
-        mark = lines[line].addMark(from, to, className, set);
+        mark = getLine(line).addMark(from, to, className, set);
       }
       if (from.line == to.line) add(from.line, from.ch, to.ch, className);
       else {
@@ -1169,7 +1259,7 @@ var CodeMirror = (function() {
       }
       // We don't know the exact lines that changed. Refreshing is
       // cheaper than finding them.
-      changes.push({from: 0, to: lines.length});
+      changes.push({from: 0, to: doc.size});
     });
     TextMarker.prototype.find = function() {
       var from, to;
@@ -1179,8 +1269,8 @@ var CodeMirror = (function() {
           var mark = mk[j];
           if (mark.set == this.set) {
             if (mark.from != null || mark.to != null) {
-              var found = indexOf(lines, line);
-              if (found > -1) {
+              var found = lineNo(line);
+              if (found != null) {
                 if (mark.from != null) from = {line: found, ch: mark.from};
                 if (mark.to != null) to = {line: found, ch: mark.to};
               }
@@ -1192,41 +1282,55 @@ var CodeMirror = (function() {
     };
 
     function addGutterMarker(line, text, className) {
-      if (typeof line == "number") line = lines[clipLine(line)];
+      if (typeof line == "number") line = getLine(clipLine(line));
       line.gutterMarker = {text: text, style: className};
       gutterDirty = true;
       return line;
     }
     function removeGutterMarker(line) {
-      if (typeof line == "number") line = lines[clipLine(line)];
+      if (typeof line == "number") line = getLine(clipLine(line));
       line.gutterMarker = null;
       gutterDirty = true;
     }
-    function setLineClass(line, className) {
-      if (typeof line == "number") {
-        var no = line;
-        line = lines[clipLine(line)];
-      }
-      else {
-        var no = indexOf(lines, line);
-        if (no == -1) return null;
-      }
-      if (line.className != className) {
-        line.className = className;
-        changes.push({from: no, to: no + 1});
-      }
+
+    function changeLine(handle, op) {
+      var no = handle, line = handle;
+      if (typeof handle == "number") line = getLine(clipLine(handle));
+      else no = lineNo(handle);
+      if (no == null) return null;
+      if (op(line)) changes.push({from: no, to: no + 1});
       return line;
+    }
+    function setLineClass(handle, className) {
+      if (typeof handle != "number" && handle.parent == null)
+        console.log(handle == getLine(0));
+      return changeLine(handle, function(line) {
+        if (line.className != className) {
+          line.className = className;
+          return true;
+        }
+      });
+    }
+    function setLineHidden(handle, hidden) {
+      return changeLine(handle, function(line) {
+        if (line.hidden != hidden) {
+          line.hidden = hidden;
+          updateLineHeight(line, hidden ? 0 : 1);
+          return (gutterDirty = true);
+        }
+      });
     }
 
     function lineInfo(line) {
       if (typeof line == "number") {
+        if (!isLine(line)) return null;
         var n = line;
-        line = lines[line];
+        line = getLine(line);
         if (!line) return null;
       }
       else {
-        var n = indexOf(lines, line);
-        if (n == -1) return null;
+        var n = lineNo(line);
+        if (n == null) return null;
       }
       var marker = line.gutterMarker;
       return {line: n, text: line.text, markerText: marker && marker.text, markerClass: marker && marker.style};
@@ -1239,21 +1343,16 @@ var CodeMirror = (function() {
     }
     // These are used to go from pixel positions to character
     // positions, taking varying character widths into account.
-    function charX(line, pos) {
-      if (pos == 0) return 0;
-      measure.innerHTML = "<pre><span>" + lines[line].getHTML(null, null, false, pos) + "</span></pre>";
-      return measure.firstChild.firstChild.offsetWidth;
-    }
     function charFromX(line, x) {
       if (x <= 0) return 0;
-      var lineObj = lines[line], text = lineObj.text;
+      var lineObj = getLine(line), text = lineObj.text;
       function getX(len) {
         measure.innerHTML = "<pre><span>" + lineObj.getHTML(null, null, false, len) + "</span></pre>";
         return measure.firstChild.firstChild.offsetWidth;
       }
       var from = 0, fromX = 0, to = text.length, toX;
       // Guess a suitable upper bound for our search.
-      var estimated = Math.min(to, Math.ceil(x / stringWidth("x")));
+      var estimated = Math.min(to, Math.ceil(x / charWidth()));
       for (;;) {
         var estX = getX(estimated);
         if (estX <= x && estimated < to) estimated = Math.min(to, Math.ceil(estimated * 1.2));
@@ -1272,20 +1371,83 @@ var CodeMirror = (function() {
       }
     }
 
+    function measureLine(line, ch) {
+      var extra = "";
+      // Include extra text at the end to make sure the measured line is wrapped in the right way.
+      if (options.lineWrapping) {
+        var end = line.text.indexOf(" ", ch + 2);
+        extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end);
+      }
+      measure.innerHTML = "<pre>" + line.getHTML(null, null, false, ch) +
+        '<span id="CodeMirror-temp">' + (line.text.charAt(ch) || " ") + "</span>" +
+        extra + "</pre>";
+      return document.getElementById("CodeMirror-temp");
+    }
     function localCoords(pos, inLineWrap) {
-      var lh = lineHeight(), line = pos.line - (inLineWrap ? showingFrom : 0);
-      return {x: charX(pos.line, pos.ch), y: line * lh, yBot: (line + 1) * lh};
+      var x, lh = textHeight(), y = lh * (heightAtLine(doc, pos.line) - (inLineWrap ? displayOffset : 0));
+      if (pos.ch == 0) x = 0;
+      else {
+        var sp = measureLine(getLine(pos.line), pos.ch);
+        x = sp.offsetLeft;
+        if (options.lineWrapping) y += Math.max(0, sp.offsetTop);
+      }
+      return {x: x, y: y, yBot: y + lh};
+    }
+    // Coords must be lineSpace-local
+    function coordsChar(x, y) {
+      if (y < 0) y = 0;
+      var th = textHeight(), cw = charWidth(), heightPos = displayOffset + Math.floor(y / th);
+      var lineNo = lineAtHeight(doc, heightPos);
+      if (lineNo >= doc.size) return {line: doc.size - 1, ch: 0};
+      var lineObj = getLine(lineNo), text = lineObj.text;
+      var tw = options.lineWrapping, innerOff = tw ? heightPos - heightAtLine(doc, lineNo) : 0;
+      if (x <= 0 && innerOff == 0) return {line: lineNo, ch: 0};
+      function getX(len) {
+        var sp = measureLine(lineObj, len);
+        if (tw) {
+          var off = Math.round(sp.offsetTop / th);
+          return Math.max(0, sp.offsetLeft + (off - innerOff) * scroller.clientWidth);
+        }
+        return sp.offsetLeft;
+      }
+      var from = 0, fromX = 0, to = text.length, toX;
+      // Guess a suitable upper bound for our search.
+      var estimated = Math.min(to, Math.ceil((x + innerOff * scroller.clientWidth * .9) / cw));
+      for (;;) {
+        var estX = getX(estimated);
+        if (estX <= x && estimated < to) estimated = Math.min(to, Math.ceil(estimated * 1.2));
+        else {toX = estX; to = estimated; break;}
+      }
+      if (x > toX) return {line: lineNo, ch: to};
+      // Try to guess a suitable lower bound as well.
+      estimated = Math.floor(to * 0.8); estX = getX(estimated);
+      if (estX < x) {from = estimated; fromX = estX;}
+      // Do a binary search between these bounds.
+      for (;;) {
+        if (to - from <= 1) return {line: lineNo, ch: (toX - x > x - fromX) ? from : to};
+        var middle = Math.ceil((from + to) / 2), middleX = getX(middle);
+        if (middleX > x) {to = middle; toX = middleX;}
+        else {from = middle; fromX = middleX;}
+      }
     }
     function pageCoords(pos) {
       var local = localCoords(pos, true), off = eltOffset(lineSpace);
       return {x: off.left + local.x, y: off.top + local.y, yBot: off.top + local.yBot};
     }
 
-    function lineHeight() {
-      var nlines = lineDiv.childNodes.length;
-      if (nlines) return (lineDiv.offsetHeight / nlines) || 1;
-      measure.innerHTML = "<pre>x</pre>";
-      return measure.firstChild.offsetHeight || 1;
+    var cachedHeight, cachedFor;
+    function textHeight() {
+      var offsetHeight = lineDiv.offsetHeight;
+      if (offsetHeight == cachedFor) return cachedHeight;
+      cachedFor = offsetHeight;
+      measure.innerHTML = "<pre>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x</pre>";
+      return (cachedHeight = measure.firstChild.offsetHeight / 10 || 1);
+    }
+    var cachedWidth, cachedFor = 0;
+    function charWidth() {
+      if (scroller.clientWidth == cachedFor) return cachedWidth;
+      cachedFor = scroller.clientWidth;
+      return (cachedWidth = stringWidth("x"));
     }
     function paddingTop() {return lineSpace.offsetTop;}
     function paddingLeft() {return lineSpace.offsetLeft;}
@@ -1300,8 +1462,7 @@ var CodeMirror = (function() {
       if (!liberal && (x - offW.left > scroller.clientWidth || y - offW.top > scroller.clientHeight))
         return null;
       var offL = eltOffset(lineSpace, true);
-      var line = showingFrom + Math.floor((y - offL.top) / lineHeight());
-      return clipPos({line: line, ch: charFromX(clipLine(line), x - offL.left)});
+      return coordsChar(x - offL.left, y - offL.top);
     }
     function onContextMenu(e) {
       var pos = posFromMouse(e);
@@ -1352,7 +1513,7 @@ var CodeMirror = (function() {
 
     var matching = {"(": ")>", ")": "(<", "[": "]>", "]": "[<", "{": "}>", "}": "{<"};
     function matchBrackets(autoclear) {
-      var head = sel.inverted ? sel.from : sel.to, line = lines[head.line], pos = head.ch - 1;
+      var head = sel.inverted ? sel.from : sel.to, line = getLine(head.line), pos = head.ch - 1;
       var match = (pos >= 0 && matching[line.text.charAt(pos)]) || matching[line.text.charAt(++pos)];
       if (!match) return;
       var ch = match.charAt(0), forward = match.charAt(1) == ">", d = forward ? 1 : -1, st = line.styles;
@@ -1376,18 +1537,16 @@ var CodeMirror = (function() {
           }
         }
       }
-      for (var i = head.line, e = forward ? Math.min(i + 100, lines.length) : Math.max(-1, i - 100); i != e; i+=d) {
-        var line = lines[i], first = i == head.line;
+      for (var i = head.line, e = forward ? Math.min(i + 100, doc.size) : Math.max(-1, i - 100); i != e; i+=d) {
+        var line = getLine(i), first = i == head.line;
         var found = scan(line, first && forward ? pos + 1 : 0, first && !forward ? pos : line.text.length);
         if (found) break;
       }
       if (!found) found = {pos: null, match: false};
       var style = found.match ? "CodeMirror-matchingbracket" : "CodeMirror-nonmatchingbracket";
       var one = markText({line: head.line, ch: pos}, {line: head.line, ch: pos+1}, style),
-          two = found.pos != null
-            ? markText({line: i, ch: found.pos}, {line: i, ch: found.pos + 1}, style)
-            : function() {};
-      var clear = operation(function(){one(); two();});
+          two = found.pos != null && markText({line: i, ch: found.pos}, {line: i, ch: found.pos + 1}, style);
+      var clear = operation(function(){one.clear(); two && two.clear();});
       if (autoclear) setTimeout(clear, 800);
       else bracketHighlighted = clear;
     }
@@ -1401,7 +1560,7 @@ var CodeMirror = (function() {
       var minindent, minline;
       for (var search = n, lim = n - 40; search > lim; --search) {
         if (search == 0) return 0;
-        var line = lines[search-1];
+        var line = getLine(search-1);
         if (line.stateAfter) return search;
         var indented = line.indentation();
         if (minline == null || minindent > indented) {
@@ -1412,56 +1571,57 @@ var CodeMirror = (function() {
       return minline;
     }
     function getStateBefore(n) {
-      var start = findStartLine(n), state = start && lines[start-1].stateAfter;
+      var start = findStartLine(n), state = start && getLine(start-1).stateAfter;
       if (!state) state = startState(mode);
       else state = copyState(mode, state);
-      for (var i = start; i < n; ++i) {
-        var line = lines[i];
+      doc.iter(start, n, function(line) {
         line.highlight(mode, state);
         line.stateAfter = copyState(mode, state);
-      }
+      });
       changes.push({from: start, to: n});
-      if (n < lines.length && !lines[n].stateAfter) work.push(n);
+      if (n < doc.size && !getLine(n).stateAfter) work.push(n);
       return state;
     }
     function highlightLines(start, end) {
       var state = getStateBefore(start);
-      for (var i = start; i < end; ++i) {
-        var line = lines[i];
+      doc.iter(start, end, function(line) {
         line.highlight(mode, state);
         line.stateAfter = copyState(mode, state);
-      }
+      });
     }
     function highlightWorker() {
       var end = +new Date + options.workTime;
       var foundWork = work.length;
       while (work.length) {
-        if (!lines[showingFrom].stateAfter) var task = showingFrom;
+        if (!getLine(showingFrom).stateAfter) var task = showingFrom;
         else var task = work.pop();
-        if (task >= lines.length) continue;
-        var start = findStartLine(task), state = start && lines[start-1].stateAfter;
+        if (task >= doc.size) continue;
+        var start = findStartLine(task), state = start && getLine(start-1).stateAfter;
         if (state) state = copyState(mode, state);
         else state = startState(mode);
 
-        var unchanged = 0, compare = mode.compareStates, realChange = false;
-        for (var i = start, l = lines.length; i < l; ++i) {
-          var line = lines[i], hadState = line.stateAfter;
+        var unchanged = 0, compare = mode.compareStates, realChange = false,
+            i = start, bail = false;
+        doc.iter(i, doc.size, function(line) {
+          var hadState = line.stateAfter;
           if (+new Date > end) {
             work.push(i);
             startWorker(options.workDelay);
             if (realChange) changes.push({from: task, to: i + 1});
-            return;
+            return (bail = true);
           }
           var changed = line.highlight(mode, state);
           if (changed) realChange = true;
           line.stateAfter = copyState(mode, state);
           if (compare) {
-            if (hadState && compare(hadState, state)) break;
+            if (hadState && compare(hadState, state)) return true;
           } else {
             if (changed !== false || !hadState) unchanged = 0;
-            else if (++unchanged > 3) break;
+            else if (++unchanged > 3) return true;
           }
-        }
+          ++i;
+        });
+        if (bail) return;
         if (realChange) changes.push({from: task, to: i + 1});
       }
       if (foundWork && options.onHighlightComplete)
@@ -1532,7 +1692,7 @@ var CodeMirror = (function() {
       if (typeof query != "string") // Regexp match
         this.matches = function(reverse, pos) {
           if (reverse) {
-            var line = lines[pos.line].text.slice(0, pos.ch), match = line.match(query), start = 0;
+            var line = getLine(pos.line).text.slice(0, pos.ch), match = line.match(query), start = 0;
             while (match) {
               var ind = line.indexOf(match[0]);
               start += ind;
@@ -1544,7 +1704,7 @@ var CodeMirror = (function() {
             }
           }
           else {
-            var line = lines[pos.line].text.slice(pos.ch), match = line.match(query),
+            var line = getLine(pos.line).text.slice(pos.ch), match = line.match(query),
                 start = match && pos.ch + line.indexOf(match[0]);
           }
           if (match)
@@ -1559,7 +1719,7 @@ var CodeMirror = (function() {
         // Different methods for single-line and multi-line queries
         if (target.length == 1)
           this.matches = function(reverse, pos) {
-            var line = fold(lines[pos.line].text), len = query.length, match;
+            var line = fold(getLine(pos.line).text), len = query.length, match;
             if (reverse ? (pos.ch >= len && (match = line.lastIndexOf(query, pos.ch - len)) != -1)
                         : (match = line.indexOf(query, pos.ch)) != -1)
               return {from: {line: pos.line, ch: match},
@@ -1567,14 +1727,14 @@ var CodeMirror = (function() {
           };
         else
           this.matches = function(reverse, pos) {
-            var ln = pos.line, idx = (reverse ? target.length - 1 : 0), match = target[idx], line = fold(lines[ln].text);
+            var ln = pos.line, idx = (reverse ? target.length - 1 : 0), match = target[idx], line = fold(getLine(ln).text);
             var offsetA = (reverse ? line.indexOf(match) + match.length : line.lastIndexOf(match));
             if (reverse ? offsetA >= pos.ch || offsetA != match.length
                         : offsetA <= pos.ch || offsetA != line.length - match.length)
               return;
             for (;;) {
-              if (reverse ? !ln : ln == lines.length - 1) return;
-              line = fold(lines[ln += reverse ? -1 : 1].text);
+              if (reverse ? !ln : ln == doc.size - 1) return;
+              line = fold(getLine(ln += reverse ? -1 : 1).text);
               match = target[reverse ? --idx : ++idx];
               if (idx > 0 && idx < target.length - 1) {
                 if (line != match) return;
@@ -1610,10 +1770,10 @@ var CodeMirror = (function() {
           }
           if (reverse) {
             if (!pos.line) return savePosAndFail(0);
-            pos = {line: pos.line-1, ch: lines[pos.line-1].text.length};
+            pos = {line: pos.line-1, ch: getLine(pos.line-1).text.length};
           }
           else {
-            if (pos.line == lines.length - 1) return savePosAndFail(lines.length);
+            if (pos.line == doc.size - 1) return savePosAndFail(doc.size);
             pos = {line: pos.line+1, ch: 0};
           }
         }
@@ -1649,6 +1809,7 @@ var CodeMirror = (function() {
     enterMode: "indent",
     electricChars: true,
     onKeyEvent: null,
+    lineWrapping: false,
     lineNumbers: false,
     gutter: false,
     fixedGutter: false,
@@ -1827,9 +1988,10 @@ var CodeMirror = (function() {
   // highlighting info (the styles array).
   function Line(text, styles) {
     this.styles = styles || [text, null];
-    this.stateAfter = null;
     this.text = text;
+    this.height = 1;
     this.marked = this.gutterMarker = this.className = null;
+    this.stateAfter = this.parent = this.hidden = null;
   }
   Line.inheritMarks = function(text, orig) {
     var ln = new Line(text), mk = orig.marked;
@@ -1847,6 +2009,12 @@ var CodeMirror = (function() {
   Line.prototype = {
     // Replace a piece of a line, keeping the styles around it intact.
     replace: function(from, to_, text) {
+      // Simply reset the line if the whole text was replaced.
+      if (!from && (to_ == null || to_ == this.text.length)) {
+        this.text = text; this.styles = [text, null];
+        this.marked = this.className = this.stateAfter = null;
+        return;
+      }
       var st = [], mk = this.marked, to = to_ == null ? this.text.length : to_;
       copyStyles(0, from, this.styles, st);
       if (text) st.push(text, null);
@@ -1978,11 +2146,14 @@ var CodeMirror = (function() {
     // Produces an HTML fragment for the line, taking selection,
     // marking, and highlighting into account.
     getHTML: function(sfrom, sto, includePre, endAt) {
-      var html = [];
+      var html = [], first = true;
       if (includePre)
         html.push(this.className ? '<pre class="' + this.className + '">': "<pre>");
       function span(text, style) {
         if (!text) return;
+        // Work around a bug where, in some compat modes, IE ignores leading spaces
+        if (first && ie && text.charAt(0) == " ") text = "\u00a0" + text.slice(1);
+        first = false;
         if (style) html.push('<span class="', style, '">', htmlEscape(text), "</span>");
         else html.push(htmlEscape(text));
       }
@@ -2042,6 +2213,14 @@ var CodeMirror = (function() {
       }
       if (includePre) html.push("</pre>");
       return html.join("");
+    },
+    cleanUp: function() {
+      this.parent = null;
+      if (this.marked)
+        for (var i = 0, e = this.marked.length; i < e; ++i) {
+          var set = this.marked[i].set;
+          set.splice(indexOf(set, this), 1);
+        }
     }
   };
   // Utility used by replace and split above
@@ -2058,6 +2237,191 @@ var CodeMirror = (function() {
       }
       pos = end;
     }
+  }
+
+  // Data structure that holds the sequence of lines.
+  function LeafChunk(lines) {
+    this.lines = lines;
+    this.parent = null;
+    for (var i = 0, e = lines.length, height = 0; i < e; ++i) {
+      lines[i].parent = this;
+      height += lines[i].height;
+    }
+    this.height = height;
+  }
+  LeafChunk.prototype = {
+    chunkSize: function() { return this.lines.length; },
+    remove: function(at, n) {
+      for (var i = at, e = at + n; i < e; ++i) {
+        var line = this.lines[i];
+        line.cleanUp();
+        this.height -= line.height;
+      }
+      this.lines.splice(at, n);
+    },
+    collapse: function(lines) {
+      lines.splice.apply(lines, [lines.length, 0].concat(this.lines));
+    },
+    insertHeight: function(at, lines, height) {
+      this.height += height;
+      this.lines.splice.apply(this.lines, [at, 0].concat(lines));
+      for (var i = 0, e = lines.length; i < e; ++i) lines[i].parent = this;
+    },
+    iterN: function(at, n, op) {
+      for (var e = at + n; at < e; ++at)
+        if (op(this.lines[at])) return true;
+    }
+  };
+  function BranchChunk(children) {
+    this.children = children;
+    var size = 0, height = 0;
+    for (var i = 0, e = children.length; i < e; ++i) {
+      var ch = children[i];
+      size += ch.chunkSize(); height += ch.height;
+      ch.parent = this;
+    }
+    this.size = size;
+    this.height = height;
+    this.parent = null;
+  }
+  BranchChunk.prototype = {
+    chunkSize: function() { return this.size; },
+    remove: function(at, n) {
+      this.size -= n;
+      for (var i = 0; i < this.children.length; ++i) {
+        var child = this.children[i], sz = child.chunkSize();
+        if (at < sz) {
+          var rm = Math.min(n, sz - at), oldHeight = child.height;
+          child.remove(at, rm);
+          this.height -= oldHeight - child.height;
+          if (sz == rm) { this.children.splice(i--, 1); child.parent = null; }
+          if ((n -= rm) == 0) break;
+          at = 0;
+        } else at -= sz;
+      }
+      if (this.size - n < 25) {
+        var lines = [];
+        this.collapse(lines);
+        this.children = [new LeafChunk(lines)];
+      }
+    },
+    collapse: function(lines) {
+      for (var i = 0, e = this.children.length; i < e; ++i) this.children[i].collapse(lines);
+    },
+    insert: function(at, lines) {
+      var height = 0;
+      for (var i = 0, e = lines.length; i < e; ++i) height += lines[i].height;
+      this.insertHeight(at, lines, height);
+    },
+    insertHeight: function(at, lines, height) {
+      this.size += lines.length;
+      this.height += height;
+      for (var i = 0, e = this.children.length; i < e; ++i) {
+        var child = this.children[i], sz = child.chunkSize();
+        if (at <= sz) {
+          child.insertHeight(at, lines, height);
+          if (child.lines && child.lines.length > 50) {
+            while (child.lines.length > 50) {
+              var spilled = child.lines.splice(child.lines.length - 25, 25);
+              var newleaf = new LeafChunk(spilled);
+              child.height -= newleaf.height;
+              this.children.splice(i + 1, 0, newleaf);
+              newleaf.parent = this;
+            }
+            this.maybeSpill();
+          }
+          break;
+        }
+        at -= sz;
+      }
+    },
+    maybeSpill: function() {
+      if (this.children.length <= 10) return;
+      var me = this;
+      do {
+        var spilled = me.children.splice(me.children.length - 5, 5);
+        var sibling = new BranchChunk(spilled);
+        if (!me.parent) { // Become the parent node
+          var copy = new BranchChunk(me.children);
+          copy.parent = me;
+          me.children = [copy, sibling];
+          me = copy;
+        } else {
+          me.size -= sibling.size;
+          me.height -= sibling.height;
+          var myIndex = indexOf(me.parent.children, me);
+          me.parent.children.splice(myIndex + 1, 0, sibling);
+        }
+        sibling.parent = me.parent;
+      } while (me.children.length > 10);
+      me.parent.maybeSpill();
+    },
+    iter: function(from, to, op) { this.iterN(from, to - from, op); },
+    iterN: function(at, n, op) {
+      for (var i = 0, e = this.children.length; i < e; ++i) {
+        var child = this.children[i], sz = child.chunkSize();
+        if (at < sz) {
+          var used = Math.min(n, sz - at);
+          if (child.iterN(at, used, op)) return true;
+          if ((n -= used) == 0) break;
+          at = 0;
+        } else at -= sz;
+      }
+    }
+  };
+
+  function getLineAt(chunk, n) {
+    for (;;) {
+      for (var i = 0, e = chunk.children.length; i < e; ++i) {
+        var child = chunk.children[i], sz = child.chunkSize();
+        if (n < sz) { chunk = child; break; }
+        n -= sz;
+      }
+      if (chunk.lines) return chunk.lines[n];
+    }
+  }
+  function lineNo(line) {
+    if (line.parent == null) return null;
+    var cur = line.parent, no = indexOf(cur.lines, line);
+    for (var chunk = cur.parent; chunk; cur = chunk, chunk = chunk.parent) {
+      for (var i = 0, e = chunk.children.length; ; ++i) {
+        if (chunk.children[i] == cur) break;
+        no += chunk.children[i].chunkSize();
+      }
+    }
+    return no;
+  }
+  function lineAtHeight(chunk, h) {
+    var n = 0;
+    outer: do {
+      for (var i = 0, e = chunk.children.length; i < e; ++i) {
+        var child = chunk.children[i], ch = child.height;
+        if (h < ch) { chunk = child; continue outer; }
+        h -= ch;
+        n += child.chunkSize();
+      }
+      return n;
+    } while (!chunk.lines);
+    for (var i = 0, e = chunk.lines.length; i < e; ++i) {
+      var line = chunk.lines[i], lh = line.height;
+      if (h < lh) break;
+      h -= lh;
+    }
+    return n + i;
+  }
+  function heightAtLine(chunk, n) {
+    var h = 0;
+    outer: do {
+      for (var i = 0, e = chunk.children.length; i < e; ++i) {
+        var child = chunk.children[i], sz = child.chunkSize();
+        if (n < sz) { chunk = child; continue outer; }
+        n -= sz;
+        h += child.height;
+      }
+      return h;
+    } while (!chunk.lines);
+    for (var i = 0; i < n; ++i) h += chunk.lines[i].height;
+    return h;
   }
 
   // The history object 'chunks' changes that are made close together
@@ -2211,11 +2575,17 @@ var CodeMirror = (function() {
   function posLess(a, b) {return a.line < b.line || (a.line == b.line && a.ch < b.ch);}
   function copyPos(x) {return {line: x.line, ch: x.ch};}
 
-  var escapeElement = document.createElement("div");
+  var escapeElement = document.createElement("pre");
   function htmlEscape(str) {
-    escapeElement.innerText = escapeElement.textContent = str;
+    if (badTextContent) {
+      escapeElement.innerHTML = "";
+      escapeElement.appendChild(document.createTextNode(str));
+    } else {
+      escapeElement.textContent = str;
+    }
     return escapeElement.innerHTML;
   }
+  var badTextContent = htmlEscape("\t") != "\t";
   CodeMirror.htmlEscape = htmlEscape;
 
   // Used to position the cursor after an undo/redo by finding the
