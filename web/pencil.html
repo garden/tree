@@ -32,24 +32,36 @@ velocity xml xmlpure yaml htmlmixed}}
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
   .CodeMirror-scroll {
-    height: 100%;
+    height: auto;
+    width: 100%;
+    position: fixed;
+    bottom: 27px;
+    top: 0px;
+  }
+  .toolbar {
+    position: absolute;
+    bottom: 0px;
+    height: 27px;
   }
 </style>
 
-<body>
+<body class="cm-s-default">
 
-<select onchange="selectTheme(this)">
-    <option selected>default</option>
-    <option>night</option>
-    <option>neat</option>
-    <option>elegant</option>
-    <option>cobalt</option>
-    <option>eclipse</option>
-</select>
-<input type=text style="width: 5em" id=query placeholder=search>
-<button type=button onclick="search()">search</button>
-<input type=text style="width: 5em" id=replace placeholder=replace>
-<button type=button onclick="replace()">replace</button>
+  <div class=toolbar>
+    <select onchange="selectTheme(this)">
+      <option selected>default</option>
+      <option>night</option>
+      <option>neat</option>
+      <option>elegant</option>
+      <option>cobalt</option>
+      <option>eclipse</option>
+    </select>
+    <input type=text style="width: 5em" id=query placeholder=search>
+    <button type=button onclick="search()">search</button>
+    <input type=text style="width: 5em" id=replace placeholder=replace>
+    <button type=button onclick="replace()">replace</button>
+  </div>
+
 
 <script>
 
@@ -64,6 +76,7 @@ velocity xml xmlpure yaml htmlmixed}}
   function selectTheme(node) {
     var theme = node.options[node.selectedIndex].innerHTML;
     editor.setOption("theme", theme);
+    document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
   }
 
   // Search & Replace.
