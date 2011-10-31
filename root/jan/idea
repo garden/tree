@@ -1,19 +1,18 @@
-Pourquoi the file tree ?
+Why the file tree ?
 - google docs: realtime! ...code?
 - github.com: code! ...realtime?
 
-C'est quoi the file tree ?
+What is the file tree ?
 
 0. Collaborative
-- natural
-- realtime
-- plug git/svn/ftp/eclipse
+- seemless realtime collaboration
+- plugs with git/svn/ftp/eclipse
 
 1. Operating System
 - files: text, passwords, projects
 - software: scripts, server sandbox
 
-2. Open Source !
+2. Open Source!
 - github.com/garden/tree
-- community
+- awesome community
 - your ideas!
