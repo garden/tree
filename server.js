@@ -18,37 +18,26 @@ var Camp = require ('./camp/camp');
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
 Camp.handle (/\/root\/?(.*)/, function (query, path) {
-  console.log('-- In /root handler');
   path[0] = '/pencil.html';
 
   var data = {};
   data.path = path[1];
-  console.log('-- data.path is %s', data.path);
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   arbor.getfile (path[1], function (err, file) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
-      console.log('--Is a file');
       path[0] = '/pencil.html';
       data.lang = 'htmlmixed';
       var mime = arbor.typenamefromtype[file.type];
       if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
       data.mime = mime;
-      console.log('--before fsplugged');
       var util = require('util');
-      console.log(util.inspect(Camp.Server.listeners('fsplugged')));
-      setTimeout(function() {
-        console.log(util.inspect(Camp.Server.listeners('fsplugged')));
-      }, 2000);
       Camp.Server.emit ('fsplugged', data);
-      console.log('--after fsplugged');
 
     } else if (arbor.isoftype(file, 'dir')) {
       path[0] = '/gateway.html';
-      console.log('-- Ready to ask for the directory\'s content');
       file.content (function (err, content) {
-        console.log('-- Got content of directory');
         if (err) console.error(err);
         data.dir = content;
         data.filenames = [];
@@ -56,22 +45,10 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
           if (arbor.isoftype(content[file],'dir')) file += '/';
           data.filenames.push(file);
         }
-        // testing
-        for (var file in data.files) {
-          console.log('-- file "%s"', data.files[file]);
-        }
-        console.log('-- Listeners of fsplugged are:');
-        var util = require('util');
-        console.log(util.inspect(Camp.Server.listeners('fsplugged')));
-        setTimeout(function() {
-          console.log(util.inspect(Camp.Server.listeners('fsplugged')));
-        }, 2000);
-        // end testing
         Camp.Server.emit('fsplugged', data);
       });
     }
   });
-  console.log('teh data', JSON.stringify(data));
 
 }, function fsplugged(data) {
   return data;
@@ -194,7 +171,6 @@ Camp.add ('data', function (query) {
       data.data = content || '\n';
       usersforpath[query.path][query.user].lastcopy = data.data;
       var util = require('util');
-      console.log(util.inspect(Camp.Server.listeners('gotfiledata')));
       Camp.Server.emit ('gotfiledata', data);
     });
   });
