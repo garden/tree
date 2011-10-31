@@ -4,7 +4,7 @@ THE FILE TREE LIBRARY
 
 These are the gears of the File Tree.
 
-[diff_match_patch.js] (http://code.google.com/p/google-diff-match-patch)
+[diff\_match\_patch.js] (http://code.google.com/p/google-diff-match-patch)
 ------------------------------------------------------------------------
 
 We use this when handling diff and delta changes.
@@ -47,6 +47,10 @@ will be removed when that is no longer so.
     file.
   * `this.content :: function (dowithcontent :: function (err :: Error, content
     :: Buffer))` lets you obtain the contents of the file.
+
+- `fsfiles :: Object`  
+  The keys are the "fake" paths of all files we have in memory. The values are
+  those files (of type File).
 
 - `sanitizepath :: function (path :: String)`  
   Given a path on the hard drive, this function returns the corresponding "fake"
