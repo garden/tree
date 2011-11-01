@@ -1,32 +1,25 @@
 <!doctype html>
 <meta charset=utf-8>
 <title>Our Awesome Search Engine</title>
+<!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<style>
+  article, aside, figure, footer, header, hgroup, 
+  menu, nav, section { display: block; }
+</style>
 
-<ul>
-{{-filenames|filename|j; <li><a href="./{{=filename|xmlattr}}">{{=filename|xmlattr}}</a></li>
-}}
-</ul>
+<header>
+  <h1 id=dirpath></h1>
+</header>
+
+<ul id=files></ul>
 
 <form id=req action="javascript:void 0">
-  <input id=pathreq value="/">
+  <label>Search manually: <input id=pathreq value="/"></label>
 </form>
-<pre id=resp></pre>
 
 <script src=/js/scout.js></script>
+<script src=/js/gateway.js></script>
 <script src=/js/split.js></script>
 
-<script>(function(){
-
-  var getfs = function (params) {
-    console.log('getfs[op:ls,path:' + Scout('#pathreq').value + ']');
-    params.action = 'fs';
-    params.data = {op:'ls', path:Scout('#pathreq').value};
-    params.resp = function (resp) {
-      console.log(resp.dir);
-      Scout('#resp').textContent = JSON.stringify (resp.dir);
-    };
-  };
-  window.onload = function (event) { Scout.send (getfs) (); };
-  Scout('#req').on('submit', getfs);
-
-})()</script>

@@ -8,8 +8,13 @@
 // SERVER CONFIGURATION
 //
 
+// Location of the root. If this is "/root", the fake root
+// will be at "http://example.com/root/".
+USING_ROOT = '/root';
+
 // Import modules
-var Camp = require ('./camp/camp');
+var camp = require ('./camp/camp');
+var arbor = require ('./lib/fs');
 
 
 // FILE-SYSTEM ACCESS
@@ -17,7 +22,7 @@ var Camp = require ('./camp/camp');
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-Camp.handle (/\/root\/?(.*)/, function (query, path) {
+camp.handle (new RegExp(USING_ROOT + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
   var data = {};
@@ -33,19 +38,18 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
       if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
       data.mime = mime;
       var util = require('util');
-      Camp.Server.emit ('fsplugged', data);
+      camp.Server.emit ('fsplugged', data);
 
     } else if (arbor.isoftype(file, 'dir')) {
       path[0] = '/gateway.html';
       file.content (function (err, content) {
         if (err) console.error(err);
-        data.dir = content;
         data.filenames = [];
         for (var file in content) {
           if (arbor.isoftype(content[file],'dir')) file += '/';
           data.filenames.push(file);
         }
-        Camp.Server.emit('fsplugged', data);
+        camp.Server.emit('fsplugged', data);
       });
     }
   });
@@ -56,22 +60,26 @@ Camp.handle (/\/root\/?(.*)/, function (query, path) {
 
 
 var root;
-var arbor = require ('./lib/fs');
 arbor.getroot (function (err, fsroot) {
   root = fsroot;
 });
 
-Camp.add ('fs', function (query) {
+camp.add ('fs', function (query) {
   var data = {};
+  if (query.path) query.path = query.path.slice(USING_ROOT.length);
   switch (query['op']) {
     case 'ls':
     case 'cat':
       arbor.getfile (query['path'], function (err, dir) {
-        if (err) console.error(err);
+        if (err) { data.err = err; camp.Server.emit('fs', data); return; }
         dir.content (function (err, content) {
-          if (err) console.error(err);
-          data.dir = content;
-          Camp.Server.emit ('fs', data);
+          if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+          data.filenames = [];
+          for (var file in content) {
+            if (arbor.isoftype(content[file],'dir')) file += '/';
+            data.filenames.push(file);
+          }
+          camp.Server.emit ('fs', data);
         });
       });
       break;
@@ -154,7 +162,7 @@ var usertimeouts = {};
 
 
 // First time someone connects, he sends a data request.
-Camp.add ('data', function (query) {
+camp.add ('data', function (query) {
   // `query` must have user, path.
   (usersforpath[query.path] = usersforpath[query.path] || {})[query.user] = {
     bufferhim: false,
@@ -171,7 +179,7 @@ Camp.add ('data', function (query) {
       data.data = content || '\n';
       usersforpath[query.path][query.user].lastcopy = data.data;
       var util = require('util');
-      Camp.Server.emit ('gotfiledata', data);
+      camp.Server.emit ('gotfiledata', data);
     });
   });
 }, function gotfiledata(data) {
@@ -181,7 +189,7 @@ Camp.add ('data', function (query) {
 
 
 // Removing a user.
-Camp.add ('kill', function (query) {
+camp.add ('kill', function (query) {
   if (usersforpath[query.path] && usersforpath[query.path][query.user]) {
     delete usersforpath[query.path][query.user];
   }
@@ -191,7 +199,7 @@ Camp.add ('kill', function (query) {
 // We receive incoming deltas on the 'new' channel.
 // query = { user: 12345, delta: "=42+ =12", rev: 1 }
 
-Camp.add ('new', function addnewstuff (query) {
+camp.add ('new', function addnewstuff (query) {
   console.log ('--receiving from', query.user, JSON.stringify (query.delta));///
   
   // Does the user already exist?
@@ -239,7 +247,7 @@ Camp.add ('new', function addnewstuff (query) {
   }
 
   var newresp = {user: query.user, delta: newdelta, rev: query.rev};
-  Camp.Server.emit ('modif', newresp);
+  camp.Server.emit ('modif', newresp);
 
   return {};
 });
@@ -247,8 +255,8 @@ Camp.add ('new', function addnewstuff (query) {
 
 // We send outgoing deltas through the 'dispatch' channel.
 
-Camp.add ('dispatch', function (query) {
-  console.log ('--connect dispatch [' + query.user + ']', query.path, usersforpath);
+camp.add ('dispatch', function (query) {
+  console.log ('--connect dispatch [' + query.user + ']');
 
   var users = usersforpath[query.path];
 
@@ -275,8 +283,8 @@ Camp.add ('dispatch', function (query) {
 
 
 // Chat
-Camp.add('talk', function(data) { Camp.Server.emit('incoming', data); });
-Camp.add('chat', function() {}, function incoming(data) { return data; });
+camp.add('talk', function(data) { camp.Server.emit('incoming', data); });
+camp.add('chat', function() {}, function incoming(data) { return data; });
 
 
 // Time to serve the meal!
@@ -284,7 +292,7 @@ Camp.add('chat', function() {}, function incoming(data) { return data; });
 // Set parameters
 var port = process.argv[2] || 80,
     debug = process.argv[3] || 0;
-Camp.Server.start (port, debug);
+camp.Server.start (port, debug);
 console.log('tree is live! http://localhost'
     + (port!==80 ? ':'+port : '') + '/');
 
