@@ -10,7 +10,7 @@
 
 // Location of the root. If this is "/root", the fake root
 // will be at "http://example.com/root/".
-USING_ROOT = '/root';
+ROOT_PREFIX = '/root';
 
 // Import modules
 var camp = require ('./camp/camp');
@@ -22,7 +22,7 @@ var arbor = require ('./lib/fs');
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-camp.handle (new RegExp(USING_ROOT + '/(.*)'), function (query, path) {
+camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
   var data = {};
@@ -66,7 +66,7 @@ arbor.getroot (function (err, fsroot) {
 
 camp.add ('fs', function (query) {
   var data = {};
-  if (query.path) query.path = query.path.slice(USING_ROOT.length);
+  if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
     case 'cat':
@@ -100,8 +100,6 @@ camp.add ('fs', function (query) {
 // REAL-TIME COLLABORATION
 //
 
-
-var COPY = "<!doctype html>\n<title><\/title>\n\n<body>\n  <canvas id=tutorial width=150 height=150><\/canvas>\n\n  <script>\n    var canvas = document.getElementById('tutorial');\n    var context = canvas.getContext('2d');\n\n    context.fillStyle = 'rgb(250,0,0)';\n    context.fillRect(10, 10, 55, 50);\n\n    context.fillStyle = 'rgba(0, 0, 250, 0.5)';\n    context.fillRect(30, 30, 55, 50);\n  <\/script>\n<\/body>";
 
 var DMP = require ('./lib/diff_match_patch.js');
 var DIFF_EQUAL = DMP.DIFF_EQUAL;
