@@ -13,7 +13,9 @@
   <h1 id=dirpath></h1>
 </header>
 
-<ul id=files></ul>
+<ul id=files>{{-filenames|filename|i;
+  <li><a href="./{{=filename|xmlattr}}">{{=filename|html}}</a></li>}}
+</ul>
 
 <form id=req action="javascript:void 0">
   <label>Search manually: <input id=pathreq value="/"></label>
