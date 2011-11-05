@@ -151,10 +151,10 @@ var CodeMirror = (function() {
       historySize: function() {return {undo: history.done.length, redo: history.undone.length};},
       clearHistory: function() {history = new History();},
       matchBrackets: operation(function(){matchBrackets(true);}),
-      getTokenAt: function(pos) {
+      getTokenAt: operation(function(pos) {
         pos = clipPos(pos);
         return getLine(pos.line).getTokenAt(mode, getStateBefore(pos.line), pos.ch);
-      },
+      }),
       getStateAfter: function(line) {
         line = clipLine(line == null ? doc.size - 1: line);
         return getStateBefore(line + 1);
@@ -1253,6 +1253,7 @@ var CodeMirror = (function() {
     TextMarker.prototype.clear = operation(function() {
       for (var i = 0, e = this.set.length; i < e; ++i) {
         var mk = this.set[i].marked;
+        if (!mk) continue;
         for (var j = 0; j < mk.length; ++j) {
           if (mk[j].set == this.set) mk.splice(j--, 1);
         }
@@ -1302,8 +1303,6 @@ var CodeMirror = (function() {
       return line;
     }
     function setLineClass(handle, className) {
-      if (typeof handle != "number" && handle.parent == null)
-        console.log(handle == getLine(0));
       return changeLine(handle, function(line) {
         if (line.className != className) {
           line.className = className;
@@ -1926,11 +1925,11 @@ var CodeMirror = (function() {
     }
     return nstate;
   }
-  CodeMirror.startState = startState;
+  CodeMirror.copyState = copyState;
   function startState(mode, a1, a2) {
     return mode.startState ? mode.startState(a1, a2) : true;
   }
-  CodeMirror.copyState = copyState;
+  CodeMirror.startState = startState;
 
   // The character stream used by a mode's parser.
   function StringStream(string) {
@@ -2012,12 +2011,9 @@ var CodeMirror = (function() {
   Line.prototype = {
     // Replace a piece of a line, keeping the styles around it intact.
     replace: function(from, to_, text) {
-      // Simply reset the line if the whole text was replaced.
-      if (!from && (to_ == null || to_ == this.text.length)) {
-        this.text = text; this.styles = [text, null];
-        this.marked = this.className = this.stateAfter = null;
-        return;
-      }
+      // Reset line class if the whole text was replaced.
+      if (!from && (to_ == null || to_ == this.text.length))
+        this.className = this.gutterMarker = null;
       var st = [], mk = this.marked, to = to_ == null ? this.text.length : to_;
       copyStyles(0, from, this.styles, st);
       if (text) st.push(text, null);
@@ -2033,13 +2029,13 @@ var CodeMirror = (function() {
           if (mark.from != null && mark.from >= end) del = true;
           else {
             if (mark.from != null && mark.from >= from) {
-              mark.from += diff;
+              mark.from = Math.max(mark.from, to) + diff;
               if (mark.from <= 0) mark.from = from == null ? null : 0;
             }
             else if (to_ == null) mark.to = null;
             if (mark.to != null && mark.to > from) {
-              mark.to += diff;
-              if (mark.to < 0) del = true;
+              mark.to = Math.max(mark.to, to) + diff;
+              if (mark.to <= 0) del = true;
             }
           }
           if (del || (mark.from != null && mark.to != null && mark.from >= mark.to)) mk.splice(i--, 1);
@@ -2503,19 +2499,19 @@ var CodeMirror = (function() {
 
   // Some IE versions don't preserve whitespace when setting the
   // innerHTML of a PRE tag.
-  var badInnerHTML = (function() {
+  var badInnerHTML = function() {
     var pre = document.createElement("pre");
     pre.innerHTML = " "; return !pre.innerHTML;
-  })();
+  }();
 
   // Detect drag-and-drop
-  var dragAndDrop = (function() {
+  var dragAndDrop = function() {
     // IE8 has ondragstart and ondrop properties, but doesn't seem to
     // actually support ondragstart the way it's supposed to work.
     if (/MSIE [1-8]\b/.test(navigator.userAgent)) return false;
     var div = document.createElement('div');
-    return "ondragstart" in div && "ondrop" in div;
-  })();
+    return "draggable" in div;
+  }();
 
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
@@ -2553,21 +2549,33 @@ var CodeMirror = (function() {
     if (elt.currentStyle) return elt.currentStyle;
     return window.getComputedStyle(elt, null);
   }
+
   // Find the position of an element by following the offsetParent chain.
   // If screen==true, it returns screen (rather than page) coordinates.
   function eltOffset(node, screen) {
-    var doc = node.ownerDocument.body;
-    var x = 0, y = 0, skipDoc = false;
+    var bod = node.ownerDocument.body;
+    var x = 0, y = 0, skipBody = false;
     for (var n = node; n; n = n.offsetParent) {
-      x += n.offsetLeft; y += n.offsetTop;
+      var ol = n.offsetLeft, ot = n.offsetTop;
+      // Firefox reports weird inverted offsets when the body has a border.
+      if (n == bod) { x += Math.abs(ol); y += Math.abs(ot); }
+      else { x += ol, y += ot; }
       if (screen && computedStyle(n).position == "fixed")
-        skipDoc = true;
+        skipBody = true;
     }
-    var e = screen && !skipDoc ? null : doc;
+    var e = screen && !skipBody ? null : bod;
     for (var n = node.parentNode; n != e; n = n.parentNode)
       if (n.scrollLeft != null) { x -= n.scrollLeft; y -= n.scrollTop;}
     return {left: x, top: y};
   }
+  // Use the faster and saner getBoundingClientRect method when possible.
+  if (document.documentElement.getBoundingClientRect != null) eltOffset = function(node, screen) {
+    try { var box = node.getBoundingClientRect(); }
+    catch(e) { var box = {top: 0, left: 0}; }
+    if (!screen) { box.top += document.body.scrollTop; box.left += document.body.scrollLeft; }
+    return box;
+  };
+
   // Get a node's text content.
   function eltText(node) {
     return node.textContent || node.innerText || node.nodeValue || "";
