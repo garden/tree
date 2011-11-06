@@ -285,13 +285,17 @@ camp.add('talk', function(data) { camp.Server.emit('incoming', data); });
 camp.add('chat', function() {}, function incoming(data) { return data; });
 
 
-// Time to serve the meal!
+// Options
+var options = {
+  port: +process.argv[2],
+  secure: process.argv[3],
+  debug: +process.argv[4]
+}
 
-// Set parameters
-var port = process.argv[2] || 80,
-    debug = process.argv[3] || 0;
-camp.Server.start (port, debug);
-console.log('tree is live! http://localhost'
-    + (port!==80 ? ':'+port : '') + '/');
+// Let's rock'n'roll!
+camp.start (options);
+
+console.log('tree is live! ' + ( options.secure === 'yes' ? 'https' : 'http' )
+    + '://localhost' + ( options.port !== 80 ? ':' + options.port : '' ) + '/');
 
 

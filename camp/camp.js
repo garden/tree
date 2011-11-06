@@ -109,21 +109,21 @@ function parsequery (query, strquery) {
 }
 
 
-// Start function.
+// Internal start function.
 //
 
-exports.Server.start = function (port, debug) {
+exports.Server.start = function (port, security, debug) {
   "use strict";
-  port = port || 80;
-  debug = debug || 0;
 
   var http = require('http')
+    , https = require('https')
     , p = require('path')
     , fs = require('fs')
     , url = require('url')
     , qs = require('querystring');
 
-  http.createServer(function(req,res){
+  // The request listener
+  function listener(req,res){
     var uri = url.parse (req.url, true);
     var path = uri.pathname;
     var query = uri.query;
@@ -286,9 +286,28 @@ exports.Server.start = function (port, debug) {
       res.end ('404: thou hast finished me!\n');
     }
 
-  }).listen(port);
+  };
+
+  // Are we running https?
+  if (security.key && security.cert) { // yep
+    https.createServer({
+      key: fs.readFileSync(security.key),
+      cert: fs.readFileSync(security.cert)
+    },listener).listen(port);
+  } else { // nope
+    http.createServer(listener).listen(port);
+  }
 };
 
-// Easy start alias
+// Exported start function.
 //
-exports.start = exports.Server.start;
+exports.start = function(options) {
+  var security = {};
+  if (options.secure === 'yes' || options.key || options.cert) {
+    security.key = options.key || '../https.key',
+    security.cert = options.cert || '../https.crt'
+  }
+  var debug = options.debug || 0,
+      port = options.port || ( security.key && security.cert ? 443 : 80 );
+  exports.Server.start(port,security,debug);
+};
