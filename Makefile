@@ -23,12 +23,14 @@ PUBLISH = publish
 
 MIN = min
 
-ifndef PORT
-  PORT = 80
+ifdef SECURE
+  PORT ?= 443
+  SECURE = yes
+else
+  PORT ?= 80
+  SECURE = no
 endif
-ifndef DEBUG
-  DEBUG = 0
-endif
+DEBUG ?= 0
 
 # Define custom rules and settings in this file.
 -include local.mk
@@ -41,7 +43,7 @@ debug: stop startweb
 
 clean:
 	@echo "clean"
-	@rm -rf $(PUBLISH) $(LOG)
+	@rm -rf $(LOG) $(PUBLISH)
 
 copy:
 	@echo "copy"
@@ -74,18 +76,18 @@ start:
 	@echo "start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
-	  cd $(PUBLISH) ; sudo node ../$(SERVER) $(PORT) $(DEBUG) > ../$(LOG) ;  \
+	  cd $(PUBLISH) ; sudo node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
 	else  \
-	  cd $(PUBLISH) ; node ../$(SERVER) $(PORT) $(DEBUG) > ../$(LOG) ;  \
+	  cd $(PUBLISH) ; node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
 	fi
 
 startweb:
 	@echo "start web"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
-	  cd $(WEB) ; sudo node ../$(SERVER) $(PORT) $(DEBUG) > ../$(LOG) ;  \
+	  cd $(WEB) ; sudo node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
 	else  \
-	  cd $(WEB) ; node ../$(SERVER) $(PORT) $(DEBUG) > ../$(LOG) ;  \
+	  cd $(WEB) ; node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
 	fi
 
 test:
@@ -105,13 +107,17 @@ jsmin:
 	  else echo ' `sudo make jsmin`'; fi
 
 https.key:
-	openssl genrsa -aes256 -out https.key 1024
+	@openssl genrsa -aes256 -out https.key 1024
 
 https.csr: https.key
-	openssl req -new -key https.key -out https.csr
+	@openssl req -new -key https.key -out https.csr
 
 https.crt: https.key https.csr
-	openssl x509 -req -days 365 -in https.csr -signkey https.key -out https.crt
+	@openssl x509 -req -days 365 -in https.csr -signkey https.key -out https.crt
+
+rmhttps:
+	@echo "delete https credentials"
+	@rm -rf https.key https.csr https.crt
 
 https: https.crt
 
