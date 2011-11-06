@@ -3,6 +3,10 @@
 // Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
 // The following code is covered by the GPLv2 license.
 
+
+// Navigation code.
+//
+
 (function(){
 
 
@@ -49,7 +53,7 @@ function getfs(params) {
     if (!resp.err) setfiles(resp.filenames);
     else console.log(resp.err);   ///DEBUGGING
   };
-};
+}
 
 
 window.onload = function (event) {
@@ -67,4 +71,21 @@ window.onload = function (event) {
 
 
 
-})()
+})();
+
+
+
+
+
+// Fuzzy matching code.
+//
+
+
+(function () {
+
+
+
+
+
+
+})();

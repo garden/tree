@@ -35,7 +35,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       path[0] = '/pencil.html';
       data.lang = 'htmlmixed';
       var mime = arbor.typenamefromtype[file.type];
-      if (true || mime === 'text/html')  { data.htmlmixed = true; } // TODO remove true
+      if (mime === 'text/html')  { data.htmlmixed = true; }
       data.mime = mime;
       var util = require('util');
       camp.Server.emit ('fsplugged', data);
@@ -64,12 +64,13 @@ arbor.getroot (function (err, fsroot) {
   root = fsroot;
 });
 
+// Ajax FS API.
+
 camp.add ('fs', function (query) {
   var data = {};
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
-    case 'cat':
       arbor.getfile (query['path'], function (err, dir) {
         if (err) { data.err = err; camp.Server.emit('fs', data); return; }
         dir.content (function (err, content) {
@@ -83,6 +84,7 @@ camp.add ('fs', function (query) {
         });
       });
       break;
+    case 'cat':
     case 'touch':
       //create file
     case 'rm':
