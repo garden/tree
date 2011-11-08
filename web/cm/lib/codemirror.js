@@ -599,12 +599,9 @@ var CodeMirror = (function() {
         if (task < from.line) newWork.push(task);
         else if (task > to.line) newWork.push(task + lendiff);
       }
-      if (newText.length < 5) {
-        highlightLines(from.line, from.line + newText.length);
-        newWork.push(from.line + newText.length);
-      } else {
-        newWork.push(from.line);
-      }
+      var hlEnd = from.line + Math.min(newText.length, 500);
+      highlightLines(from.line, hlEnd);
+      newWork.push(hlEnd);
       work = newWork;
       startWorker(100);
       // Remember that these lines changed, for updating the display
@@ -856,8 +853,8 @@ var CodeMirror = (function() {
       // Then, determine which lines we'd want to see, and which
       // updates have to be made to get there.
       var visible = visibleLines();
-      var from = Math.min(showingFrom, Math.max(visible.from - 3, 0)),
-          to = Math.min(doc.size, Math.max(showingTo, visible.to + 3)),
+      var from = Math.min(showingFrom, Math.max(visible.from - 100, 0)),
+          to = Math.min(doc.size, Math.max(showingTo, visible.to + 100)),
           updates = [], domPos = 0, domEnd = showingTo - showingFrom, pos = from, changedLines = 0;
 
       for (var i = 0, l = intact.length; i < l; ++i) {
@@ -880,13 +877,7 @@ var CodeMirror = (function() {
       if (!updates.length) return;
       var th = textHeight(), gutterDisplay = gutter.style.display;
       lineDiv.style.display = gutter.style.display = "none";
-      // If more than 30% of the screen needs update, just do a full
-      // redraw (which is quicker than patching)
-      if (changedLines > (visible.to - visible.from) * .3)
-        refreshDisplay(from = Math.max(visible.from - 10, 0), to = Math.min(visible.to + 7, doc.size));
-      // Otherwise, only update the stuff that needs updating.
-      else
-        patchDisplay(updates);
+      patchDisplay(updates);
       lineDiv.style.display = "";
 
       // Position the mover div to align with the lines it's supposed
@@ -930,25 +921,6 @@ var CodeMirror = (function() {
       updateCursor();
     }
 
-    function refreshDisplay(from, to) {
-      var start = {line: from, ch: 0}, inSel = posLess(sel.from, start) && !posLess(sel.to, start);
-      var i = from, html = [];
-      doc.iter(from, to, function(line) {
-        var ch1 = null, ch2 = null;
-        if (inSel) {
-          ch1 = 0;
-          if (sel.to.line == i) {inSel = false; ch2 = sel.to.ch;}
-        }
-        else if (sel.from.line == i) {
-          if (sel.to.line == i) {ch1 = sel.from.ch; ch2 = sel.to.ch;}
-          else {inSel = true; ch1 = sel.from.ch;}
-        }
-        if (line.hidden) html.push("<pre></pre>");
-        else html.push(line.getHTML(ch1, ch2, true));
-        ++i;
-      });
-      lineDiv.innerHTML = html.join("");
-    }
     function patchDisplay(updates) {
       // Slightly different algorithm for IE (badInnerHTML), since
       // there .innerHTML on PRE nodes is dumb, and discards
