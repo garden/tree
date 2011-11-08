@@ -86,6 +86,14 @@ var CodeMirror = (function() {
     operation(function(){setValue(options.value || ""); updateInput = false;})();
     var history = new History();
 
+    var slowPollInterval = 2000;
+    // Gecko and Opera Linux do not reliably fire any event when starting an IME compose
+    var alwaysPollForIME = (!win && !mac) && (gecko || window.opera);
+    if (options.pollForIME && alwaysPollForIME) slowPollInterval = 50;
+    function keyMightStartIME(keyCode) {
+      return (win && ((gecko && keyCode == 229) || (window.opera && keyCode == 197))) || (mac && gecko);
+    }
+
     // Register our event handlers.
     connect(scroller, "mousedown", operation(onMouseDown));
     connect(scroller, "dblclick", operation(onDoubleClick));
@@ -141,6 +149,7 @@ var CodeMirror = (function() {
         else if (option == "readOnly" && value == "nocursor") input.blur();
         else if (option == "theme") scroller.className = scroller.className.replace(/cm-s-\w+/, "cm-s-" + value);
         else if (option == "lineWrapping" && oldVal != value) operation(wrappingChanged)();
+        else if (option == "pollForIME" && alwaysPollForIME) slowPollInterval = value ? 50 : 2000;
       },
       getOption: function(option) {return options[option];},
       undo: operation(undo),
@@ -444,6 +453,8 @@ var CodeMirror = (function() {
       // Don't save the key as a movementkey unless it had a modifier
       if (!mod && !e.altKey) curKeyId = null;
       fastPoll(curKeyId);
+
+      if (options.pollForIME && keyMightStartIME(code)) slowPollInterval = 50;
     }
     function onKeyUp(e) {
       if (options.onKeyEvent && options.onKeyEvent(instance, addStop(e))) return;
@@ -452,6 +463,8 @@ var CodeMirror = (function() {
         updateInput = true;
       }
       if (e.keyCode == 16) shiftSelecting = null;
+
+      if (slowPollInterval < 2000 && !alwaysPollForIME) slowPollInterval = 2000;
     }
     function onKeyPress(e) {
       if (options.onKeyEvent && options.onKeyEvent(instance, addStop(e))) return;
@@ -654,7 +667,7 @@ var CodeMirror = (function() {
     var pollingFast = false; // Ensures slowPoll doesn't cancel fastPoll
     function slowPoll() {
       if (pollingFast) return;
-      poll.set(2000, function() {
+      poll.set(slowPollInterval, function() {
         startOperation();
         readInput();
         if (focused) slowPoll();
@@ -865,8 +878,8 @@ var CodeMirror = (function() {
       }
 
       if (!updates.length) return;
-      var th = textHeight();
-      lineDiv.style.display = "none";
+      var th = textHeight(), gutterDisplay = gutter.style.display;
+      lineDiv.style.display = gutter.style.display = "none";
       // If more than 30% of the screen needs update, just do a full
       // redraw (which is quicker than patching)
       if (changedLines > (visible.to - visible.from) * .3)
@@ -912,8 +925,8 @@ var CodeMirror = (function() {
           lineSpace.style.width = code.style.width = "";
         }
       }
+      gutter.style.display = gutterDisplay;
       if (different || gutterDirty) updateGutter();
-
       updateCursor();
     }
 
@@ -1378,20 +1391,29 @@ var CodeMirror = (function() {
       // Include extra text at the end to make sure the measured line is wrapped in the right way.
       if (options.lineWrapping) {
         var end = line.text.indexOf(" ", ch + 2);
-        extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end);
+        extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end + (ie ? 5 : 0));
       }
       measure.innerHTML = "<pre>" + line.getHTML(null, null, false, ch) +
         '<span id="CodeMirror-temp">' + (line.text.charAt(ch) || " ") + "</span>" +
         extra + "</pre>";
-      return document.getElementById("CodeMirror-temp");
+      var elt = document.getElementById("CodeMirror-temp");
+      var top = elt.offsetTop, left = elt.offsetLeft;
+      // Older IEs report zero offsets for spans directly after a wrap
+      if (ie && ch && top == 0 && left == 0) {
+        var backup = document.createElement("span");
+        backup.innerHTML = "x";
+        elt.parentNode.insertBefore(backup, elt.nextSibling);
+        top = backup.offsetTop;
+      }
+      return {top: top, left: left};
     }
     function localCoords(pos, inLineWrap) {
       var x, lh = textHeight(), y = lh * (heightAtLine(doc, pos.line) - (inLineWrap ? displayOffset : 0));
       if (pos.ch == 0) x = 0;
       else {
         var sp = measureLine(getLine(pos.line), pos.ch);
-        x = sp.offsetLeft;
-        if (options.lineWrapping) y += Math.max(0, sp.offsetTop);
+        x = sp.left;
+        if (options.lineWrapping) y += Math.max(0, sp.top);
       }
       return {x: x, y: y, yBot: y + lh};
     }
@@ -1407,10 +1429,10 @@ var CodeMirror = (function() {
       function getX(len) {
         var sp = measureLine(lineObj, len);
         if (tw) {
-          var off = Math.round(sp.offsetTop / th);
-          return Math.max(0, sp.offsetLeft + (off - innerOff) * scroller.clientWidth);
+          var off = Math.round(sp.top / th);
+          return Math.max(0, sp.left + (off - innerOff) * scroller.clientWidth);
         }
-        return sp.offsetLeft;
+        return sp.left;
       }
       var from = 0, fromX = 0, to = text.length, toX;
       // Guess a suitable upper bound for our search.
@@ -1828,6 +1850,7 @@ var CodeMirror = (function() {
     workDelay: 200,
     undoDepth: 40,
     tabindex: null,
+    pollForIME: false,
     document: window.document
   };
 
@@ -2515,7 +2538,7 @@ var CodeMirror = (function() {
 
   var gecko = /gecko\/\d{7}/i.test(navigator.userAgent);
   var ie = /MSIE \d/.test(navigator.userAgent);
-  var safari = /Apple Computer/.test(navigator.vendor);
+  var webkit = /WebKit\//.test(navigator.userAgent);
 
   var lineSep = "\n";
   // Feature-detect whether newlines in textareas are converted to \r\n
@@ -2527,6 +2550,7 @@ var CodeMirror = (function() {
 
   var tabSize = 8;
   var mac = /Mac/.test(navigator.platform);
+  var win = /Win/.test(navigator.platform);
   var movementKeys = {};
   for (var i = 35; i <= 40; ++i)
     movementKeys[i] = movementKeys["c" + i] = true;
@@ -2639,7 +2663,7 @@ var CodeMirror = (function() {
       try {return {start: te.selectionStart, end: te.selectionEnd};}
       catch(e) {return null;}
     };
-    if (safari)
+    if (webkit)
       // On Safari, selection set with setSelectionRange are in a sort
       // of limbo wrt their anchor. If you press shift-left in them,
       // the anchor is put at the end, and the selection expanded to
