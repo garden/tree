@@ -24,7 +24,7 @@ var camp = require ('./camp/camp'),
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-camp.handle (new RegExp(ROOT_PREFIX + '(.*)'), function (query, path) {
+camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
   var data = {path:path[1]};
@@ -236,6 +236,7 @@ camp.add ('new', function addnewstuff (query) {
   try {
     // The file content must be in memory here
     // (indeed, the file.usercount is non-negative).
+    console.log('$NEW: fsfiles contains', arbor.fsfiles, 'and query.path is', query.path);
     var filecontent = arbor.fsfiles[query.path]._content;
     sync (users[query.user], query.delta, filecontent, function(patch) {
       return arbor.fsfiles[query.path]._content = dmp.patch_apply (patch, filecontent) [0];
