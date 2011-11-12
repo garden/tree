@@ -237,9 +237,11 @@ addEventListener('DOMContentLoaded', function () {
     var cwdlen = cwd.length,
         root = new File(cwd[cwdlen-1] === '/'? cwd.slice(0,cwdlen-1): cwd);
     fuzzy(root, pathreq.value, 5, function (scoredpath) {
-      var html = '';
+      var html = '', path;
       for (var i = 0;  i < scoredpath.length;  i++) {
-        html += '<li>' + scoredpath[i][0].fullpath() + '</li>';
+        path = scoredpath[i][0].fullpath() +
+            (scoredpath[i][0].type === 'dir'? '/': '');
+        html += '<li><a href="' + path + '">' + path + '</a></li>';
       }
       Scout('#fuzzy').innerHTML = html;
     });
