@@ -13,8 +13,10 @@
 ROOT_PREFIX = '/root';
 
 // Import modules
-var camp = require ('./camp/camp');
-var arbor = require ('./lib/fs');
+var camp = require ('./camp/camp'),
+    arbor = require ('./lib/fs'),
+    nodepath = require ('path');
+
 
 
 // FILE-SYSTEM ACCESS
@@ -22,11 +24,10 @@ var arbor = require ('./lib/fs');
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
+camp.handle (new RegExp(ROOT_PREFIX + '(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
-  var data = {};
-  data.path = path[1];
+  var data = {path:path[1]};
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   arbor.getfile (path[1], function (err, file) {
@@ -68,6 +69,7 @@ arbor.getroot (function (err, fsroot) {
 
 camp.add ('fs', function (query) {
   var data = {};
+  console.log('-- got query.path', query.path);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
@@ -75,16 +77,27 @@ camp.add ('fs', function (query) {
         if (err) { data.err = err; camp.Server.emit('fs', data); return; }
         dir.content (function (err, content) {
           if (err) { data.err = err; camp.Server.emit('fs', data); return; }
-          data.filenames = [];
+          data.files = [];
           for (var file in content) {
-            if (arbor.isoftype(content[file],'dir')) file += '/';
-            data.filenames.push(file);
+            var filedata = {name:file,
+                type:arbor.typenamefromtype[content[file].type]};
+            data.files.push(filedata);
           }
           camp.Server.emit ('fs', data);
         });
       });
       break;
     case 'cat':
+      arbor.getfile (query['path'], function (err, file) {
+        if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+        data.type = file.type;  // eg, 'text/html'
+        data.name = nodepath.basename(query.path);
+        file.content (function (err, content) {
+          if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+          data.content = content;
+          camp.Server.emit ('fs', data);
+        });
+      });
     case 'touch':
       //create file
     case 'rm':
@@ -176,7 +189,7 @@ camp.add ('data', function (query) {
     file.content (function (err, content) {
       if (err) { console.error(err); data.err = err.message; }
       // If there is something to send, there we go.
-      data.data = content || '\n';
+      data.data = content;
       usersforpath[query.path][query.user].lastcopy = data.data;
       var util = require('util');
       camp.Server.emit ('gotfiledata', data);
