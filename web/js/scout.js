@@ -1813,6 +1813,9 @@ Scout = (function Scoutmaker () {
     return domelt;
   };
   ret.send = function (before) {
+    /* Fool-safe XHR creation if the current XHR object is in use. */
+    if (xhr.readyState === 1) { return Scoutmaker().send(before); }
+
     before = before || function (params, xhr) {};
 
     return function () {
