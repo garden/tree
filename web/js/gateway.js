@@ -185,15 +185,15 @@ function score (filename, query, depth) {
 function sorter (file1, file2) { return file2[1] - file1[1]; };
 
 
-// `rootdir` is {name:'rootdir name', type:'dir'}.
+// `dir` is {name:'rootdir name', type:'dir'}.
 // `query` is a String.
 // `depth` is a Number.
 // `cb` is a callback that takes the resulting list of
 // `initstars` is the initial number of stars, 0 by default.
 // [path, nbOfStars, remainingQuery].
-function fuzzy (rootdir, query, depth, cb, initstars) {
+function fuzzy (dir, query, depth, cb, initstars) {
 
-  rootdir.getchildren(function (children) {
+  dir.getchildren(function (children) {
  
     // scoredpath is a list of [string path, int score, string consumed]
     // which determines how well the path is ranked and if it
