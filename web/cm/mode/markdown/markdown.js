@@ -74,11 +74,12 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
   }
 
   function htmlBlock(stream, state) {
-    var type = htmlMode.token(stream, state.htmlState);
-    if (stream.eol() && !state.htmlState.context) {
+    var style = htmlMode.token(stream, state.htmlState);
+    if (style === 'tag' && state.htmlState.type !== 'openTag' && !state.htmlState.context) {
+      state.f = inlineNormal;
       state.block = blockNormal;
     }
-    return type;
+    return style;
   }
 
 
@@ -103,13 +104,14 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
     if (ch === '`') {
       return switchInline(stream, state, inlineElement(code, '`'));
     }
-    if (ch === '<') {
-      return switchInline(stream, state, inlineElement(linktext, '>'));
-    }
     if (ch === '[') {
       return switchInline(stream, state, linkText);
     }
-    
+    if (ch === '<' && stream.match(/^\w/, false)) {
+      stream.backUp(1);
+      return switchBlock(stream, state, htmlBlock);
+    }
+
     var t = getType();
     if (ch === '*' || ch === '_') {
       if (stream.eat(ch)) {
@@ -157,17 +159,20 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
     return linkhref;
   }
 
+  function inlineRE(endChar) {
+    if (!inlineRE[endChar]) {
+      // match any not-escaped-non-endChar and any escaped char
+      // then match endChar or eol
+      inlineRE[endChar] = new RegExp('^(?:[^\\\\\\' + endChar + ']|\\\\.)*(?:\\' + endChar + '|$)');
+    }
+    return inlineRE[endChar];
+  }
+
   function inlineElement(type, endChar, next) {
     next = next || inlineNormal;
     return function(stream, state) {
-      while (!stream.eol()) {
-        var ch = stream.next();
-        if (ch === '\\') stream.next();
-        if (ch === endChar) {
-          state.inline = state.f = next;
-          return type;
-        }
-      }
+      stream.match(inlineRE(endChar));
+      state.inline = state.f = next;
       return type;
     };
   }
