@@ -34,9 +34,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     if (err) console.error(err);
     if (arbor.isoftype(file, 'text/plain')) {
       path[0] = '/pencil.html';
-      data.lang = 'htmlmixed';
       var mime = arbor.typenamefromtype[file.type];
-      if (mime === 'text/html')  { data.htmlmixed = true; }
       data.mime = mime;
       var util = require('util');
       camp.Server.emit ('fsplugged', data);

@@ -18,19 +18,6 @@
 <script src=/cm/lib/codemirror.js></script>
 <script src=/cm/codemirror.plug.js></script>
 
-<!-- {{# lang = `ls /cm/mode/` = (for now)
-clike clojure coffeescript css diff haskell javascript jinja2 lua markdown
-ntriples pascal php plsql python r rst ruby scheme smalltalk sparql stex
-velocity xml xmlpure yaml htmlmixed}}
-
-{{?htmlmixed|
-<script src=/cm/mode/css/css.js></script>
-<script src=/cm/mode/javascript/javascript.js></script>
-<script src=/cm/mode/xml/xml.js></script>
-}}
-<script src=/cm/mode/{{=lang|xmlattr}}/{{=lang|xmlattr}}.js></script>
--->
-
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
   .CodeMirror-scroll {
@@ -69,7 +56,7 @@ velocity xml xmlpure yaml htmlmixed}}
 
     // Create a CodeMirror2 editor.
     editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
-      value: "­ loading... ­",
+      value: "Loading...",
       mode: "text/plain",
       tabMode: "shift"
     });
