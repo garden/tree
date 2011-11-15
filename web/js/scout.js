@@ -1702,7 +1702,6 @@ Scout = (function Scoutmaker () {
   /* "On" property (beginning with the default parameters). */
 
   var params = {
-    data: {},
     method: 'POST',
     resp:    function (resp, xhr) {},
     error:   function (status, xhr) {},
@@ -1757,7 +1756,7 @@ Scout = (function Scoutmaker () {
                params.user,
                params.password);
 
-      if (params.method === 'POST') {
+      if (params.method === 'POST' && params.data !== {}) {
         xhr.setRequestHeader('Content-Type',
                              'application/x-www-form-urlencoded');
         xhr.send(toxhrsend(params.data));

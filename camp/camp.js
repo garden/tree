@@ -186,8 +186,10 @@ exports.Server.start = function (port, security, debug) {
         /* Handler for when we get a data request. */
         var gotrequest = function (chunk) {
 
-          /* Parse the chunk (it is an object literal). */
-          parsequery (query, chunk.toString ());
+          if (chunk !== undefined) {
+            /* Parse the chunk (it is an object literal). */
+            parsequery (query, chunk.toString ());
+          }
 
           /* Launch the defined action. */
           if (exports.Server.Actions[action]) {
@@ -200,7 +202,8 @@ exports.Server.start = function (port, security, debug) {
           }
 
         };
-        req.on ('data', gotrequest);
+        if (req.method === 'POST') req.on ('data', gotrequest);
+        else gotrequest();
 
       } else {
         if (debug > 3) { console.log ('validated', path); }  ///
