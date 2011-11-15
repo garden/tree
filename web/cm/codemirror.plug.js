@@ -56,11 +56,14 @@ var importCodeMirrorMode = ( function() {
     if ( mode = mimes[mime] ) {
 
       if ( mode === 'diff' || mode === 'tiddlywiki' || mode === 'markdown' || mode === 'rst' ) {
-        document.write("<link rel=stylesheet src='/cm/mode/" + mode + "/" + mode + ".css">);
+        var link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = "/cm/mode/" + mode + "/" + mode + ".css";
+        document.head.appendChild(link);
       }
       document.write("<script src='/cm/mode/" + mode + "/" + mode + ".js'></script>");
       document.addEventListener('DOMContentLoaded', function() {
-        console.log('setting mode',mode);
+        console.log('setting mode',mode,'because mime type is',mime);
         editor.setOption("mode",mode);
       });
     }
