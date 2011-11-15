@@ -18,7 +18,7 @@
 <script src=/cm/lib/codemirror.js></script>
 <script src=/cm/codemirror.plug.js></script>
 
-{{# lang = `ls /cm/mode/` = (for now)
+<!-- {{# lang = `ls /cm/mode/` = (for now)
 clike clojure coffeescript css diff haskell javascript jinja2 lua markdown
 ntriples pascal php plsql python r rst ruby scheme smalltalk sparql stex
 velocity xml xmlpure yaml htmlmixed}}
@@ -29,6 +29,7 @@ velocity xml xmlpure yaml htmlmixed}}
 <script src=/cm/mode/xml/xml.js></script>
 }}
 <script src=/cm/mode/{{=lang|xmlattr}}/{{=lang|xmlattr}}.js></script>
+-->
 
 <style>
   html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
@@ -64,56 +65,57 @@ velocity xml xmlpure yaml htmlmixed}}
     <button type=button onclick="replace()">replace</button>
   </div>
 
+  <script>
 
-<script>
+    // Create a CodeMirror2 editor.
+    editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
+      value: "­ loading... ­",
+      mode: "text/plain",
+      tabMode: "shift"
+    });
 
-  // Create a CodeMirror2 editor.
-  editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
-    value: "­ loading... ­",
-    mode: "{{=lang|jsonstring}}",
-    tabMode: "shift"
-  });
+    importCodeMirrorMode("{{=mime|jsonstring}}");
 
-  // Change theme.
-  function selectTheme(node) {
-    var theme = node.options[node.selectedIndex].innerHTML;
-    editor.setOption("theme", theme);
-    document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
-  }
-
-  // Search & Replace.
-  var lastPos = null, lastQuery = null, marked = [];
-
-  function unmark() {
-    for (var i = 0; i < marked.length; ++i) marked[i]();
-    marked.length = 0;
-  }
-
-  function search() {
-    unmark();                     
-    var text = document.getElementById("query").value;
-    if (!text) return;
-    for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
-      marked.push(editor.markText(cursor.from(), cursor.to(), "searched"));
-
-    if (lastQuery != text) lastPos = null;
-    var cursor = editor.getSearchCursor(text, lastPos || editor.getCursor());
-    if (!cursor.findNext()) {
-      cursor = editor.getSearchCursor(text);
-      if (!cursor.findNext()) return;
+    // Change theme.
+    function selectTheme(node) {
+      var theme = node.options[node.selectedIndex].innerHTML;
+      editor.setOption("theme", theme);
+      document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
     }
-    editor.setSelection(cursor.from(), cursor.to());
-    lastQuery = text; lastPos = cursor.to();
-  }
 
-  function replace() {
-    unmark();
-    var text = document.getElementById("query").value,
-        replace = document.getElementById("replace").value;
-    if (!text) return;
-    for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
-      cursor.replace(replace);
-  }
+    // Search & Replace.
+    var lastPos = null, lastQuery = null, marked = [];
 
-</script>
+    function unmark() {
+      for (var i = 0; i < marked.length; ++i) marked[i]();
+      marked.length = 0;
+    }
+
+    function search() {
+      unmark();                     
+      var text = document.getElementById("query").value;
+      if (!text) return;
+      for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
+        marked.push(editor.markText(cursor.from(), cursor.to(), "searched"));
+
+      if (lastQuery != text) lastPos = null;
+      var cursor = editor.getSearchCursor(text, lastPos || editor.getCursor());
+      if (!cursor.findNext()) {
+        cursor = editor.getSearchCursor(text);
+        if (!cursor.findNext()) return;
+      }
+      editor.setSelection(cursor.from(), cursor.to());
+      lastQuery = text; lastPos = cursor.to();
+    }
+
+    function replace() {
+      unmark();
+      var text = document.getElementById("query").value,
+          replace = document.getElementById("replace").value;
+      if (!text) return;
+      for (var cursor = editor.getSearchCursor(text); cursor.findNext();)
+        cursor.replace(replace);
+    }
+
+  </script>
 </body>
