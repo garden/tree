@@ -54,6 +54,10 @@ var importCodeMirrorMode = ( function() {
       importCodeMirrorMode('text/xml');
     }
     if ( mode = mimes[mime] ) {
+
+      if ( mode === 'diff' || mode === 'tiddlywiki' || mode === 'markdown' || mode === 'rst' ) {
+        document.write("<link rel=stylesheet src='/cm/mode/" + mode + "/" + mode + ".css">);
+      }
       document.write("<script src='/cm/mode/" + mode + "/" + mode + ".js'></script>");
       document.addEventListener('DOMContentLoaded', function() {
         console.log('setting mode',mode);
