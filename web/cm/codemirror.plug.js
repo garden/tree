@@ -56,7 +56,7 @@ var importCodeMirrorMode = ( function() {
     if ( mode = mimes[mime] ) {
       document.write("<script src='/cm/mode/" + mode + "/" + mode + ".js'></script>");
       document.addEventListener('DOMContentLoaded', function() {
-        console.log('setting mode'.mode);
+        console.log('setting mode',mode);
         editor.setOption("mode",mode);
       });
     }
