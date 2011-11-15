@@ -49,11 +49,14 @@ var importCodeMirrorMode = ( function() {
     if ( mime === 'text/html' ) {
       importCodeMirrorMode('text/css');
       importCodeMirrorMode('text/javascript');
+    }
+    if ( mime === 'text/html' || mime === 'text/x-markdown' ) { 
       importCodeMirrorMode('text/xml');
     }
     if ( mode = mimes[mime] ) {
       document.write("<script src='/cm/mode/" + mode + "/" + mode + ".js'></script>");
       document.addEventListener('DOMContentLoaded', function() {
+        console.log('setting mode'.mode);
         editor.setOption("mode",mode);
       });
     }
