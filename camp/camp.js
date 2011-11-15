@@ -46,8 +46,40 @@ exports.Server.mime = {
   'csv': 'text/csv',
   'dtd': 'application/xml-dtd',
 
-  'js': 'application/javascript',
+  'js': 'text/javascript',
   'json': 'application/json',
+  'css': 'text/css',
+  'html': 'text/html',
+  'c': 'text/x-csrc',
+  'cpp': 'text/x-c++src',
+  'java': 'text/x-java',
+  'groovy': 'text/x-groovy',
+  'clj': 'text/x-clojure',
+  'coffee': 'text/x-coffeescript',
+  'diff': 'text/x-diff',
+  'hs': 'text/x-haskell',
+  'lua': 'text/x-lua',
+  'md': 'text/x-markdown',
+  'nt': 'text/n-triples',
+  'pas': 'text/x-pascal',
+  'pl': 'text/x-perl',
+  'php': 'text/x-php',
+  'pls': 'text/x-plsql',
+  'sql': 'text/x-plsql',
+  'py': 'text/x-python',
+  'r': 'text/x-rsrc',
+  'rst': 'text/x-rst',
+  'rb': 'text/x-ruby',
+  'rs': 'text/x-rustsrc',
+  'scm': 'text/x-scheme',
+  'ss': 'text/x-scheme',
+  'rkt': 'text/x-scheme',
+  'st': 'text/x-stsrc',
+  'sparql': 'text/x-sparql-query',
+  'tex': 'text/x-stex',
+  'latex': 'text/x-stex',
+  'vtl': 'text/velocity',
+  'yaml': 'text/x-yaml',
 
   'pdf': 'application/pdf',
   'ps': 'application/postscript',
@@ -186,8 +218,10 @@ exports.Server.start = function (port, security, debug) {
         /* Handler for when we get a data request. */
         var gotrequest = function (chunk) {
 
-          /* Parse the chunk (it is an object literal). */
-          parsequery (query, chunk.toString ());
+          if (chunk !== undefined) {
+            /* Parse the chunk (it is an object literal). */
+            parsequery (query, chunk.toString ());
+          }
 
           /* Launch the defined action. */
           if (exports.Server.Actions[action]) {
@@ -200,7 +234,8 @@ exports.Server.start = function (port, security, debug) {
           }
 
         };
-        req.on ('data', gotrequest);
+        if (req.method === 'POST') req.on ('data', gotrequest);
+        else gotrequest();
 
       } else {
         if (debug > 3) { console.log ('validated', path); }  ///
