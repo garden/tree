@@ -19,7 +19,7 @@ function setfiles(files) {
   var html = '';
   for (var i = 0;  i < files.length;  i++) {
     if (files[i].type === 'dir') files[i].name += '/';
-    html += '<li><a href="' + cwd + files[i].name + '">'
+    html += '<li><a href="' + cwd + escape(files[i].name) + '">'
         + files[i].name + '</a></li>';
   }
   domfiles.innerHTML = html;
@@ -189,8 +189,8 @@ function sorter (file1, file2) { return file2[1] - file1[1]; };
 // `query` is a String.
 // `depth` is a Number.
 // `cb` is a callback that takes the resulting list of
-// `initstars` is the initial number of stars, 0 by default.
 // [path, nbOfStars, remainingQuery].
+// `initstars` is the initial number of stars, 0 by default.
 function fuzzy (dir, query, depth, cb, initstars) {
 
   dir.getchildren(function (children) {
@@ -245,6 +245,7 @@ addEventListener('DOMContentLoaded', function () {
       Scout('#fuzzy').innerHTML = html;
     });
   }, false);
+  window.root = root;
 }, false);
 
 

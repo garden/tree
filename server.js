@@ -27,6 +27,7 @@ var camp = require ('./camp/camp'),
 camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
+  path[1] = unescape(path[1]);
   var data = {path:path[1]};
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
@@ -68,7 +69,7 @@ arbor.getroot (function (err, fsroot) {
 camp.add ('fs', function (query) {
   var data = {};
   console.log('-- got query.path', query.path);
-  if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
+  if (query.path) query.path = unescape(query.path.slice(ROOT_PREFIX.length));
   switch (query['op']) {
     case 'ls':
       arbor.getfile (query['path'], function (err, dir) {
