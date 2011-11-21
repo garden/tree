@@ -53,6 +53,7 @@
 .CodeMirror textarea {
   font-family: inherit !important;
   font-size: inherit !important;
+  outline: none !important;
 }
 
 .CodeMirror-cursor {
@@ -66,12 +67,13 @@
 }
 
 span.CodeMirror-selected {
-  background: #ccc !important;
-  color: HighlightText !important;
+  background: #d9d9d9 !important;
 }
 .CodeMirror-focused span.CodeMirror-selected {
-  background: Highlight !important;
+  background: #d2dcf8 !important;
 }
 
 .CodeMirror-matchingbracket {color: #0f0 !important;}
 .CodeMirror-nonmatchingbracket {color: #f22 !important;}
+
+.CodeMirror-searching {background: #ffa;}
