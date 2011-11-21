@@ -237,12 +237,17 @@ camp.add ('new', function addnewstuff (query) {
     // (indeed, the file.usercount is non-negative).
     console.log('$NEW: fsfiles contains', arbor.fsfiles, 'and query.path is', query.path);
     var filecontent = arbor.fsfiles[query.path]._content;
+    console.log('--filecontent ('+filecontent.length+')',filecontent);
     sync (users[query.user], query.delta, filecontent, function(patch) {
       return arbor.fsfiles[query.path]._content = dmp.patch_apply (patch, filecontent) [0];
     }, function(delta) {
       newdelta = delta;
     });
-  } catch (e) { console.error(e.message); console.trace(e); return {error:1};}
+  } catch (e) {
+    console.error(e.message);
+    console.trace(e);
+    return {error:1};
+  }
 
   // For each user, we update all data.
   for (var user in users) {
