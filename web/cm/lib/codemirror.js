@@ -99,6 +99,7 @@ var CodeMirror = (function() {
     connect(scroller, "mousedown", operation(onMouseDown));
     connect(scroller, "dblclick", operation(onDoubleClick));
     connect(lineSpace, "dragstart", onDragStart);
+    connect(lineSpace, "selectstart", e_preventDefault);
     // Gecko browsers fire contextmenu *after* opening the menu, at
     // which point we can't mess with it anymore. Context menu is
     // handled in onMouseDown for Gecko.
@@ -144,13 +145,13 @@ var CodeMirror = (function() {
       setOption: function(option, value) {
         var oldVal = options[option];
         options[option] = value;
-        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber")
-          operation(gutterChanged)();
-        else if (option == "mode" || option == "indentUnit") loadMode();
+        if (option == "mode" || option == "indentUnit") loadMode();
         else if (option == "readOnly" && value == "nocursor") input.blur();
         else if (option == "theme") scroller.className = scroller.className.replace(/cm-s-\w+/, "cm-s-" + value);
         else if (option == "lineWrapping" && oldVal != value) operation(wrappingChanged)();
         else if (option == "pollForIME" && alwaysPollForIME) slowPollInterval = value ? 50 : 2000;
+        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber" || option == "theme")
+          operation(gutterChanged)();
       },
       getOption: function(option) {return options[option];},
       undo: operation(undo),
@@ -304,14 +305,15 @@ var CodeMirror = (function() {
       if (!focused) onFocus();
 
       var now = +new Date;
-      if (lastDoubleClick > now - 400) {
+      if (lastDoubleClick && lastDoubleClick.time > now - 400 && posEq(lastDoubleClick.pos, start)) {
         e_preventDefault(e);
+        setTimeout(focusInput, 20);
         return selectLine(start.line);
-      } else if (lastClick > now - 400) {
-        lastDoubleClick = now;
+      } else if (lastClick && lastClick.time > now - 400 && posEq(lastClick.pos, start)) {
+        lastDoubleClick = {time: now, pos: start};
         e_preventDefault(e);
         return selectWordAt(start);
-      } else { lastClick = now; }
+      } else { lastClick = {time: now, pos: start}; }
 
       var last = start, going;
       if (dragAndDrop && !posEq(sel.from, sel.to) &&
@@ -367,7 +369,7 @@ var CodeMirror = (function() {
         if (n.parentNode == gutterText) return e_preventDefault(e);
       var start = posFromMouse(e);
       if (!start) return;
-      lastDoubleClick = +new Date;
+      lastDoubleClick = {time: +new Date, pos: start};
       e_preventDefault(e);
       selectWordAt(start);
     }
@@ -382,8 +384,10 @@ var CodeMirror = (function() {
             text[i] = reader.result;
             if (++read == n) {
 	      pos = clipPos(pos);
-	      var end = replaceRange(text.join(""), pos, pos);
-	      setSelectionUser(pos, end);
+	      operation(function() {
+                var end = replaceRange(text.join(""), pos, pos);
+                setSelectionUser(pos, end);
+              })();
 	    }
           };
           reader.readAsText(file);
@@ -906,7 +910,10 @@ var CodeMirror = (function() {
         var change = changes[i], intact2 = [], diff = change.diff || 0;
         for (var j = 0, l2 = intact.length; j < l2; ++j) {
           var range = intact[j];
-          if (change.to <= range.from || change.from >= range.to)
+          if (change.to <= range.from && change.diff)
+            intact2.push({from: range.from + diff, to: range.to + diff,
+                          domStart: range.domStart});
+          else if (change.to <= range.from || change.from >= range.to)
             intact2.push(range);
           else {
             if (change.from > range.from)
@@ -1354,6 +1361,7 @@ var CodeMirror = (function() {
       }
     }
 
+    var tempId = Math.floor(Math.random() * 0xffffff).toString(16);
     function measureLine(line, ch) {
       var extra = "";
       // Include extra text at the end to make sure the measured line is wrapped in the right way.
@@ -1362,9 +1370,9 @@ var CodeMirror = (function() {
         extra = line.text.slice(ch + 1, end < 0 ? line.text.length : end + (ie ? 5 : 0));
       }
       measure.innerHTML = "<pre>" + line.getHTML(null, null, false, ch) +
-        '<span id="CodeMirror-temp">' + (line.text.charAt(ch) || " ") + "</span>" +
+        '<span id="CodeMirror-temp-' + tempId + '">' + (line.text.charAt(ch) || " ") + "</span>" +
         extra + "</pre>";
-      var elt = document.getElementById("CodeMirror-temp");
+      var elt = document.getElementById("CodeMirror-temp-" + tempId);
       var top = elt.offsetTop, left = elt.offsetLeft;
       // Older IEs report zero offsets for spans directly after a wrap
       if (ie && ch && top == 0 && left == 0) {
