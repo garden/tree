@@ -1,3 +1,5 @@
+// CodeMirror v2.17
+
 // All functions that need access to the editor's state live inside
 // the CodeMirror function. Below that, at the bottom of the file,
 // some utilities are defined.
@@ -181,6 +183,7 @@ var CodeMirror = (function() {
       },
       getSearchCursor: function(query, pos, caseFold) {return new SearchCursor(query, pos, caseFold);},
       markText: operation(markText),
+      setBookmark: setBookmark,
       setMarker: operation(addGutterMarker),
       clearMarker: operation(removeGutterMarker),
       setLineClass: operation(setLineClass),
@@ -549,8 +552,9 @@ var CodeMirror = (function() {
           firstLine.replace(from.ch, to.ch, newText[0]);
         else {
           lastLine = firstLine.split(to.ch, newText[newText.length-1]);
-          var added = [];
           firstLine.replace(from.ch, null, newText[0]);
+          firstLine.fixMarkEnds(lastLine);
+          var added = [];
           for (var i = 1, e = newText.length - 1; i < e; ++i)
             added.push(Line.inheritMarks(newText[i], firstLine));
           added.push(lastLine);
@@ -567,6 +571,7 @@ var CodeMirror = (function() {
         var added = [];
         firstLine.replace(from.ch, null, newText[0]);
         lastLine.replace(null, to.ch, newText[newText.length-1]);
+        firstLine.fixMarkEnds(lastLine);
         for (var i = 1, e = newText.length - 1; i < e; ++i)
           added.push(Line.inheritMarks(newText[i], firstLine));
         if (nlines > 1) doc.remove(from.line + 1, nlines - 1);
@@ -1222,53 +1227,28 @@ var CodeMirror = (function() {
 
     function markText(from, to, className) {
       from = clipPos(from); to = clipPos(to);
-      var set = [];
+      var tm = new TextMarker();
+      tm.clear = operation(tm.clear);
       function add(line, from, to, className) {
-        mark = getLine(line).addMark(from, to, className, set);
+        mark = getLine(line).addMark(new MarkedText(from, to, className, tm.set));
       }
       if (from.line == to.line) add(from.line, from.ch, to.ch, className);
       else {
         add(from.line, from.ch, null, className);
         for (var i = from.line + 1, e = to.line; i < e; ++i)
-          add(i, 0, null, className);
-        add(to.line, 0, to.ch, className);
+          add(i, null, null, className);
+        add(to.line, null, to.ch, className);
       }
       changes.push({from: from.line, to: to.line + 1});
-      return new TextMarker(set);
+      return tm;
     }
 
-    function TextMarker(set) { this.set = set; }
-    TextMarker.prototype.clear = operation(function() {
-      for (var i = 0, e = this.set.length; i < e; ++i) {
-        var mk = this.set[i].marked;
-        if (!mk) continue;
-        for (var j = 0; j < mk.length; ++j) {
-          if (mk[j].set == this.set) mk.splice(j--, 1);
-        }
-      }
-      // We don't know the exact lines that changed. Refreshing is
-      // cheaper than finding them.
-      changes.push({from: 0, to: doc.size});
-    });
-    TextMarker.prototype.find = function() {
-      var from, to;
-      for (var i = 0, e = this.set.length; i < e; ++i) {
-        var line = this.set[i], mk = line.marked;
-        for (var j = 0; j < mk.length; ++j) {
-          var mark = mk[j];
-          if (mark.set == this.set) {
-            if (mark.from != null || mark.to != null) {
-              var found = lineNo(line);
-              if (found != null) {
-                if (mark.from != null) from = {line: found, ch: mark.from};
-                if (mark.to != null) to = {line: found, ch: mark.to};
-              }
-            }
-          }
-        }
-      }
-      return {from: from, to: to};
-    };
+    function setBookmark(pos) {
+      pos = clipPos(pos);
+      var bm = new Bookmark(pos.ch);
+      getLine(pos.line).addMark(bm);
+      return bm;
+    }
 
     function addGutterMarker(line, text, className) {
       if (typeof line == "number") line = getLine(clipLine(line));
@@ -1323,7 +1303,8 @@ var CodeMirror = (function() {
         if (n == null) return null;
       }
       var marker = line.gutterMarker;
-      return {line: n, text: line.text, markerText: marker && marker.text, markerClass: marker && marker.style, lineClass: line.className};
+      return {line: n, handle: line, text: line.text, markerText: marker && marker.text,
+              markerClass: marker && marker.style, lineClass: line.className};
     }
 
     function stringWidth(str) {
@@ -1985,6 +1966,102 @@ var CodeMirror = (function() {
   };
   CodeMirror.StringStream = StringStream;
 
+  function TextMarker() { this.set = []; }
+  TextMarker.prototype.clear = function() {
+    for (var i = 0, e = this.set.length; i < e; ++i) {
+      var mk = this.set[i].marked;
+      if (!mk) continue;
+      for (var j = 0; j < mk.length; ++j)
+        if (mk[j].set == this.set) mk.splice(j--, 1);
+    }
+    // We don't know the exact lines that changed. Refreshing is
+    // cheaper than finding them.
+    changes.push({from: 0, to: doc.size});
+  };
+  TextMarker.prototype.find = function() {
+    var from, to;
+    for (var i = 0, e = this.set.length; i < e; ++i) {
+      var line = this.set[i], mk = line.marked;
+      for (var j = 0; j < mk.length; ++j) {
+        var mark = mk[j];
+        if (mark.set == this.set) {
+          if (mark.from != null || mark.to != null) {
+            var found = lineNo(line);
+            if (found != null) {
+              if (mark.from != null) from = {line: found, ch: mark.from};
+              if (mark.to != null) to = {line: found, ch: mark.to};
+            }
+          }
+        }
+      }
+    }
+    return {from: from, to: to};
+  };
+
+  function MarkedText(from, to, className, set) {
+    this.from = from; this.to = to; this.style = className; this.set = set;
+  }
+  MarkedText.prototype = {
+    attach: function(line) { this.set.push(line); },
+    detach: function(line) {
+      var ix = indexOf(this.set, line);
+      if (ix > -1) this.set.splice(ix, 1);
+    },
+    split: function(pos, lenBefore) {
+      if (this.to <= pos && this.to != null) return null;
+      var from = this.from < pos || this.from == null ? null : this.from - pos + lenBefore;
+      var to = this.to == null ? null : this.to - pos + lenBefore;
+      return new MarkedText(from, to, this.style, this.set); 
+    },
+    dup: function() { return new MarkedText(null, null, this.style, this.set); },
+    clipTo: function(fromOpen, from, toOpen, to, diff) {
+      if (this.from != null && this.from >= from)
+        this.from = Math.max(to, this.from) + diff;
+      if (this.to != null && this.to > from)
+        this.to = to < this.to ? this.to + diff : from;
+      if (fromOpen && to > this.from && (to < this.to || this.to == null))
+        this.from = null;
+      if (toOpen && (from < this.to || this.to == null) && (from > this.from || this.from == null))
+        this.to = null;
+    },
+    isDead: function() { return this.from != null && this.to != null && this.from >= this.to; },
+    sameSet: function(x) { return this.set == x.set; }
+  };
+
+  function Bookmark(pos) {
+    this.from = pos; this.to = pos; this.line = null;
+  }
+  Bookmark.prototype = {
+    attach: function(line) { this.line = line; },
+    detach: function(line) { if (this.line == line) this.line = null; },
+    split: function(pos, lenBefore) {
+      if (pos < this.from) {
+        this.from = this.to = (this.from - pos) + lenBefore;
+        return this;
+      }
+    },
+    isDead: function() { return this.from > this.to; },
+    clipTo: function(fromOpen, from, toOpen, to, diff) {
+      if ((fromOpen || from < this.from) && (toOpen || to > this.to)) {
+        this.from = 0; this.to = -1;
+      } else if (this.from > from) {
+        this.from = this.to = Math.max(to, this.from) + diff;
+      }
+    },
+    sameSet: function(x) { return false; },
+    find: function() {
+      if (!this.line || !this.line.parent) return null;
+      return {line: lineNo(this.line), ch: this.from};
+    },
+    clear: function() {
+      if (this.line) {
+        var found = indexOf(this.line.marked, this);
+        if (found != -1) this.line.marked.splice(found, 1);
+        this.line = null;
+      }
+    }
+  };
+
   // Line objects. These hold state related to a line, including
   // highlighting info (the styles array).
   function Line(text, styles) {
@@ -1998,10 +2075,9 @@ var CodeMirror = (function() {
     var ln = new Line(text), mk = orig.marked;
     if (mk) {
       for (var i = 0; i < mk.length; ++i) {
-        if (mk[i].to == null) {
+        if (mk[i].to == null && mk[i].style) {
           var newmk = ln.marked || (ln.marked = []), mark = mk[i];
-          newmk.push({from: null, to: null, style: mark.style, set: mark.set});
-          mark.set.push(ln);
+          var nmark = mark.dup(); newmk.push(nmark); nmark.attach(ln);
         }
       }
     }
@@ -2021,23 +2097,10 @@ var CodeMirror = (function() {
       this.text = this.text.slice(0, from) + text + this.text.slice(to);
       this.stateAfter = null;
       if (mk) {
-        var diff = text.length - (to - from), end = this.text.length;
-        var changeStart = Math.min(from, from + diff);
-        for (var i = 0; i < mk.length; ++i) {
-          var mark = mk[i], del = false;
-          if (mark.from != null && mark.from >= end) del = true;
-          else {
-            if (mark.from != null && mark.from >= from) {
-              mark.from = Math.max(mark.from, to) + diff;
-              if (mark.from <= 0) mark.from = from == null ? null : 0;
-            }
-            else if (to_ == null) mark.to = null;
-            if (mark.to != null && mark.to > from) {
-              mark.to = Math.max(mark.to, to) + diff;
-              if (mark.to <= 0) del = true;
-            }
-          }
-          if (del || (mark.from != null && mark.to != null && mark.from >= mark.to)) mk.splice(i--, 1);
+        var diff = text.length - (to - from);
+        for (var i = 0, mark = mk[i]; i < mk.length; ++i) {
+          mark.clipTo(from == null, from || 0, to_ == null, to, diff);
+          if (mark.isDead()) {mark.detach(this); mk.splice(i--, 1);}
         }
       }
     },
@@ -2049,50 +2112,63 @@ var CodeMirror = (function() {
       if (mk) {
         for (var i = 0; i < mk.length; ++i) {
           var mark = mk[i];
-          if (mark.to > pos || mark.to == null) {
+          var newmark = mark.split(pos, textBefore.length);
+          if (newmark) {
             if (!taken.marked) taken.marked = [];
-            taken.marked.push({
-              from: mark.from < pos || mark.from == null ? null : mark.from - pos + textBefore.length,
-              to: mark.to == null ? null : mark.to - pos + textBefore.length,
-              style: mark.style, set: mark.set
-            });
-            mark.set.push(taken);
+            taken.marked.push(newmark); newmark.attach(taken);
           }
         }
       }
       return taken;
     },
     append: function(line) {
-      if (!line.text.length) return;
-      var mylen = this.text.length, mk = line.marked;
+      var mylen = this.text.length, mk = line.marked, mymk = this.marked;
       this.text += line.text;
       copyStyles(0, line.text.length, line.styles, this.styles);
-      if (mk && mk.length) {
-        var mymk = this.marked || (this.marked = []);
+      if (mymk) {
         for (var i = 0; i < mymk.length; ++i)
           if (mymk[i].to == null) mymk[i].to = mylen;
+      }
+      if (mk && mk.length) {
+        if (!mymk) this.marked = mymk = [];
         outer: for (var i = 0; i < mk.length; ++i) {
           var mark = mk[i];
           if (!mark.from) {
             for (var j = 0; j < mymk.length; ++j) {
               var mymark = mymk[j];
-              if (mymark.to == mylen && mymark.set == mark.set) {
+              if (mymark.to == mylen && mymark.sameSet(mark)) {
                 mymark.to = mark.to == null ? null : mark.to + mylen;
+                if (mymark.isDead()) {
+                  mymark.detach(this);
+                  mk.splice(i--, 1);
+                }
                 continue outer;
               }
             }
           }
           mymk.push(mark);
-          mark.set.push(this);
+          mark.attach(this);
           mark.from += mylen;
           if (mark.to != null) mark.to += mylen;
         }
       }
     },
-    addMark: function(from, to, style, set) {
-      set.push(this);
+    fixMarkEnds: function(other) {
+      var mk = this.marked, omk = other.marked;
+      if (!mk) return;
+      for (var i = 0; i < mk.length; ++i) {
+        var mark = mk[i], close = mark.to == null;
+        if (close && omk) {
+          for (var j = 0; j < omk.length; ++j)
+            if (omk[j].sameSet(mark)) {close = false; break;}
+        }
+        if (close) mark.to = this.text.length;
+      }
+    },
+    addMark: function(mark) {
+      mark.attach(this);
       if (this.marked == null) this.marked = [];
-      this.marked.push({from: from, to: to, style: style, set: set});
+      this.marked.push(mark);
       this.marked.sort(function(a, b){return (a.from || 0) - (b.from || 0);});
     },
     // Run the given mode's parser over a line, update the styles
@@ -2215,10 +2291,7 @@ var CodeMirror = (function() {
     cleanUp: function() {
       this.parent = null;
       if (this.marked)
-        for (var i = 0, e = this.marked.length; i < e; ++i) {
-          var set = this.marked[i].set;
-          set.splice(indexOf(set, this), 1);
-        }
+        for (var i = 0, e = this.marked.length; i < e; ++i) this.marked[i].detach(this);
     }
   };
   // Utility used by replace and split above
