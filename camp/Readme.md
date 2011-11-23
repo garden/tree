@@ -206,15 +206,19 @@ Default macros are the following:
    * html (text)
    * xml (text)
    * xmlattr (text)
-   * jsonstring (text)
+   * jsonstring (text)          // Escapes like a json string.
+   * json (text, indentation)   // Takes a JS object.
    * uri (text)
-   * !uri (text)
+   * !uri (text)                // Unencode the URI.
    * integer (text)
-   * intradix (text, radix)
-   * float (text, fractionDigits)
-   * exp (text, fractionDigits)  
-  For instance, `{{=expNumber|exp|2}}` will only print the variable `expNumber`
-  with 2 fractional digits.
+   * intradix (text, [radix])
+   * float (text, [fractionDigits])
+   * exp (text, [fractionDigits])  
+  For instance, `{{=expNumber|exp 2}}` will only print the variable `expNumber`
+  with 2 fractional digits.  
+  You can sequence parsers like so: `{{=key|uri|xmlattr}}` goes through the URI
+  escaper, and then through the xmlattr parser. As a result, giving this the
+  string `"\"&\""` will insert the string `"%22&amp;%22"`.
 * `{{?bool; rest }}` will print the rest if the variable `bool` is truthy.
 * `{{-object|value|key; rest }}` will parse the rest once for each key in
   `object`, adding the new variables `value` and `key` to the scope.
@@ -224,6 +228,27 @@ Default macros are the following:
   given to the template file) and `params` (parameters given to the macro).
 * `{{~macro; rest }}` will run the macro named `macro` (please note that this
   macro has more than one character in it, this is legit).
+
+You may create a user-defined parser, say a parser "remove\_t", like so:
+
+    camp.Plate.parsers['remove_t'] = function (text, additionalParams) {
+      return escapedText;
+    };
+
+The `additionalParams` are an array that comes from space-separated strings
+given, in the template, after the parser name. It is useful to tune the behavior
+of the parser. For instance, the `2` in `{{=number|exp 2}}` asks the `exp`
+parser to give 2 decimal digits.
+
+Similarly to how you add parsers, you can add user-defined macros (here, the
+macro `i`):
+
+    camp.Plate.macros['i'] = function (literal, params) {
+      return insertedtext;
+    };
+
+The `literal` object contains all objects that are given to the template, and
+the params are what is given to the macro between pipe characters `|`.
 
 You may, just as with `Camp.add` actions, give `Camp.handle` a third parameter,
 a function, to serve as a callback for the event that will trigger that function
