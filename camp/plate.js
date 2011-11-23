@@ -99,12 +99,18 @@ Plate.value = function (literal, strval) {
 
 Plate.macros = {
   '=': function (literal, params) {
-    if (Plate.parsers[params[1]] === undefined) {
-      console.error ('Template error: parser ' + params[1] + ' is missing.');
-      return '';
+    var parsedtext = Plate.value (literal, params[0]),
+        parsercalls = params.slice(1).map(function(el) {return el.split(' ');}),
+        parsers = parsercalls.map(function(el) {return el[0];}),
+        parsersparams = parsercalls.map(function(el) {return el.slice(1);});
+    for (var i = 0; i < parsers.length; i++) {
+      if (Plate.parsers[parsers[i]] === undefined) {
+        console.error ('Template error: parser ' + parsers[i] + ' is missing.');
+        return '';
+      }
+      parsedtext = Plate.parsers[parsers[i]] (parsedtext, parsersparams[i]);
     }
-    return Plate.parsers[params[1]] (Plate.value (literal, params[0])
-                                    , params[2]);
+    return parsedtext;
   },
   '?': function (literal, params) {
     var val = Plate.value (literal, params[0]);
@@ -166,19 +172,23 @@ Plate.parsers = {
                .replace (/\r/g,'\\r').replace (/\t/g,'\\t')
                .replace (RegExp('\b','g'),'\\b');
   },
+  'json': function (text, indent) {
+    return JSON.stringify (text, null, +indent[0]);
+  },
   'integer': function (integer) {
     return typeof integer == 'number'? integer.toFixed (0): '';
   },
   'intradix': function (intradix, radix) {
-    return typeof intradix == 'number'? intradix.toString (parseInt (radix)):'';
+    return typeof intradix == 'number'?
+      intradix.toString (parseInt (radix[0])):'';
   },
   'float': function (floating, fractionDigits) {
     return typeof floating == 'number'?
-        floating.toFixed (parseInt (fractionDigits)): '';
+        floating.toFixed (parseInt (fractionDigits[0])): '';
   },
   'exp': function (exp, fractionDigits) {
     return typeof exp == 'number'?
-        exp.toExponential (parseInt (fractionDigits)): '';
+        exp.toExponential (parseInt (fractionDigits[0])): '';
   }
 };
 

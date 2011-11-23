@@ -19,14 +19,14 @@ function setfiles(files) {
   var html = '';
   for (var i = 0;  i < files.length;  i++) {
     if (files[i].type === 'dir') files[i].name += '/';
-    html += '<li><a href="' + cwd + escape(files[i].name) + '">'
+    html += '<li><a href="' + encodeURI(cwd + files[i].name) + '">'
         + files[i].name + '</a></li>';
   }
   domfiles.innerHTML = html;
 }
 
 
-var cwd = document.location.pathname;  // common working directory.
+var cwd = decodeURI(document.location.pathname);  // common working directory.
 if (cwd[cwd.length-1] !== '/') cwd += '/';
 window.cwd = cwd;
 
