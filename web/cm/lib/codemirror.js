@@ -1194,7 +1194,7 @@ var CodeMirror = (function() {
       from = clipPos(from); to = clipPos(to);
       var tm = new TextMarker();
       function add(line, from, to, className) {
-        mark = getLine(line).addMark(new MarkedText(from, to, className, tm.set));
+        getLine(line).addMark(new MarkedText(from, to, className, tm.set));
       }
       if (from.line == to.line) add(from.line, from.ch, to.ch, className);
       else {
@@ -2592,15 +2592,23 @@ var CodeMirror = (function() {
 
   var escapeElement = document.createElement("pre");
   function htmlEscape(str) {
-    if (badTextContent) {
-      escapeElement.innerHTML = "";
-      escapeElement.appendChild(document.createTextNode(str));
-    } else {
-      escapeElement.textContent = str;
-    }
+    escapeElement.textContent = str;
     return escapeElement.innerHTML;
   }
-  var badTextContent = htmlEscape("\t") != "\t";
+  // Recent (late 2011) Opera betas insert bogus newlines at the start
+  // of the textContent, so we strip those.
+  if (htmlEscape("a") == "\na")
+    htmlEscape = function(str) {
+      escapeElement.textContent = str;
+      return escapeElement.innerHTML.slice(1);
+    };
+  // Some IEs don't preserve tabs through innerHTML
+  else if (htmlEscape("\t") != "\t")
+    htmlEscape = function(str) {
+      escapeElement.innerHTML = "";
+      escapeElement.appendChild(document.createTextNode(str));
+      return escapeElement.innerHTML;
+    };
   CodeMirror.htmlEscape = htmlEscape;
 
   // Used to position the cursor after an undo/redo by finding the
