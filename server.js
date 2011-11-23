@@ -27,12 +27,16 @@ var camp = require ('./camp/camp'),
 camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
-  path[1] = unescape(path[1]);
+  path[1] = path[1];
   var data = {path:path[1]};
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   arbor.getfile (path[1], function (err, file) {
-    if (err) console.error(err);
+    if (err) {
+      console.error(err);
+      data.error = err.message;
+      camp.Server.emit ('fsplugged', data);
+    }
     if (arbor.isoftype(file, 'text/plain')) {
       path[0] = '/pencil.html';
       var mime = arbor.typenamefromtype[file.type];
