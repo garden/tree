@@ -132,7 +132,7 @@ function parsequery (query, strquery) {
     // Each element of key=value is then again split along `=`.
     var elems = items[item].split('=');
     try {
-      query[unescape(elems[0])] = JSON.parse(unescape(elems[1]));
+      query[decodeURI(elems[0])] = JSON.parse(decodeURI(elems[1]));
     } catch (e) {
       console.log ('query:', JSON.stringify(query), e.toString());
     }
@@ -155,8 +155,8 @@ exports.Server.start = function (port, security, debug) {
     , qs = require('querystring');
 
   // The request listener
-  function listener(req,res){
-    var uri = url.parse (req.url, true);
+  function listener (req,res) {
+    var uri = url.parse (decodeURI (req.url), true);
     var path = uri.pathname;
     var query = uri.query;
 
@@ -337,7 +337,8 @@ exports.Server.start = function (port, security, debug) {
 // Exported start function.
 //
 exports.start = function(options) {
-  var security = {};
+  var security = {},
+      options = options || {};
   if (options.secure === 'yes' || options.key || options.cert) {
     security.key = options.key || '../https.key',
     security.cert = options.cert || '../https.crt'

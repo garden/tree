@@ -94,7 +94,7 @@ test:
 	node test/test-plate.js
 
 update:
-	@git clone git://github.com/espadrine/ScoutCamp.git
+	@git clone https://espadrine@github.com/espadrine/ScoutCamp.git
 	@cp ScoutCamp/web/js/scout.js ./web/js/scout.js
 	@cp ScoutCamp/camp/* ./camp/
 	@cp ScoutCamp/Makefile .

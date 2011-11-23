@@ -1715,7 +1715,7 @@ Scout = (function Scoutmaker () {
     for (var key in data) {
       if (typeof (jsondata = JSON.stringify(data[key])) === 'string') {
         str += (start? '': '&');
-        str += escape(key) + '=' + escape(jsondata);
+        str += encodeURI(key) + '=' + encodeURI(jsondata);
         if (start) { start = false; }
       }
     }

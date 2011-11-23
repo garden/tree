@@ -27,12 +27,16 @@ var camp = require ('./camp/camp'),
 camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   path[0] = '/pencil.html';
 
-  path[1] = unescape(path[1]);
+  path[1] = path[1];
   var data = {path:path[1]};
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   arbor.getfile (path[1], function (err, file) {
-    if (err) console.error(err);
+    if (err) {
+      console.error(err);
+      data.error = err.message;
+      camp.Server.emit ('fsplugged', data);
+    }
     if (arbor.isoftype(file, 'text/plain')) {
       path[0] = '/pencil.html';
       var mime = arbor.typenamefromtype[file.type];
@@ -237,12 +241,17 @@ camp.add ('new', function addnewstuff (query) {
     // (indeed, the file.usercount is non-negative).
     console.log('$NEW: fsfiles contains', arbor.fsfiles, 'and query.path is', query.path);
     var filecontent = arbor.fsfiles[query.path]._content;
+    console.log('--filecontent ('+filecontent.length+')',filecontent);
     sync (users[query.user], query.delta, filecontent, function(patch) {
       return arbor.fsfiles[query.path]._content = dmp.patch_apply (patch, filecontent) [0];
     }, function(delta) {
       newdelta = delta;
     });
-  } catch (e) { console.error(e.message); console.trace(e); return {error:1};}
+  } catch (e) {
+    console.error(e.message);
+    console.trace(e);
+    return {error:1};
+  }
 
   // For each user, we update all data.
   for (var user in users) {
