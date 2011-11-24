@@ -22,6 +22,10 @@ function setfiles(files) {
     html += '<li><a href="' + encodeURI(cwd + files[i].name) + '">'
         + files[i].name + '</a></li>';
   }
+  if (html.length === 0) {
+	html += '<p>Nothing to see here!<br><a href="' + document.referrer +
+	  '">Go back.</a></p>';
+  }
   domfiles.innerHTML = html;
 }
 
