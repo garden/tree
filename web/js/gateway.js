@@ -70,9 +70,6 @@ addEventListener('DOMContentLoaded', function (event) {
   domdirpath = Scout('#dirpath');
   domdirpath.innerHTML = cwd;
   document.title = cwd;
-
-  Scout.send (getfs) ();
-  //Scout('#req').on('submit', chdir);
 }, false);
 
 
