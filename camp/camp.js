@@ -132,7 +132,8 @@ function parsequery (query, strquery) {
     // Each element of key=value is then again split along `=`.
     var elems = items[item].split('=');
     try {
-      query[decodeURI(elems[0])] = JSON.parse(decodeURI(elems[1]));
+      query[decodeURIComponent(elems[0])] =
+        JSON.parse(decodeURIComponent(elems[1]));
     } catch (e) {
       console.log ('query:', JSON.stringify(query), e.toString());
     }
