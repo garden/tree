@@ -1,0 +1,38 @@
+/* 2011-2012 © Gateway Aesthetics Work Force. */
+
+/* HTML5 requirement */
+article, aside, figure, footer, header, hgroup, 
+menu, nav, section { display: block; }
+
+a {
+  text-decoration: none;
+  font-family: sans-serif;
+  color: #a55525;
+}
+
+a.file {
+  font-weight: bold;
+  color: #a55525;
+}
+
+a.file:hover {
+  color: #c86818;
+}
+
+#files {
+  width: 30%;
+  list-style-type: none;
+}
+
+a.fadedcontrol {
+  display: block;
+  float: left;
+  width: 2em;
+  color: #a9c7f3;
+  font-size: 0.8em;
+  font-weight: normal;
+}
+
+a.fadedcontrol:hover {
+  color: #89a7d3;
+}

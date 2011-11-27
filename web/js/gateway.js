@@ -19,12 +19,16 @@ function setfiles(files) {
   var html = '';
   for (var i = 0;  i < files.length;  i++) {
     if (files[i].type === 'dir') files[i].name += '/';
-    html += '<li><a href="' + encodeURI(cwd + files[i].name) + '">'
-        + files[i].name + '</a></li>';
+    html +=
+      // First, the delete button.
+      '<li><a href=# class="fadedcontrol">&#x26d2;</a>'
+      // Now, we want to have the file.
+      + '<a class=file href="' + encodeURI(cwd + files[i].name) + '">'
+      + files[i].name + '</a></li>';
   }
   if (html.length === 0) {
-	html += '<p>Nothing to see here!<br><a href="' + document.referrer +
-	  '">Go back.</a></p>';
+    html += '<p>Nothing to see here!<br><a href="' + document.referrer +
+      '">Go back.</a></p>';
   }
   domfiles.innerHTML = html;
 }
@@ -43,6 +47,7 @@ function chdir(newdir) {
   history.pushState(cwd, cwd, url.origin + url.port + cwd);
   Scout.send (getfs) ();
 }
+window.chdir = chdir;
 
 onpopstate = function (event) {
   cwd = event.state !== null? event.state: cwd;
