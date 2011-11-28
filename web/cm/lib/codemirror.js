@@ -73,7 +73,7 @@ var CodeMirror = (function() {
     // happened during the operation.
     var updateInput, userSelChange, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
     // Current visible range (may be bigger than the view window).
-    var displayOffset = 0, showingFrom = 0, showingTo = 0, lastHeight = 0;
+    var displayOffset = 0, showingFrom = 0, showingTo = 0, lastSizeC = 0;
     // bracketHighlighted is used to remember that a backet has been
     // marked.
     var bracketHighlighted;
@@ -276,6 +276,7 @@ var CodeMirror = (function() {
     }
 
     function onMouseDown(e) {
+      setShift(e.shiftKey);
       // Check whether this is a click in a widget
       for (var n = e_target(e); n != wrapper; n = n.parentNode)
         if (n.parentNode == code && n != mover) return;
@@ -435,8 +436,7 @@ var CodeMirror = (function() {
       var code = e.keyCode;
       // IE does strange things with escape.
       if (ie && code == 27) { e.returnValue = false; }
-      if (code == 16 || e.shiftKey) shiftSelecting = shiftSelecting || (sel.inverted ? sel.to : sel.from);
-      else shiftSelecting = null;
+      setShift(code == 16 || e.shiftKey);
       // First give onKeyEvent option a chance to handle this.
       if (options.onKeyEvent && options.onKeyEvent(instance, addStop(e))) return;
       var handled = handleKeyBinding(e);
@@ -591,7 +591,11 @@ var CodeMirror = (function() {
       startWorker(100);
       // Remember that these lines changed, for updating the display
       changes.push({from: from.line, to: to.line + 1, diff: lendiff});
-      textChanged = {from: from, to: to, text: newText};
+      var changeObj = {from: from, to: to, text: newText};
+      if (textChanged) {
+        for (var cur = textChanged; cur.next; cur = cur.next) {}
+        cur.next = changeObj;
+      } else textChanged = changeObj;
 
       // Update the selection
       function updateLine(n) {return n <= Math.min(to.line, to.line + lendiff) ? n : n + lendiff;}
@@ -782,8 +786,10 @@ var CodeMirror = (function() {
 
       // Position the mover div to align with the lines it's supposed
       // to be showing (which will cover the visible display)
-      var different = from != showingFrom || to != showingTo || lastHeight != scroller.clientHeight;
-      if (different) lastHeight = scroller.clientHeight;
+      var different = from != showingFrom || to != showingTo || lastSizeC != scroller.clientHeight + th;
+      // This is just a bogus formula that detects when the editor is
+      // resized or the font size changes.
+      if (different) lastSizeC = scroller.clientHeight + th;
       showingFrom = from; showingTo = to;
       displayOffset = heightAtLine(doc, from);
       mover.style.top = (displayOffset * th) + "px";
@@ -930,6 +936,10 @@ var CodeMirror = (function() {
       else cursor.style.display = "none";
     }
 
+    function setShift(val) {
+      if (val) shiftSelecting = shiftSelecting || (sel.inverted ? sel.to : sel.from);
+      else shiftSelecting = null;
+    }
     function setSelectionUser(from, to) {
       var sh = shiftSelecting && clipPos(shiftSelecting);
       if (sh) {
@@ -1582,7 +1592,7 @@ var CodeMirror = (function() {
     // be awkward, slow, and error-prone), but instead updates are
     // batched and then all combined and executed at once.
     function startOperation() {
-      updateInput = userSelChange = null; changes = []; textChanged = selectionChanged = false;
+      updateInput = userSelChange = textChanged = null; changes = []; selectionChanged = false;
     }
     function endOperation() {
       var reScroll = false;
@@ -1769,9 +1779,9 @@ var CodeMirror = (function() {
     fallthrough: "basic"
   };
   keyMap.macDefault = {
-    "Cmd-A": "selectAll", "Cmd-D": "deleteLine", "Cmd-Z": "undo", "Cmd-Z": "redo", "Cmd-Up": "goDocStart",
-    "Cmd-End": "goDocEnd", "Cmd-Down": "goDocEnd", "Alt-Left": "goWordLeft", "Alt-Right": "goWordRight",
-    "Cmd-Left": "goLineStart", "Cmd-Right": "goLineEnd", "Alt-Backspace": "delWordRight",
+    "Cmd-A": "selectAll", "Cmd-D": "deleteLine", "Cmd-Z": "undo", "Shift-Cmd-Z": "redo", "Cmd-Y": "redo",
+    "Cmd-Up": "goDocStart", "Cmd-End": "goDocEnd", "Cmd-Down": "goDocEnd", "Alt-Left": "goWordLeft",
+    "Alt-Right": "goWordRight", "Cmd-Left": "goLineStart", "Cmd-Right": "goLineEnd", "Alt-Backspace": "delWordRight",
     "Ctrl-Alt-Backspace": "delWordRight", "Alt-Delete": "delWordRight", "Cmd-S": "save", "Cmd-F": "find",
     "Cmd-G": "findNext", "Shift-Cmd-G": "findPrev", "Cmd-Alt-F": "replace", "Shift-Cmd-Alt-F": "replaceAll",
     fallthrough: ["basic", "emacsy"]
@@ -2371,14 +2381,14 @@ var CodeMirror = (function() {
   };
 
   function getLineAt(chunk, n) {
-    for (;;) {
-      for (var i = 0, e = chunk.children.length; i < e; ++i) {
+    while (!chunk.lines) {
+      for (var i = 0;; ++i) {
         var child = chunk.children[i], sz = child.chunkSize();
         if (n < sz) { chunk = child; break; }
         n -= sz;
       }
-      if (chunk.lines) return chunk.lines[n];
     }
+    return chunk.lines[n];
   }
   function lineNo(line) {
     if (line.parent == null) return null;
