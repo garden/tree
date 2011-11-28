@@ -1,36 +1,81 @@
-// split screen
-function split(url, vertical) {
-  var head = document.head,
-      body = document.body,
-      frame1 = document.createElement('iframe'),
-      frame2 = document.createElement('iframe'),
-      height = (vertical ? '50%' : '100%' ),
-      width = (vertical ? '100%' : '50%' );
+// split.js iframe window manager
+// 
 
-  document.head = document.createElement('head');
-  document.body = document.createElement('body');
+window.split = (function(){
 
-  document.body.style.margin = '0px';
-  document.body.style.position = 'fixed';
-  document.body.style.height = '100%';
-  document.body.style.width = '100%';
+  var dock = false,
+      deco = true,
+      mode = 'vertical',
+      modes = {},
+      frames = [];
 
-  document.body.appendChild(frame1);
-  frame1.contentDocument.head.appendChild(head);
-  frame1.contentDocument.body.appendChild(body);
+  function open(src) {
+    var frame = document.createElement('iframe');
+    frame.setAttribute('id','frame'+frames.length);
+    frame.setAttribute('src',src);
+    frame.style.border = '0px';
 
-  document.body.appendChild(frame2);
-  frame2.src = url || 'http://nyan.cat';
+    document.body.appendChild(frame);
+    frames.push(frame);
+    setmode(mode);
+  };
 
-  frame1.style.height = frame2.style.height = height;
-  frame1.style.width = frame2.style.width = width;
-  frame1.style.border = frame2.style.border = '0px';
-}
+  function setmode(name) {
+    console.log('setting mode',name);
+    mode = name;
+    if (modes[name] && frames.length > 0) modes[name]();
+  };
 
-// add a split button
-/*var button = document.createElement('input');
-button.type = "button"; button.value = "+";
-button.onclick = function() {
-  split();
-}
-document.body.appendChild(button);*/
+  // split all frames from start to end on the y axis
+  function ysplit(start, end, xattr, yattr, xmax, ymax) {
+    if ( start > end ) return;
+    var framecount = ( end - start + 1 ),
+        yshare = Math.floor ( ymax / framecount );
+    frames[start].setAttribute ( xattr, xmax + '%' );
+    frames[start].setAttribute ( yattr, ( ymax - yshare * ( framecount - 1 ) ) + '%' );
+    for ( var i = start + 1 ; i <= end ; i++ ) {
+      frames[i].setAttribute ( xattr, xmax + '%' );
+      frames[i].setAttribute ( yattr, yshare + '%' );
+    }
+  };
+
+  modes.vertical = function() {
+    frames[0].style['float'] = 'left';
+    ysplit(0, frames.length - 1, 'height', 'width', 100, 100);
+  };
+
+  modes.horizontal = function() {
+    frames[0].style['float'] = 'left';
+    ysplit(0, frames.length - 1, 'width', 'height', 100, 100);
+  };
+
+  modes.right = function() {
+    frames[0].setAttribute('height', '100%');
+    frames[0].setAttribute('width', '50%');
+    frames[0].style['float'] = 'left';
+    if (frames.length > 1) ysplit(1,frames.length - 1, 'width', 'height', 50, 100);
+  };
+
+  modes.left = function() {
+    frames[0].setAttribute('height', '100%');
+    frames[0].setAttribute('width', '50%');
+    frames[0].style['float'] = 'right';
+    if (frames.length > 1) ysplit(1,frames.length - 1, 'width', 'height', 50, 100);
+  };
+
+  function showdock(visible) {
+    dock = visible;
+  };
+
+  function showdeco(visible) {
+    deco = visible;
+  };
+
+  return {
+    open: open,
+    setmode: setmode,
+    showdock: showdock,
+    showdeco: showdeco
+  }
+
+})();
