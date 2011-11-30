@@ -22,7 +22,7 @@ var CodeMirror = (function() {
     // This mess creates the base DOM structure for the editor.
     wrapper.innerHTML =
       '<div style="overflow: hidden; position: relative; width: 1px; height: 0px;">' + // Wraps and hides input textarea
-        '<textarea style="position: absolute; width: 1;" wrap="off" ' +
+        '<textarea style="position: absolute; padding: 0; width: 1px;" wrap="off" ' +
           'autocorrect="off" autocapitalize="off"></textarea></div>' +
       '<div class="CodeMirror-scroll cm-s-' + options.theme + '">' +
         '<div style="position: relative">' + // Set to the height of the text, causes scrolling
@@ -41,6 +41,8 @@ var CodeMirror = (function() {
         mover = code.firstChild, gutter = mover.firstChild, gutterText = gutter.firstChild,
         lineSpace = gutter.nextSibling.firstChild, measure = lineSpace.firstChild,
         cursor = measure.nextSibling, lineDiv = cursor.nextSibling;
+    // Needed to hide big blue blinking cursor on Mobile Safari
+    if (/AppleWebKit/.test(navigator.userAgent) && /Mobile\/\w+/.test(navigator.userAgent)) input.style.width = "0px";
     if (!webkit) lineSpace.draggable = true;
     if (options.tabindex != null) input.tabindex = options.tabindex;
     if (!options.gutter && !options.lineNumbers) gutter.style.display = "none";
@@ -49,7 +51,7 @@ var CodeMirror = (function() {
     // P (or similar) parent node.
     try { stringWidth("x"); }
     catch (e) {
-      if (e.message.match(/unknown runtime/i))
+      if (e.message.match(/runtime/i))
         e = new Error("A CodeMirror inside a P-style element does not work in Internet Explorer. (innerHTML bug)");
       throw e;
     }
@@ -71,7 +73,8 @@ var CodeMirror = (function() {
     var shiftSelecting, lastClick, lastDoubleClick, draggingText, overwrite = false;
     // Variables used by startOperation/endOperation to track what
     // happened during the operation.
-    var updateInput, userSelChange, changes, textChanged, selectionChanged, leaveInputAlone, gutterDirty;
+    var updateInput, userSelChange, changes, textChanged, selectionChanged, leaveInputAlone,
+        gutterDirty, callbacks;
     // Current visible range (may be bigger than the view window).
     var displayOffset = 0, showingFrom = 0, showingTo = 0, lastSizeC = 0;
     // bracketHighlighted is used to remember that a backet has been
@@ -135,13 +138,13 @@ var CodeMirror = (function() {
       setOption: function(option, value) {
         var oldVal = options[option];
         options[option] = value;
-        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber" || option == "theme")
-          operation(gutterChanged)();
         if (option == "mode" || option == "indentUnit") loadMode();
         else if (option == "readOnly" && value) {onBlur(); input.blur();}
         else if (option == "theme") scroller.className = scroller.className.replace(/cm-s-\w+/, "cm-s-" + value);
         else if (option == "lineWrapping" && oldVal != value) operation(wrappingChanged)();
         else if (option == "tabSize") operation(tabsChanged)();
+        if (option == "lineNumbers" || option == "gutter" || option == "firstLineNumber" || option == "theme")
+          operation(gutterChanged)();
       },
       getOption: function(option) {return options[option];},
       undo: operation(undo),
@@ -177,6 +180,14 @@ var CodeMirror = (function() {
       setLineClass: operation(setLineClass),
       hideLine: operation(function(h) {return setLineHidden(h, true);}),
       showLine: operation(function(h) {return setLineHidden(h, false);}),
+      onDeleteLine: function(line, f) {
+        if (typeof line == "number") {
+          if (!isLine(line)) return null;
+          line = getLine(line);
+        }
+        (line.handlers || (line.handlers = [])).push(f);
+        return line;
+      },
       lineInfo: lineInfo,
       addWidget: function(pos, node, scroll, vert, horiz) {
         pos = localCoords(clipPos(pos));
@@ -221,6 +232,7 @@ var CodeMirror = (function() {
         (user ? setSelectionUser : setSelection)(clipPos(from), clipPos(to || from));
       }),
       getLine: function(line) {if (isLine(line)) return getLine(line).text;},
+      getLineHandle: function(line) {if (isLine(line)) return getLine(line);},
       setLine: operation(function(line, text) {
         if (isLine(line)) replaceRange(text, {line: line, ch: 0}, {line: line, ch: getLine(line).text.length});
       }),
@@ -454,7 +466,7 @@ var CodeMirror = (function() {
       if (options.electricChars && mode.electricChars) {
         var ch = String.fromCharCode(e.charCode == null ? e.keyCode : e.charCode);
         if (mode.electricChars.indexOf(ch) > -1)
-          setTimeout(operation(function() {indentLine(sel.to.line, "smart");}), 50);
+          setTimeout(operation(function() {indentLine(sel.to.line, "smart");}), 75);
       }
       fastPoll();
     }
@@ -520,7 +532,19 @@ var CodeMirror = (function() {
 
       var nlines = to.line - from.line, firstLine = getLine(from.line), lastLine = getLine(to.line);
       // First adjust the line structure, taking some care to leave highlighting intact.
-      if (firstLine == lastLine) {
+      if (from.ch == 0 && to.ch == 0 && newText[newText.length - 1] == "") {
+        // This is a whole-line replace. Treated specially to make
+        // sure line objects move the way they are supposed to.
+        var added = [], prevLine = null;
+        if (from.line) {
+          prevLine = getLine(from.line - 1);
+          prevLine.fixMarkEnds(lastLine);
+        } else lastLine.fixMarkStarts();
+        for (var i = 0, e = newText.length - 1; i < e; ++i)
+          added.push(Line.inheritMarks(newText[i], prevLine));
+        if (nlines) doc.remove(from.line, nlines, callbacks);
+        if (added.length) doc.insert(from.line, added);
+      } else if (firstLine == lastLine) {
         if (newText.length == 1)
           firstLine.replace(from.ch, to.ch, newText[0]);
         else {
@@ -533,21 +557,19 @@ var CodeMirror = (function() {
           added.push(lastLine);
           doc.insert(from.line + 1, added);
         }
-      }
-      else if (newText.length == 1) {
+      } else if (newText.length == 1) {
         firstLine.replace(from.ch, null, newText[0]);
         lastLine.replace(null, to.ch, "");
         firstLine.append(lastLine);
-        doc.remove(from.line + 1, nlines);
-      }
-      else {
+        doc.remove(from.line + 1, nlines, callbacks);
+      } else {
         var added = [];
         firstLine.replace(from.ch, null, newText[0]);
         lastLine.replace(null, to.ch, newText[newText.length-1]);
         firstLine.fixMarkEnds(lastLine);
         for (var i = 1, e = newText.length - 1; i < e; ++i)
           added.push(Line.inheritMarks(newText[i], firstLine));
-        if (nlines > 1) doc.remove(from.line + 1, nlines - 1);
+        if (nlines > 1) doc.remove(from.line + 1, nlines - 1, callbacks);
         doc.insert(from.line + 1, added);
       }
       if (options.lineWrapping) {
@@ -908,7 +930,7 @@ var CodeMirror = (function() {
           else if (text == null)
             text = "\u00a0";
           html.push((marker && marker.style ? '<pre class="' + marker.style + '">' : "<pre>"), text);
-          for (var j = 1; j < line.height; ++j) html.push("<br>&nbsp;");
+          for (var j = 1; j < line.height; ++j) html.push("<br/>&nbsp;");
           html.push("</pre>");
         }
         ++i;
@@ -925,9 +947,9 @@ var CodeMirror = (function() {
     function updateCursor() {
       var head = sel.inverted ? sel.from : sel.to, lh = textHeight();
       var pos = localCoords(head, true);
-      var globalY = pos.y + displayOffset * textHeight();
-      inputDiv.style.top = Math.max(Math.min(globalY, scroller.offsetHeight), 0) + "px";
-      inputDiv.style.left = pos.x + "px";
+      var wrapOff = eltOffset(wrapper), lineOff = eltOffset(lineDiv);
+      inputDiv.style.top = (pos.y + lineOff.top - wrapOff.top) + "px";
+      inputDiv.style.left = (pos.x + lineOff.left - wrapOff.left) + "px";
       if (posEq(sel.from, sel.to)) {
         cursor.style.top = pos.y + "px";
         cursor.style.left = (options.lineWrapping ? Math.min(pos.x, lineSpace.offsetWidth) : pos.x) + "px";
@@ -1242,6 +1264,7 @@ var CodeMirror = (function() {
       else no = lineNo(handle);
       if (no == null) return null;
       if (op(line, no)) changes.push({from: no, to: no + 1});
+      else return null;
       return line;
     }
     function setLineClass(handle, className) {
@@ -1390,13 +1413,17 @@ var CodeMirror = (function() {
       return {x: off.left + local.x, y: off.top + local.y, yBot: off.top + local.yBot};
     }
 
-    var cachedHeight, cachedFor;
+    var cachedHeight, cachedFor, measureText = "<pre>";
+    for (var i = 0; i < 49; ++i) measureText += "x<br/>";
+    measureText += "x</pre>";
     function textHeight() {
       var offsetHeight = lineDiv.offsetHeight;
       if (offsetHeight == cachedFor) return cachedHeight;
       cachedFor = offsetHeight;
-      measure.innerHTML = "<pre>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x<br>x</pre>";
-      return (cachedHeight = measure.firstChild.offsetHeight / 10 || 1);
+      measure.innerHTML = measureText;
+      cachedHeight = measure.firstChild.offsetHeight / 50 || 1;
+      measure.innerHTML = "";
+      return cachedHeight;
     }
     var cachedWidth, cachedFor = 0;
     function charWidth() {
@@ -1592,7 +1619,8 @@ var CodeMirror = (function() {
     // be awkward, slow, and error-prone), but instead updates are
     // batched and then all combined and executed at once.
     function startOperation() {
-      updateInput = userSelChange = textChanged = null; changes = []; selectionChanged = false;
+      updateInput = userSelChange = textChanged = null;
+      changes = []; selectionChanged = false; callbacks = [];
     }
     function endOperation() {
       var reScroll = false;
@@ -1614,11 +1642,12 @@ var CodeMirror = (function() {
           if (bracketHighlighted) {bracketHighlighted(); bracketHighlighted = null;}
           if (posEq(sel.from, sel.to)) matchBrackets(false);
         }), 20);
-      var tc = textChanged; // textChanged can be reset by cursoractivity callback
+      var tc = textChanged, cbs = callbacks; // these can be reset by callbacks
       if (selectionChanged && options.onCursorActivity)
         options.onCursorActivity(instance);
       if (tc && options.onChange && instance)
         options.onChange(instance, tc);
+      for (var i = 0; i < cbs.length; ++i) cbs[i](instance);
     }
     var nestedOperation = 0;
     function operation(f) {
@@ -1781,7 +1810,7 @@ var CodeMirror = (function() {
   keyMap.macDefault = {
     "Cmd-A": "selectAll", "Cmd-D": "deleteLine", "Cmd-Z": "undo", "Shift-Cmd-Z": "redo", "Cmd-Y": "redo",
     "Cmd-Up": "goDocStart", "Cmd-End": "goDocEnd", "Cmd-Down": "goDocEnd", "Alt-Left": "goWordLeft",
-    "Alt-Right": "goWordRight", "Cmd-Left": "goLineStart", "Cmd-Right": "goLineEnd", "Alt-Backspace": "delWordRight",
+    "Alt-Right": "goWordRight", "Cmd-Left": "goLineStart", "Cmd-Right": "goLineEnd", "Alt-Backspace": "delWordLeft",
     "Ctrl-Alt-Backspace": "delWordRight", "Alt-Delete": "delWordRight", "Cmd-S": "save", "Cmd-F": "find",
     "Cmd-G": "findNext", "Shift-Cmd-G": "findPrev", "Cmd-Alt-F": "replace", "Shift-Cmd-Alt-F": "replaceAll",
     fallthrough: ["basic", "emacsy"]
@@ -2007,11 +2036,11 @@ var CodeMirror = (function() {
     this.styles = styles || [text, null];
     this.text = text;
     this.height = 1;
-    this.marked = this.gutterMarker = this.className = null;
+    this.marked = this.gutterMarker = this.className = this.handlers = null;
     this.stateAfter = this.parent = this.hidden = null;
   }
   Line.inheritMarks = function(text, orig) {
-    var ln = new Line(text), mk = orig.marked;
+    var ln = new Line(text), mk = orig && orig.marked;
     if (mk) {
       for (var i = 0; i < mk.length; ++i) {
         if (mk[i].to == null && mk[i].style) {
@@ -2025,9 +2054,6 @@ var CodeMirror = (function() {
   Line.prototype = {
     // Replace a piece of a line, keeping the styles around it intact.
     replace: function(from, to_, text) {
-      // Reset line class if the whole text was replaced.
-      if (!from && (to_ == null || to_ == this.text.length))
-        this.className = this.gutterMarker = null;
       var st = [], mk = this.marked, to = to_ == null ? this.text.length : to_;
       copyStyles(0, from, this.styles, st);
       if (text) st.push(text, null);
@@ -2103,6 +2129,12 @@ var CodeMirror = (function() {
         }
         if (close) mark.to = this.text.length;
       }
+    },
+    fixMarkStarts: function() {
+      var mk = this.marked;
+      if (!mk) return;
+      for (var i = 0; i < mk.length; ++i)
+        if (mk[i].from == null) mk[i].from = 0;
     },
     addMark: function(mark) {
       mark.attach(this);
@@ -2261,11 +2293,13 @@ var CodeMirror = (function() {
   }
   LeafChunk.prototype = {
     chunkSize: function() { return this.lines.length; },
-    remove: function(at, n) {
+    remove: function(at, n, callbacks) {
       for (var i = at, e = at + n; i < e; ++i) {
         var line = this.lines[i];
-        line.cleanUp();
         this.height -= line.height;
+        line.cleanUp();
+        if (line.handlers)
+          for (var j = 0; j < line.handlers.length; ++j) callbacks.push(line.handlers[j]);
       }
       this.lines.splice(at, n);
     },
@@ -2296,13 +2330,13 @@ var CodeMirror = (function() {
   }
   BranchChunk.prototype = {
     chunkSize: function() { return this.size; },
-    remove: function(at, n) {
+    remove: function(at, n, callbacks) {
       this.size -= n;
       for (var i = 0; i < this.children.length; ++i) {
         var child = this.children[i], sz = child.chunkSize();
         if (at < sz) {
           var rm = Math.min(n, sz - at), oldHeight = child.height;
-          child.remove(at, rm);
+          child.remove(at, rm, callbacks);
           this.height -= oldHeight - child.height;
           if (sz == rm) { this.children.splice(i--, 1); child.parent = null; }
           if ((n -= rm) == 0) break;
