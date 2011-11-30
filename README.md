@@ -1,5 +1,5 @@
 # Tree
-Collaborative Operating System
+The Collaborative Operating System.
 
 ## Get it
 - install [node] (http://nodejs.org) & [jsmin] (http://www.crockford.com/javascript/jsmin.html)
