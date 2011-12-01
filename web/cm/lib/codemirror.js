@@ -930,11 +930,7 @@ var CodeMirror = (function() {
           else if (text == null)
             text = "\u00a0";
           html.push((marker && marker.style ? '<pre class="' + marker.style + '">' : "<pre>"), text);
-<<<<<<< HEAD
           for (var j = 1; j < line.height; ++j) html.push("<br/>&#160;");
-=======
-          for (var j = 1; j < line.height; ++j) html.push("<br/>&nbsp;");
->>>>>>> 331f52a6ce73152e5a615cd5b3d3c94f9afc2059
           html.push("</pre>");
         }
         ++i;
