@@ -1,0 +1,11 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>Profiling Tree Systems</title>
+
+{{-profiles|profile|profilename;
+<h1>{{=profilename|html}}</h1>
+<ul>{{-profile|info|i;
+  <li>{{=info.doc|html}}: {{=info.data|json 2|html}}</li>
+}}</ul>
+}}
+
