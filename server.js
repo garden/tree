@@ -15,6 +15,7 @@ ROOT_PREFIX = '/root';
 // Import modules
 var camp = require ('./camp/camp'),
     arbor = require ('./lib/fs'),
+    prof = require ('./lib/profiler'),
     nodepath = require ('path');
 
 
@@ -134,8 +135,11 @@ var dmp = new DMP.diff_match_patch ();
 
 // Each path (and the corresponding file) has several users.
 //
-// Each user is identified by a number, and has an associated lastcopy.
+// Each user is identified by a number, and has an associated file.
+// It also has an associated lastcopy, which is used for three-way merges.
+//
 // eg, users = {'1234': {lastcopy: 'foo bar...',
+//                       file: <File object>,
 //                       bufferhim: false, // Do we need to buffer for him?
 //                       buffer: [],       // Deltas to be sent on dispatch.
 //                       timeout: 0}}      // Time before we forget this user.
@@ -197,14 +201,18 @@ camp.add ('data', function (query) {
   var data = {};
   arbor.getfile (query.path, function (err, file) {
     if (err) { console.error(err); data.err = err.message; }
-    file.content (function (err, content) {
-      if (err) { console.error(err); data.err = err.message; }
-      // If there is something to send, there we go.
-      data.data = content;
-      usersforpath[query.path][query.user].lastcopy = data.data;
-      var util = require('util');
-      camp.Server.emit ('gotfiledata', data);
-    });
+    else {
+      usersforpath[query.path][query.user].file = file;
+      file.open();      // Indicate that we edit the file.
+      file.content (function (err, content) {
+        if (err) { console.error(err); data.err = err.message; }
+        // If there is something to send, there we go.
+        data.data = content;
+        usersforpath[query.path][query.user].lastcopy = data.data;
+        var util = require('util');
+        camp.Server.emit ('gotfiledata', data);
+      });
+    }
   });
 }, function gotfiledata(data) {
   console.log('-- gotfiledata');
@@ -215,6 +223,8 @@ camp.add ('data', function (query) {
 // Removing a user.
 camp.add ('kill', function (query) {
   if (usersforpath[query.path] && usersforpath[query.path][query.user]) {
+    // No longer editing this file.
+    usersforpath[query.path][query.user].file.close();
     delete usersforpath[query.path][query.user];
   }
 });
