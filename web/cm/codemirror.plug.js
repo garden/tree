@@ -83,6 +83,7 @@ function CodeMirrorPlug ( path, body, params, update ) {
 
     if (client.notmychange) {
       client.notmychange = false;
+      console.log('ignoring change ' + editor.getValue());
     } else if (plug !== undefined) {
       //// Here, we consider the differences between current text
       //// and the text we had last time we pushed changes.
