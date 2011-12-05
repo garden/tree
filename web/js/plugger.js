@@ -65,11 +65,10 @@ var plug = {
 var giveplug = function (path, onnewcontent, onnewdiff) {
   if (onnewcontent) {
     plug.onnewcontent = onnewcontent;
-    client.path = path;
-    client.copy = onnewcontent (client.copy);
-
     plug.onnewdiff = onnewdiff;
   }
+  client.path = path;
+  getdata();
   return plug;
 };
 
@@ -217,7 +216,7 @@ function sending (delta) {
 // Get the data.
 // WARNING: If there's a delay with codemirror, this might cause a problem.
 // Best is to place this call in an onLoad function.
-window.addEventListener('DOMContentLoaded', function () {
+function getdata() {
   Scout.send (function (params) {
     params.action = 'data';
     params.data = {user:client.user, path:client.path};
@@ -230,7 +229,7 @@ window.addEventListener('DOMContentLoaded', function () {
       Scout2.send (getmodif) ();      // Make the first dispatch link.
     };
   }) ();
-}, false);
+}
 
 // When we leave, tell the server.
 window.onunload = function () {

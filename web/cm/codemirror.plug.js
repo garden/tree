@@ -55,7 +55,7 @@ var importCodeMirrorMode = ( function() {
     }
     if ( mode = mimes[mime] ) {
 
-      if ( mode === 'diff' || mode === 'tiddlywiki' || mode === 'markdown' || mode === 'rst' ) {
+      if ( mode === 'diff' || mode === 'tiddlywiki' ) {
         var link = document.createElement('link');
         link.rel = "stylesheet";
         link.href = "/cm/mode/" + mode + "/" + mode + ".css";
