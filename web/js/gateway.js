@@ -9,10 +9,8 @@
 
 (function(){
 
-
-
 var domfiles,   // DOM list in which we put the files in this directory.
-    domdirpath;
+    dompath;
 
 // Show the list of String files in the domfiles element.
 function setfiles(files) {
@@ -34,15 +32,27 @@ function setfiles(files) {
 }
 
 
+// Represent cwd with blocks
+function setpath(path) {
+  cwd = path;
+  document.title = path;
+  var blocks = path.split('/'), htmlblocks = '';
+  for ( var i in blocks ) {
+    if ( blocks[i].length > 0 ) {
+      htmlblocks += '&nbsp;<span class=block>' + blocks[i] + '</span>'
+    }
+  }
+  dompath.innerHTML = htmlblocks;
+}
+
+
 var cwd = decodeURI(document.location.pathname);  // common working directory.
 if (cwd[cwd.length-1] !== '/') cwd += '/';
 window.cwd = cwd;
 
 // Set cwd to what #pathreq holds.
 function chdir(newdir) {
-  cwd = newdir;
-  if (cwd[cwd.length-1] !== '/') cwd += '/';
-  domdirpath.innerHTML = cwd;
+  setpath(newdir[newdir.length-1] !== '/' ? newdir + '/' : newdir);
   var url = document.location;
   history.pushState(cwd, cwd, url.origin + url.port + cwd);
   Scout.send (getfs) ();
@@ -50,8 +60,7 @@ function chdir(newdir) {
 window.chdir = chdir;
 
 onpopstate = function (event) {
-  cwd = event.state !== null? event.state: cwd;
-  domdirpath.innerHTML = cwd;
+  setpath(event.state !== null ? event.state : cwd);
   Scout.send (getfs) ();
 };
 
@@ -72,9 +81,11 @@ function getfs(params) {
 
 addEventListener('DOMContentLoaded', function (event) {
   domfiles = Scout('#files');
-  domdirpath = Scout('#dirpath');
-  domdirpath.innerHTML = cwd;
-  document.title = cwd;
+  dompath = Scout('#path');
+  setpath(cwd);
+  Scout('#pathreq').addEventListener('keydown', function(e) {
+    if ( e.keyCode === 8 && Scout('#pathreq').value.length === 0 ) history.go(-1);
+  });
 }, false);
 
 

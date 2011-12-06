@@ -4,25 +4,26 @@
 <!--[if IE]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
-<link rel=stylesheet href=/css/gateway.css>
 <style>
   article, aside, figure, footer, header, hgroup, 
   menu, nav, section { display: block; }
+  ul { list-style-type: none; }
+  .block {
+     background: #80bbff; border: 1px solid black; border-radius: 3px;
+     padding-left: 5px; padding-right: 5px;
+   }
+  .block:active { position: relative; top: 1px; }
+  #path { display: inline; }
 </style>
 
-<header>
-  <h1 id=dirpath></h1>
-</header>
-
-<ul id=files>{{-filenames|filename|i;
-  <li><a href="./{{=filename|uri|xmlattr}}">{{=filename|html}}</a></li>}}
-</ul>
-
 <form id=req action="javascript:void 0">
-  <label>Search manually: <input type="search" id=pathreq autofocus></label>
+  <div id=path></div>
+  <input id=pathreq type=search autofocus>
 </form>
 
-<ul id=fuzzy></ul>
+<ul id=fuzzy>{{-filenames|filename|i;
+  <li><a href="./{{=filename|uri|xmlattr}}">{{=filename|html}}</a></li>}}
+</ul>
 
 <script src=/js/scout.js></script>
 <script src=/js/gateway.js></script>
