@@ -38,8 +38,8 @@ It has the following API that the plug may use:
       // of the diff.
     });
 
-Now, `plug` is a function that you call `plug ( content )`, to send new content
-to the server, whenever you see fit.
+Now, `plug` contains a function that you call `plug.newcontent ( content )`, to
+send new content to the server, whenever you see fit.
 
 The `onnewdiff` function is the toughest piece of meat you need to take care of.
 The diff is a complex structure that encapsulates all the data you need to
