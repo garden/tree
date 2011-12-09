@@ -197,6 +197,8 @@ camp.add ('data', function (query) {
     buffer: [],
     timeout: 0
   };
+  console.log('$DATA: usersforpath becomes', usersforpath);
+
   // `data` is of the form: {data:'', err:''}
   var data = {};
   arbor.getfile (query.path, function (err, file) {
@@ -215,7 +217,7 @@ camp.add ('data', function (query) {
     }
   });
 }, function gotfiledata(data) {
-  console.log('-- gotfiledata');
+  console.log('$DATA: gotfiledata');
   return data;
 });
 
@@ -231,14 +233,14 @@ camp.add ('kill', function (query) {
 
 
 // We receive incoming deltas on the 'new' channel.
-// query = { user: 12345, delta: "=42+ =12", rev: 1 }
+// query = { user: 12345, path: 'path/to/file', delta: "=42+ =12", rev: 1 }
 
 camp.add ('new', function addnewstuff (query) {
-  console.log ('--receiving from', query.user, JSON.stringify (query.delta));///
+  console.log ('$NEW: receiving from', query.user, JSON.stringify (query.delta));///
   
   // Does the user already exist?
   if (!usersforpath[query.path][query.user]) {
-    console.log ('--nonexisting user [' + query.user + ']');
+    console.log ('$NEW: nonexisting user [' + query.user + ']');
     return {};
   }
 
@@ -246,20 +248,21 @@ camp.add ('new', function addnewstuff (query) {
   var users = usersforpath[query.path];
   for (var user in users) {
     if (users[user].bufferhim && user != query.user) {
-      console.log ('--caching',query.delta,'for user',user);
+      console.log ('$NEW: caching',query.delta,'for user',user);
       users[user].buffer.push (query);
     }
   }
+  console.log('$NEW: users for path', query.path, 'are', users);
   
   // Change our copy.
-  console.log ('--sync', query.delta);
+  console.log ('$NEW: sync', query.delta);
   var newdelta = query.delta;
   try {
     // The file content must be in memory here
     // (indeed, the file.usercount is non-negative).
-    console.log('$NEW: fsfiles contains', arbor.fsfiles, 'and query.path is', query.path);
+    //console.log('$NEW: fsfiles contains', arbor.fsfiles, 'and query.path is', query.path);
     var filecontent = arbor.fsfiles[query.path]._content;
-    console.log('--filecontent ('+filecontent.length+')',filecontent);
+    console.log('$NEW: filecontent ('+filecontent.length+')',filecontent);
     sync (users[query.user], query.delta, filecontent, function(patch) {
       return arbor.fsfiles[query.path]._content = dmp.patch_apply (patch, filecontent) [0];
     }, function(delta) {
@@ -286,8 +289,12 @@ camp.add ('new', function addnewstuff (query) {
     }, TimeoutBetweenDispatches);
   }
 
-  var newresp = {user: query.user, delta: newdelta, rev: query.rev};
-  camp.Server.emit ('modif', newresp);
+  camp.Server.emit ('modif', {
+    user: query.user,
+    path: query.path,
+    delta: newdelta,
+    rev: query.rev
+  });
 
   return {};
 });
@@ -296,29 +303,34 @@ camp.add ('new', function addnewstuff (query) {
 // We send outgoing deltas through the 'dispatch' channel.
 
 camp.add ('dispatch', function (query) {
-  console.log ('--connect dispatch [' + query.user + ']');
+  console.log ('$DISPATCH: connect dispatch [' + query.user + ']');
 
   var users = usersforpath[query.path];
 
   // Return userbuffer if there was information to send while dispatch was off.
   var userbuffer = users[query.user].buffer;
   if (userbuffer.bufferhim && userbuffer.length > 0) {
-    console.log ('--returning cached content to',query.user);
+    console.log ('$DISPATCH: returning cached content to', query.user);
     return userbuffer.shift();      // Don't wait, give the stuff.
   } else {
     userbuffer.bufferhim = false;   // and now, userbuffer.buffer is [].
     clearTimeout (users[query.user].timeout);
   }
 
+  return query.user;
+
   // "A wise sufi monk once said,
   // If what you have to say is not as pleasant as silence, do not talk."
   // We wait till we have something to say.
-}, function modif(resp) {
+}, function modif(resp, user) {
   // The modification was not made by the one that sent it.
   //console.log ('--sending to', query.user, JSON.stringify (resp.delta));///
   //console.log ('--hence closing dispatch for', query.user);///
-
-  return resp;             // Send the modification to the client.
+  if (usersforpath[resp.path][user] !== undefined) {
+    console.log('$DISPATCH: user', resp.user, 'for path', resp.path);
+    console.log('$DISPATCH: usersforpath is', usersforpath);
+    return resp;             // Send the modification to the client.
+  }
 });
 
 

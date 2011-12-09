@@ -134,8 +134,7 @@ function getmodif (params) {
     // We received new information from a collaborator!
     // (this can be fired a long time after the enclosing function.)
 
-    console.log ('received rev : ' + resp.rev + 
-                 ', delta : ' + JSON.stringify(resp.delta));
+    console.log ('received', resp);
 
     // If it is us, we have already done the modification.
     if (resp.user === client.user) {
