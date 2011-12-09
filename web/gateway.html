@@ -17,7 +17,9 @@
 </style>
 
 <form id=req action="javascript:void 0">
-  <div id=path></div>
+  <div id=path>
+    {{-nav|block|i;&nbsp;<span class=block>{{=block|html}}</span>}}
+  </div>
   <input id=pathreq type=search autofocus>
 </form>
 

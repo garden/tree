@@ -26,10 +26,10 @@ var camp = require ('./camp/camp'),
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
 camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
-  path[0] = '/pencil.html';
 
-  path[1] = path[1];
+  // Template data
   var data = {path:path[1]};
+
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   ///console.log('SERVER:ROOT: what is %s?', path[1]);
@@ -49,6 +49,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     } else if (arbor.isoftype(file, 'dir')) {
       ///console.log('SERVER:ROOT: %s is a dir', file);
       path[0] = '/gateway.html';
+      data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
       file.content (function (err, content) {
         if (err) console.error(err);
         data.filenames = [];

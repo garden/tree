@@ -1,5 +1,5 @@
 update:
-	@git clone git://github.com/marijnh/CodeMirror2.git mirror
+	@git clone git://github.com/marijnh/CodeMirror2 mirror
 	@cp -rf mirror/lib .
 	@cp -rf mirror/mode .
 	@cp -rf mirror/keymap .

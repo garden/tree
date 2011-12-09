@@ -36,13 +36,13 @@ function setfiles(files) {
 function setpath(path) {
   cwd = path;
   document.title = path;
-  var blocks = path.split('/'), htmlblocks = '';
+  /*var blocks = path.split('/'), htmlblocks = '';
   for ( var i in blocks ) {
     if ( blocks[i].length > 0 ) {
       htmlblocks += '&nbsp;<span class=block>' + blocks[i] + '</span>'
     }
   }
-  dompath.innerHTML = htmlblocks;
+  dompath.innerHTML = htmlblocks;*/
 }
 
 
