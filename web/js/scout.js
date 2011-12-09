@@ -1749,6 +1749,13 @@ Scout = (function Scoutmaker () {
             break;
         }
       };
+      
+      // foolproof: POST requests with nothing to send are
+      // converted to GET requests.
+      if (params.method === 'POST'
+         && (params.data === {} || params.data === undefined)) {
+        params.method = 'GET';
+      }
       xhr.open(params.method,
                params.url + (params.method === 'POST'? '':
                              '?' + toxhrsend(params.data)),

@@ -167,14 +167,15 @@ exports.Server.start = function (port, security, debug) {
 
 
       /* Differed sendback function (choice between func and object).
-       * `getsentback` is the function that returns either an object or ∅..
+       * `getsentback` is the function that returns either an object or ∅.
        * `treat(res)` is a func that the result goes through and is sent.
-       * `sentback` is a function, fired by the event whose name is that
+       * `sentback` is a function, fired by the event whose name is
        * that function's name. */
       var differedresult = function (getsentback, treat, sentback) {
         if (sentback !== undefined) {
           // Event-based ajax call.
-          var evtname = sentback.name;
+          var evtname = sentback.name,
+              actiondata = getsentback ();
 
           if (typeof sentback !== 'function' && debug > 2) {
             console.log ('warning: has a third parameter that isn\'t an ' +
@@ -185,6 +186,9 @@ exports.Server.start = function (port, security, debug) {
           exports.Server.on (evtname, function evtnamecb () {
             var args = [];    // The argument list to send to action.
             for (var i in arguments) { args.push (arguments[i]); }
+            // After all arguments given to `emit`, comes the returned value of
+            // `getsentdata`, in `camp.add('action', getsentback, sentback)`.
+            args.push (actiondata);
 
             var resp = sentback.apply (query, args);
             if (debug > 3) { console.log ('event',evtname,
@@ -318,7 +322,10 @@ exports.Server.start = function (port, security, debug) {
 
     } catch(e) {
       res.writeHead (404, 'You killed me!');
-      if (debug > 1) { res.write(e.toString() + '\n'); }
+      if (debug > 1) {
+        res.write(e.toString() + '\n');
+        console.log(e.stack);
+      }
       res.end ('404: thou hast finished me!\n');
     }
 
