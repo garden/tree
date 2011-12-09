@@ -27,6 +27,9 @@ var camp = require ('./camp/camp'),
 // to look for `/root/something`.
 camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
+  // Default plug
+  path[0] = '/pencil.html';
+
   // Template data
   var data = {path:path[1]};
 
