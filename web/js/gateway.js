@@ -19,7 +19,7 @@ function setfiles(files) {
     if (files[i].type === 'dir') files[i].name += '/';
     html +=
       // First, the delete button.
-      '<li><a href=# class="fadedcontrol">&#x26d2;</a>'
+      '<li><a href="javascript:void(0)" class="fadedcontrol">&#x26d2;</a>'
       // Now, we want to have the file.
       + '<a class=file href="' + encodeURI(cwd + files[i].name) + '">'
       + files[i].name + '</a></li>';
@@ -34,6 +34,7 @@ function setfiles(files) {
 
 // Represent cwd with blocks
 function setpath(path) {
+  console.log('setpath',path);
   cwd = path;
   document.title = path;
   /*var blocks = path.split('/'), htmlblocks = '';
@@ -52,6 +53,7 @@ window.cwd = cwd;
 
 // Set cwd to what #pathreq holds.
 function chdir(newdir) {
+  console.log('chdir',newdir);
   setpath(newdir[newdir.length-1] !== '/' ? newdir + '/' : newdir);
   var url = document.location;
   history.pushState(cwd, cwd, url.origin + url.port + cwd);
@@ -60,6 +62,7 @@ function chdir(newdir) {
 window.chdir = chdir;
 
 onpopstate = function (event) {
+  console.log('onpopstate');
   setpath(event.state !== null ? event.state : cwd);
   Scout.send (getfs) ();
 };
@@ -84,6 +87,7 @@ addEventListener('DOMContentLoaded', function (event) {
   dompath = Scout('#path');
   setpath(cwd);
   Scout('#pathreq').addEventListener('keydown', function(e) {
+    console.log('keydown');
     if ( e.keyCode === 8 && Scout('#pathreq').value.length === 0 ) history.go(-1);
   });
 }, false);
@@ -202,7 +206,7 @@ function score (filename, query, depth) {
 function sorter (file1, file2) { return file2[1] - file1[1]; };
 
 
-// `dir` is {name:'rootdir name', type:'dir'}.
+// `dir` is {name:'dir name', type:'dir'}.
 // `query` is a String.
 // `depth` is a Number.
 // `cb` is a callback that takes the resulting list of
@@ -211,6 +215,8 @@ function sorter (file1, file2) { return file2[1] - file1[1]; };
 function fuzzy (dir, query, depth, cb, initstars) {
 
   dir.getchildren(function (children) {
+
+    console.log('children of',dir,'are',children);
  
     // scoredpath is a list of [string path, int score, string consumed]
     // which determines how well the path is ranked and if it
@@ -221,6 +227,7 @@ function fuzzy (dir, query, depth, cb, initstars) {
       filescore[0] += initstars || 0;
       if (filescore[1].length === 0 ||
           (depth === 0 || children[i].type !== 'dir')) {
+        console.log('#1 scoredpath.push',[children[i].fullpath(), filescore[0], filescore[1]]);
         scoredpath.push ([children[i], filescore[0], filescore[1]]);
         processingcount++;
 
@@ -232,6 +239,7 @@ function fuzzy (dir, query, depth, cb, initstars) {
         // More to be seen in depth...
         fuzzy (children[i], filescore[1], depth - 1, function (inside) {
           for (var j=0; j<inside.length; j++) {
+            console.log('#2 scoredpath.push',[inside[j][0].fullpath(), inside[j][1], inside[j][2]]);
             scoredpath.push ([inside[j][0], inside[j][1], inside[j][2]]);
           }
           processingcount++;
@@ -252,6 +260,7 @@ addEventListener('DOMContentLoaded', function () {
       cwdlen = cwd.length,
       root = new File(cwd[cwdlen-1] === '/'? cwd.slice(0,cwdlen-1): cwd);
   pathreq.addEventListener('input', function () {
+    console.log('input');
     fuzzy(root, pathreq.value, 5, function (scoredpath) {
       var html = '', path;
       for (var i = 0;  i < scoredpath.length;  i++) {
