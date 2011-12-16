@@ -57,6 +57,8 @@
     <button type=button onclick="replace()">replace</button>
   </div>
 
+  <script src="http://webintents.org/webintents.min.js"></script>
+
   <script>
 
     // Create a CodeMirror2 editor.
@@ -67,6 +69,9 @@
     });
 
     importCodeMirrorMode("{{=mime|jsonstring}}");
+
+    // Register Web Intent
+    window.navigator.startActivity(new Intent('http://webintents.org/edit'));
 
     // Change theme.
     function selectTheme(node) {

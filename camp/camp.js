@@ -26,8 +26,8 @@ exports.Server = new EventEmitter ();
 exports.add = (function () {
 
   // The exports.add function is the following.
-  var adder = function (action, callback, evtname) {
-  	exports.Server.Actions[action] = [callback, evtname];
+  var adder = function (action, callback, evtfunc) {
+  	exports.Server.Actions[action] = [callback, evtfunc];
   };
 
   exports.Server.Actions = {};    // This will be extended by the add function.
@@ -174,8 +174,7 @@ exports.Server.start = function (port, security, debug) {
       var differedresult = function (getsentback, treat, sentback) {
         if (sentback !== undefined) {
           // Event-based ajax call.
-          var evtname = sentback.name,
-              actiondata = getsentback ();
+          var evtname = sentback.name;
 
           if (typeof sentback !== 'function' && debug > 2) {
             console.log ('warning: has a third parameter that isn\'t an ' +
@@ -205,7 +204,7 @@ exports.Server.start = function (port, security, debug) {
               exports.Server.removeListener (evtname, evtnamecb);
             }
           });
-          getsentback ();
+          var actiondata = getsentback ();
 
         } else {
           // Handle the action the usual way.
