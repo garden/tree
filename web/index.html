@@ -1,30 +1,38 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>thefiletree</title>
-
-<object type="image/svg+xml" style="float:left;"
-    data="/img/TheFileTree.svg"></object>
-  <br>
-<h1>The File Tree</h1>
-<h2>The Collaborative Operating System.</h2>
-
-<br clear="both">
-
-<p>Check <em>this</em> out:</p>
-<ul>
-  <li><a href=/root/>root</a> rifle through the files!
-  <li><a href=/split.html>split</a> play with iframes!
-  <li><a href=http://github.com/garden>garden</a> where the file tree is
-  grown.
-  <li><a href=/chat.html>chat</a> a cosy place for questions.
-  <li><a href=http://nyan.cat>cat</a> some other cosy place.
-</ul>
+<title>thefiletree.com</title>
 
 <style>
   html { font-family: monospace; }
-  a, a:visited { text-decoration: none; color: #2080e0 }
-  a:hover { text-decoration: underline; }
+  a {
+    cursor: pointer; color: black; text-decoration: none !important;
+    background: #80bbff; border: 1px solid black; border-radius: 3px;
+    padding-left: 5px; padding-right: 5px;
+  }
+  a:active { position: relative; top: 1px; }
+  section {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 20px;
+  }
+  li {
+    list-style: square;
+  }
 </style>
 
-<script src=/js/split.js></script>
+<header>
+  <section>
+    <object type=image/svg+xml
+            width=150 height=150
+            style='float:left; margin-top: -20px;'
+            data=/img/TheFileTree.svg></object>
+  </section>
+  <section>
+    <h1>The File Tree</h1>
+    <a href=/root/>try it</a>
+    <a href=/chat.html>chat</a>
+    <a href=https://github.com/garden/tree/wiki/The-Collaborative-Operating-System>about</a>
+  </section>
+</header>
 
+<a href="http://github.com/garden/tree"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/abad93f42020b733148435e2cd92ce15c542d320/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub"></a>
