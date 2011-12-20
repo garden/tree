@@ -1,5 +1,3 @@
-// CodeMirror v2.18
-
 // All functions that need access to the editor's state live inside
 // the CodeMirror function. Below that, at the bottom of the file,
 // some utilities are defined.
@@ -758,6 +756,8 @@ var CodeMirror = (function() {
     function scrollEditorIntoView() {
       if (!cursor.getBoundingClientRect) return;
       var rect = cursor.getBoundingClientRect();
+      // IE returns bogus coordinates when the instance sits inside of an iframe and the cursor is hidden
+      if (ie && rect.top == rect.bottom) return;
       var winH = window.innerHeight || Math.max(document.body.offsetHeight, document.documentElement.offsetHeight);
       if (rect.top < 0 || rect.bottom > winH) cursor.scrollIntoView();
     }
@@ -1846,7 +1846,7 @@ var CodeMirror = (function() {
     "Ctrl-Home": "goDocStart", "Alt-Up": "goDocStart", "Ctrl-End": "goDocEnd", "Ctrl-Down": "goDocEnd",
     "Ctrl-Left": "goWordLeft", "Ctrl-Right": "goWordRight", "Alt-Left": "goLineStart", "Alt-Right": "goLineEnd",
     "Ctrl-Backspace": "delWordLeft", "Ctrl-Delete": "delWordRight", "Ctrl-S": "save", "Ctrl-F": "find",
-    "Ctrl-G": "findNext", "Shift-Ctrl-G": "findPrev", "Ctrl-R": "replace", "Shift-Ctrl-R": "replaceAll",
+    "Ctrl-G": "findNext", "Shift-Ctrl-G": "findPrev", "Shift-Ctrl-F": "replace", "Shift-Ctrl-R": "replaceAll",
     fallthrough: "basic"
   };
   keyMap.macDefault = {
