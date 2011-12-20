@@ -125,6 +125,7 @@ function File(name, parent, type) {
 
 File.prototype.getchildren = function (cb) {
   if (this.memoized) {
+    console.log(this,'had memoized',this.children)
     cb(this.children);
   } else {
     var that = this;
@@ -133,10 +134,12 @@ File.prototype.getchildren = function (cb) {
       params.action = 'fs';
       params.data = {op:'ls', path:path};
       params.resp = function (resp) {
+        console.log('FS: server answered',resp,'for',that);
         if (!resp.err) {
           var children = [], file;
           for (var i = 0; i < resp.files.length; i++) {
             file = resp.files[i];
+            console.log('adding',file,'to',that);
             children.push (new File (file.name, that, file.type));
           }
           that.children = children;   // Memoize the data.
@@ -264,9 +267,13 @@ addEventListener('DOMContentLoaded', function () {
     fuzzy(root, pathreq.value, 5, function (scoredpath) {
       var html = '', path;
       for (var i = 0;  i < scoredpath.length;  i++) {
-        path = scoredpath[i][0].fullpath() +
-            (scoredpath[i][0].type === 'dir'? '/': '');
-        html += '<li><a href="' + path + '">' + path + '</a></li>';
+        if (scoredpath[i][2].length === 0) {
+          // There is no remaining query (if the query is not complete, it is
+          // not shown).
+          path = scoredpath[i][0].fullpath() +
+              (scoredpath[i][0].type === 'dir'? '/': '');
+          html += '<li><a href="' + path + '">' + path + '</a></li>';
+        }
       }
       Scout('#fuzzy').innerHTML = html;
     });
