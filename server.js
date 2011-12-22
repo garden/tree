@@ -48,6 +48,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       console.error(err);
       data.error = err.message;
       camp.Server.emit ('fsplugged', data);
+      return;
     }
     if (arbor.isoftype(file, 'text/plain')) {
       path[0] = '/pencil.html';
@@ -86,6 +87,8 @@ arbor.getroot (function (err, fsroot) {
 // Ajax FS API.
 
 camp.add ('fs', function (query) {
+  // `query` must have an `op` field, which is a String.
+  // It must also have a `path` field, which is a String.
   console.log('actions are', camp.Server.Actions['fs']);
   var data = {};
   console.log('SERVER:FS: got query', query);
@@ -122,14 +125,25 @@ camp.add ('fs', function (query) {
           camp.Server.emit ('fs', data);
         });
       });
+      break;
     case 'touch':
       //create file
     case 'rm':
       //delete file
     case 'cp':
       //copy file
+    case 'fuzzy':
+      // `query` must, here, also have a field `depth` (an integer).
+      arbor.getfile (query['path'], function (err, file) {
+        if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+        file.subfiles(function(err, subfiles) {
+          data.leafs = subfiles;
+          camp.Server.emit('fs', data);
+        }, query['depth']);
+      });
+      break;
     default:
-      return {};
+      return;
   }
 }, function fs(data) {
   console.log('SERVER:FS:FS');
