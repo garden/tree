@@ -34,7 +34,7 @@ function setfiles(files) {
 
 // Represent cwd with blocks
 function setpath(path) {
-  console.log('setpath',path);
+  //console.log('setpath',path);
   cwd = path;
   document.title = path;
   /*var blocks = path.split('/'), htmlblocks = '';
@@ -53,7 +53,7 @@ window.cwd = cwd;
 
 // Set cwd to what #pathreq holds.
 function chdir(newdir) {
-  console.log('chdir',newdir);
+  //console.log('chdir',newdir);
   setpath(newdir[newdir.length-1] !== '/' ? newdir + '/' : newdir);
   var url = document.location;
   history.pushState(cwd, cwd, url.origin + url.port + cwd);
@@ -62,7 +62,7 @@ function chdir(newdir) {
 window.chdir = chdir;
 
 onpopstate = function (event) {
-  console.log('onpopstate');
+  //console.log('onpopstate');
   setpath(event.state !== null ? event.state : cwd);
   Scout.send (getfs) ();
 };
@@ -70,14 +70,14 @@ onpopstate = function (event) {
 
 // Request information about the contents of a directory to the server.
 function getfs(params) {
-  console.log('getfs[op:ls,path:' + cwd + ']'); ///DEBUGGING
+  //console.log('getfs[op:ls,path:' + cwd + ']'); ///DEBUGGING
   params.action = 'fs';
   params.data = {op:'ls', path:cwd};
   params.resp = function (resp) {
     if (!resp.err) setfiles(resp.files);
   };
   params.error = function (err) {
-    console.log('GETFS: error while getting', cwd);
+    //console.log('GETFS: error while getting', cwd);
   };
 }
 
@@ -87,7 +87,7 @@ addEventListener('DOMContentLoaded', function (event) {
   dompath = Scout('#path');
   setpath(cwd);
   Scout('#pathreq').addEventListener('keydown', function(e) {
-    console.log('keydown');
+    //console.log('keydown');
     if ( e.keyCode === 8 && Scout('#pathreq').value.length === 0 ) history.go(-1);
   });
 }, false);
@@ -101,177 +101,110 @@ addEventListener('DOMContentLoaded', function (event) {
 
 
 
-// Fuzzy matching code.
+// Fuzzy matching.
 //
 
 
 (function () {
 
 
-
-// What is a file?
-// Mostly, once created, you can:
-// - file.name to get its name
-// - file.parent to get its parent file (or undefined if root)
-// - file.getchildren(function(children){...})
-//   to get its children (or an empty array if it doesn't have any).
-function File(name, parent, type) {
-  this.name = name || '';
-  this.parent = parent;     // Root has an undefined parent.
-  this.type = type || 'dir';
-  this.children = [];
-  this.memoized = false;
-}
-
-File.prototype.getchildren = function (cb) {
-  if (this.memoized) {
-    cb(this.children);
-  } else {
-    var that = this;
-    Scout.send(function fuzzyfiles(params) {
-      var path = that.fullpath();
-      params.action = 'fs';
-      params.data = {op:'ls', path:path};
-      params.resp = function (resp) {
-        if (!resp.err) {
-          var children = [], file;
-          for (var i = 0; i < resp.files.length; i++) {
-            file = resp.files[i];
-            children.push (new File (file.name, that, file.type));
-          }
-          that.children = children;   // Memoize the data.
-          that.memoized = true;
-          cb(children);
-        }
-      };
-      params.error = function (err) {
-        console.log('FILE: error while getting',this.name,'children');
-      };
-    })();
-  }
-};
-
-File.prototype.fullpath = function () {
-  return (this.parent? this.parent.fullpath() + '/': '') + this.name;
-}
-
-
-
-// Fuzzy matching
-
-
-// Given a string filename and a list of characters chars, 
-// returns a list containing a qualitative number of stars, and
-// the part of the query that remains to be parsed.
-function score (filename, query, depth) {
-  var stars = 0;
-  var afternonalpha = false;
-  var alpha = /[a-zA-Z0-9]/;
-  var consecmatch = 0;
-
-  for (var i=0; i<filename.length; i++) {
-    if (filename[i] === query[0]) {
-      stars++;            // match!
-      stars += depth;     // Counts more if closer to cwd.
-      if (i === 0) {
-        stars += 2;       // Counts more if start of filename.
-      } else if (i === 1) {
-        stars++;
-      }
-      var isalpha = alpha.test (filename[i]);
-      if (isalpha && afternonalpha) {
-        stars += 2; // Counts more if after nonalpha.
-      }
-      afternonalpha = !isalpha;
-      stars += consecmatch;  // Numerous consecutive matches.
-      consecmatch++;
-
-      // Treat the query.
-      query = query.slice(1);
-      if (query.length === 0) { break; }
-    } else if (query[0] === '/') {
-      query = query.slice(1);
-      break;
-    } else {
-      consecmatch = 0;
-    }
-  }
-
-  // Never leave a / at the beginning.
-  if (query[0] === '/') { query = query.slice (1); }
-  return [stars, query];
-};
-
+var leafs = [];
 
 function sorter (file1, file2) { return file2[1] - file1[1]; };
 
+// Return the number of slashes in the path (ie, the depth).
+function depth (leaf) {
+  var depth = 0;
+  for (var i = 0; i < leaf.length; i++) {
+    if (leaf[i] === '/')  depth++;
+  }
+  return depth;
+}
 
-// `dir` is {name:'dir name', type:'dir'}.
-// `query` is a String.
-// `depth` is a Number.
-// `cb` is a callback that takes the resulting list of
-// [path, nbOfStars, remainingQuery].
-// `initstars` is the initial number of stars, 0 by default.
-function fuzzy (dir, query, depth, cb, initstars) {
+// Return [leaf, stars, index]:
+//
+// - `leaf` is a String of the path.
+// - `stars` is a Number to compare leafs according to the query.
+// - `index` is the remaining non-processed characters in the query.
+//
+// `leaf` is a String of the path from here to the leaf.
+// `query` is a String to fuzzy match.
+function score(leaf, query) {
+  var stars = 0,
+      index = index || query.length - 1,
+      countlettersmatched = 0,  // Consecutive letters matched.
+      alpha = /[a-zA-Z0-9]/;
+  // The idea is to begin with the end of the `query`, and for each letter
+  // matched, the letter is captured, its position influences the score, and we
+  // go to the next letter.
+  for (var i = leaf.length - 1; i >= 0; i--) {
+    var l = leaf[i];  // letter
 
-  dir.getchildren(function (children) {
-
-    console.log('children of',dir,'are',children);
- 
-    // scoredpath is a list of [string path, int score, string consumed]
-    // which determines how well the path is ranked and if it
-    // contains all characters in the query.
-    var scoredpath = [], filescore = 0, processingcount = 0;
-    for (var i=0; i<children.length; i++) {
-      filescore = score (children[i].name, query, depth);
-      filescore[0] += initstars || 0;
-      if (filescore[1].length === 0 ||
-          (depth === 0 || children[i].type !== 'dir')) {
-        console.log('#1 scoredpath.push',[children[i].fullpath(), filescore[0], filescore[1]]);
-        scoredpath.push ([children[i], filescore[0], filescore[1]]);
-        processingcount++;
-
-        if (processingcount === children.length) {
-          scoredpath.sort (sorter);
-          cb (scoredpath);
-        }
-      } else {
-        // More to be seen in depth...
-        fuzzy (children[i], filescore[1], depth - 1, function (inside) {
-          for (var j=0; j<inside.length; j++) {
-            console.log('#2 scoredpath.push',[inside[j][0].fullpath(), inside[j][1], inside[j][2]]);
-            scoredpath.push ([inside[j][0], inside[j][1], inside[j][2]]);
-          }
-          processingcount++;
-
-          if (processingcount === children.length) {
-            scoredpath.sort (sorter);
-            cb (scoredpath);
-          }
-        }, filescore[0]);
-      }
+    if (countlettersmatched > 0 && !alpha.test(l)) {
+      stars += 2;   // first letter after non-alphanumeric character is good.
     }
-  });
+
+    if (l === query[index]) {
+      stars++;      // match!
+      //stars -= depth(leaf.slice(0, i)); // Too much depth is bad.
+      stars += countlettersmatched;     // Consecutive matches is good.
+
+      countlettersmatched++;
+      index--;
+      if (index < 0)  break;
+    } else {
+      countlettersmatched = 0;
+    }
+  }
+  return [leaf, stars, index];
+}
+
+// List of [leafpath, stars, index], ordered by the stars.
+//
+// `leafs` is an Array of Strings of paths from here to the leaf.
+// `query` is a String to fuzzy match.
+function fuzzy (leafs, query) {
+  var fuzzied = [];
+  for (var i = 0; i < leafs.length; i++) {
+    fuzzied.push(score(leafs[i], query));
+  }
+  return fuzzied.sort(sorter);
 }
 
 
 addEventListener('DOMContentLoaded', function () {
   var pathreq = Scout('#pathreq'),
-      cwdlen = cwd.length,
-      root = new File(cwd[cwdlen-1] === '/'? cwd.slice(0,cwdlen-1): cwd);
-  pathreq.addEventListener('input', function () {
-    console.log('input');
-    fuzzy(root, pathreq.value, 5, function (scoredpath) {
-      var html = '', path;
-      for (var i = 0;  i < scoredpath.length;  i++) {
-        path = scoredpath[i][0].fullpath() +
-            (scoredpath[i][0].type === 'dir'? '/': '');
+      depth = 4;        // default recursion level.
+
+  // The very first time, we wait to load all leafs.
+  pathreq.addEventListener('input', function firstfuzzy() {
+    Scout.send(function(q) {
+      q.action = 'fs';
+      q.data = {op:'fuzzy', path:cwd, depth:depth};
+      q.resp = function (r) {
+        leafs = r.leafs;
+        pathreq.removeEventListener('input', firstfuzzy, false);
+        pathreq.addEventListener('input', showfuzzy, false);
+        showfuzzy();
+      };
+    })();
+  }, false);
+
+  function showfuzzy () {
+    var html = '',
+        query = pathreq.value,
+        scores = fuzzy(leafs, query);
+    for (var i = 0;  i < scores.length;  i++) {
+      if (scores[i][2] < 0) {
+        // There is no remaining query (if the query is not complete, it is
+        // not shown).
+        var path = scores[i][0] +
+            (scores[i][0].type === 'dir'? '/': '');
         html += '<li><a href="' + path + '">' + path + '</a></li>';
       }
-      Scout('#fuzzy').innerHTML = html;
-    });
-  }, false);
-  window.root = root;
+    }
+    Scout('#fuzzy').innerHTML = html;
+  }
 }, false);
 
 
