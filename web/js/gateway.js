@@ -34,7 +34,7 @@ function setfiles(files) {
 
 // Represent cwd with blocks
 function setpath(path) {
-  console.log('setpath',path);
+  //console.log('setpath',path);
   cwd = path;
   document.title = path;
   /*var blocks = path.split('/'), htmlblocks = '';
@@ -53,7 +53,7 @@ window.cwd = cwd;
 
 // Set cwd to what #pathreq holds.
 function chdir(newdir) {
-  console.log('chdir',newdir);
+  //console.log('chdir',newdir);
   setpath(newdir[newdir.length-1] !== '/' ? newdir + '/' : newdir);
   var url = document.location;
   history.pushState(cwd, cwd, url.origin + url.port + cwd);
@@ -62,7 +62,7 @@ function chdir(newdir) {
 window.chdir = chdir;
 
 onpopstate = function (event) {
-  console.log('onpopstate');
+  //console.log('onpopstate');
   setpath(event.state !== null ? event.state : cwd);
   Scout.send (getfs) ();
 };
@@ -70,14 +70,14 @@ onpopstate = function (event) {
 
 // Request information about the contents of a directory to the server.
 function getfs(params) {
-  console.log('getfs[op:ls,path:' + cwd + ']'); ///DEBUGGING
+  //console.log('getfs[op:ls,path:' + cwd + ']'); ///DEBUGGING
   params.action = 'fs';
   params.data = {op:'ls', path:cwd};
   params.resp = function (resp) {
     if (!resp.err) setfiles(resp.files);
   };
   params.error = function (err) {
-    console.log('GETFS: error while getting', cwd);
+    //console.log('GETFS: error while getting', cwd);
   };
 }
 
@@ -87,7 +87,7 @@ addEventListener('DOMContentLoaded', function (event) {
   dompath = Scout('#path');
   setpath(cwd);
   Scout('#pathreq').addEventListener('keydown', function(e) {
-    console.log('keydown');
+    //console.log('keydown');
     if ( e.keyCode === 8 && Scout('#pathreq').value.length === 0 ) history.go(-1);
   });
 }, false);
@@ -125,7 +125,7 @@ function File(name, parent, type) {
 
 File.prototype.getchildren = function (cb) {
   if (this.memoized) {
-    console.log(this,'had memoized',this.children)
+    //console.log(this,'had memoized',this.children)
     cb(this.children);
   } else {
     var that = this;
@@ -134,12 +134,12 @@ File.prototype.getchildren = function (cb) {
       params.action = 'fs';
       params.data = {op:'ls', path:path};
       params.resp = function (resp) {
-        console.log('FS: server answered',resp,'for',that);
+        //console.log('FS: server answered',resp,'for',that);
         if (!resp.err) {
           var children = [], file;
           for (var i = 0; i < resp.files.length; i++) {
             file = resp.files[i];
-            console.log('adding',file,'to',that);
+            //console.log('adding',file,'to',that);
             children.push (new File (file.name, that, file.type));
           }
           that.children = children;   // Memoize the data.
@@ -148,7 +148,7 @@ File.prototype.getchildren = function (cb) {
         }
       };
       params.error = function (err) {
-        console.log('FILE: error while getting',this.name,'children');
+        //console.log('FILE: error while getting',this.name,'children');
       };
     })();
   }
@@ -219,7 +219,7 @@ function fuzzy (dir, query, depth, cb, initstars) {
 
   dir.getchildren(function (children) {
 
-    console.log('children of',dir,'are',children);
+    //console.log('children of',dir,'are',children);
  
     // scoredpath is a list of [string path, int score, string consumed]
     // which determines how well the path is ranked and if it
@@ -230,7 +230,7 @@ function fuzzy (dir, query, depth, cb, initstars) {
       filescore[0] += initstars || 0;
       if (filescore[1].length === 0 ||
           (depth === 0 || children[i].type !== 'dir')) {
-        console.log('#1 scoredpath.push',[children[i].fullpath(), filescore[0], filescore[1]]);
+        //console.log('#1 scoredpath.push',[children[i].fullpath(), filescore[0], filescore[1]]);
         scoredpath.push ([children[i], filescore[0], filescore[1]]);
         processingcount++;
 
@@ -242,7 +242,7 @@ function fuzzy (dir, query, depth, cb, initstars) {
         // More to be seen in depth...
         fuzzy (children[i], filescore[1], depth - 1, function (inside) {
           for (var j=0; j<inside.length; j++) {
-            console.log('#2 scoredpath.push',[inside[j][0].fullpath(), inside[j][1], inside[j][2]]);
+            //console.log('#2 scoredpath.push',[inside[j][0].fullpath(), inside[j][1], inside[j][2]]);
             scoredpath.push ([inside[j][0], inside[j][1], inside[j][2]]);
           }
           processingcount++;
@@ -263,8 +263,9 @@ addEventListener('DOMContentLoaded', function () {
       cwdlen = cwd.length,
       root = new File(cwd[cwdlen-1] === '/'? cwd.slice(0,cwdlen-1): cwd);
   pathreq.addEventListener('input', function () {
-    console.log('input');
+    //console.log('input');
     fuzzy(root, pathreq.value, 5, function (scoredpath) {
+      console.log(scoredpath);
       var html = '', path;
       for (var i = 0;  i < scoredpath.length;  i++) {
         if (scoredpath[i][2].length === 0) {

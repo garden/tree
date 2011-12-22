@@ -86,8 +86,9 @@ arbor.getroot (function (err, fsroot) {
 // Ajax FS API.
 
 camp.add ('fs', function (query) {
+  console.log('actions are', camp.Server.Actions['fs']);
   var data = {};
-  console.log('SERVER:FS: got query.path', query.path);
+  console.log('SERVER:FS: got query', query);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
@@ -131,6 +132,7 @@ camp.add ('fs', function (query) {
       return {};
   }
 }, function fs(data) {
+  console.log('SERVER:FS:FS');
   return data || {};
 });
 
