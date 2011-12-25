@@ -191,7 +191,7 @@ function scorify (score) {
 
 addEventListener('DOMContentLoaded', function () {
   var pathreq = Scout('#pathreq'),
-      depth = 1;        // default recursion level.
+      depth = 3;        // default recursion level.
 
   // The very first time, we wait to load all leafs.
   pathreq.addEventListener('input', function firstfuzzy() {
