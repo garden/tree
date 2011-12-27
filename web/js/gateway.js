@@ -189,7 +189,7 @@ function scorify (score) {
 }
 
 
-addEventListener('DOMContentLoaded', function () {
+addEventListener('load', function () {
   var pathreq = Scout('#pathreq'),
       depth = 3;        // default recursion level.
 
