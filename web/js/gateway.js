@@ -112,28 +112,21 @@ var leafs = [];
 
 function sorter (file1, file2) { return file2[1] - file1[1]; };
 
-// Return the number of slashes in the path (ie, the depth).
-function depth (leaf) {
-  var depth = 0;
-  for (var i = 0; i < leaf.length; i++) {
-    if (leaf[i] === '/')  depth++;
-  }
-  return depth;
-}
-
-// Return [leaf, stars, index]:
+// Return [leaf, stars, indexes]:
 //
 // - `leaf` is a String of the path.
 // - `stars` is a Number to compare leafs according to the query.
-// - `index` is the remaining non-processed characters in the query.
+// - `indexes` is the positions of matched letters.
 //
 // `leaf` is a String of the path from here to the leaf.
 // `query` is a String to fuzzy match.
 function score(leaf, query) {
   var stars = 0,
-      index = index || query.length - 1,
+      index = query.length - 1,
+      indexes = [],             // Position of matched letters.
       countlettersmatched = 0,  // Consecutive letters matched.
-      alpha = /[a-zA-Z0-9]/;
+      alpha = /[a-zA-Z0-9]/,
+      lookingAhead = false;     // Grant one last run and terminate.
   // The idea is to begin with the end of the `query`, and for each letter
   // matched, the letter is captured, its position influences the score, and we
   // go to the next letter.
@@ -145,36 +138,60 @@ function score(leaf, query) {
     }
 
     if (l === query[index]) {
+      indexes.push(i);
       stars++;      // match!
-      //stars -= depth(leaf.slice(0, i)); // Too much depth is bad.
       stars += countlettersmatched;     // Consecutive matches is good.
 
       countlettersmatched++;
       index--;
-      if (index < 0)  break;
     } else {
       countlettersmatched = 0;
     }
+    if (lookingAhead)  break;       // The last run was already granted.
+    else if (index < 0)  lookingAhead = true;   // Grant last run now.
   }
-  return [leaf, stars, index];
+  if (lookingAhead)  stars++;
+  return [leaf, stars, indexes];
 }
 
-// List of [leafpath, stars, index], ordered by the stars.
+// List of [leafpath, stars, indexes], ordered by the stars.
+// Leafs that do not match the whole query are discarded.
 //
 // `leafs` is an Array of Strings of paths from here to the leaf.
 // `query` is a String to fuzzy match.
 function fuzzy (leafs, query) {
   var fuzzied = [];
   for (var i = 0; i < leafs.length; i++) {
-    fuzzied.push(score(leafs[i], query));
+    var sc = score(leafs[i], query);
+    if (sc[2].length === query.length) {
+      fuzzied.push(sc);
+    }
   }
   return fuzzied.sort(sorter);
 }
 
 
-addEventListener('DOMContentLoaded', function () {
+// Return an html string that highlights all letters matched in the score by a
+// css ".fuzzymatch" class.
+function scorify (score) {
+  var htmled = score[0],
+      offset = 0,
+      beforelet = '<span class="fuzzymatch">',
+      afterlet = '</span>',
+      addition = beforelet.length + afterlet.length;
+  for (var i = score[2].length - 1; i >= 0; i--) {
+    htmled = htmled.slice(0, score[2][i] + offset) + beforelet
+      + htmled[score[2][i] + offset] + afterlet
+      + htmled.slice(score[2][i] + offset + 1);
+    offset += addition;
+  }
+  return htmled;
+}
+
+
+addEventListener('load', function () {
   var pathreq = Scout('#pathreq'),
-      depth = 4;        // default recursion level.
+      depth = 3;        // default recursion level.
 
   // The very first time, we wait to load all leafs.
   pathreq.addEventListener('input', function firstfuzzy() {
@@ -195,13 +212,10 @@ addEventListener('DOMContentLoaded', function () {
         query = pathreq.value,
         scores = fuzzy(leafs, query);
     for (var i = 0;  i < scores.length;  i++) {
-      if (scores[i][2] < 0) {
-        // There is no remaining query (if the query is not complete, it is
-        // not shown).
-        var path = scores[i][0] +
-            (scores[i][0].type === 'dir'? '/': '');
-        html += '<li><a href="' + path + '">' + path + '</a></li>';
-      }
+      // There is no remaining query (if the query is not complete, it is
+      // not shown).
+      var path = scorify(scores[i]);
+      html += '<li><a href="' + scores[i][0] + '">' + path + '</a></li>';
     }
     Scout('#fuzzy').innerHTML = html;
   }

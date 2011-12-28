@@ -4,24 +4,12 @@
 <!--[if IE]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
-<style>
-  article, aside, figure, footer, header, hgroup, 
-  menu, nav, section { display: block; }
-  ul { list-style-type: none; }
-  .block {
-     cursor: pointer; color: black; text-decoration: none !important;
-     background: #80bbff; border: 1px solid black; border-radius: 3px;
-     padding-left: 5px; padding-right: 5px;
-   }
-  .block:active { position: relative; top: 1px; }
-  #path { display: inline; }
-</style>
+<link rel=stylesheet href=/css/gateway.css>
 
 <form id=req action="javascript:void 0">
-  <div id=path>
-    {{-nav|block|i;&nbsp;<a href='javascript:void({{=i|html}})' class=block>{{=block|html}}</a>}}
-  </div>
-  <input id=pathreq type=search autofocus>
+  <div id=path>{{-nav|block|i;<a href='javascript:void({{=i|html}})'
+      class="block">{{=block|html}}</a>}}</div
+    ><input id=pathreq type=search autofocus>
 </form>
 
 <ul id=fuzzy>{{-filenames|filename|i;
@@ -34,3 +22,4 @@
 
 <!-- Google Analytics -->
 <script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
+

@@ -4,35 +4,34 @@
 article, aside, figure, footer, header, hgroup, 
 menu, nav, section { display: block; }
 
-a {
+a.block, ul#fuzzy>li>a, input#pathreq {
+  color: #396fac; /* hsl(212, 50%, 45%) */
+  background: #b3d6ff; /* hsl(212, 50%, 85%) */
+  border: 2px solid #9fbddf; /* hsl(212, 50%, 75%) */
   text-decoration: none;
-  font-family: sans-serif;
-  color: #a55525;
+  font-family: "Ubuntu Mono", monospace;
+  margin: 0px;
 }
-
-a.file {
-  font-weight: bold;
-  color: #a55525;
+a.block:hover, ul#fuzzy>li>a:hover, input#pathreq {
+  background: #bdcfff; /* hsl(223, 100%, 87%) */
 }
-
-a.file:hover {
-  color: #c86818;
+div#path a.block {
+  padding-left: 5px; padding-right: 5px;
+  border-right: 0px;
 }
+div#path a.block:active { position: relative; top: 1px; }
+div#path { display: inline; }
 
-#files {
-  width: 30%;
+input#pathreq { -webkit-appearance: initial; font-size: 0.9em; }
+input#pathreq:focus { outline: 0px; }
+
+
+/* Fuzzy completion. */
+span.fuzzymatch { font-weight: bolder; }
+ul#fuzzy {
   list-style-type: none;
+  padding-left: 0px;
+  margin-left: 32px;
+  border-bottom: 2px solid #9fbddf;
 }
-
-a.fadedcontrol {
-  display: block;
-  float: left;
-  width: 2em;
-  color: #a9c7f3;
-  font-size: 0.8em;
-  font-weight: normal;
-}
-
-a.fadedcontrol:hover {
-  color: #89a7d3;
-}
+ul#fuzzy>li>a { display: block; padding: 7px; border-bottom: 0px; }
