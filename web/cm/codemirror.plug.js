@@ -14,7 +14,7 @@ var importCodeMirrorMode = ( function() {
     'image/svg+xml': 'xml',
     'text/javascript': 'javascript',
     'application/json': 'javascript',
-    'text/x-csharp': 'clike'.
+    'text/x-csharp': 'clike',
     'text/x-csrc': 'clike',
     'text/x-c++src': 'clike',
     'text/x-java': 'clike',
