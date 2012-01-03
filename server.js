@@ -47,6 +47,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     if (err) {
       console.error(err);
       data.error = err.message;
+      path[0] = '/404.html';
       camp.Server.emit ('fsplugged', data);
       return;
     }
