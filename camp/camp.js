@@ -52,6 +52,7 @@ exports.Server.mime = {
   'html': 'text/html',
   'c': 'text/x-csrc',
   'cpp': 'text/x-c++src',
+  'cs': 'text/x-csharp',
   'java': 'text/x-java',
   'groovy': 'text/x-groovy',
   'clj': 'text/x-clojure',
