@@ -266,7 +266,7 @@ function init () {
   setCursor(0);     // Put the cursor on the first entry.
 
   // Set the event listener.
-  req.addEventListener('keydown', keyListener, false);
+  addEventListener('keydown', keyListener, false);
 }
 
 // Set the cursor to the entry specified.
