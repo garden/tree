@@ -36,8 +36,8 @@ function setfiles(files) {
 function setpath(path) {
   //console.log('setpath',path);
   cwd = path;
-  document.title = path;
-  /*var blocks = path.split('/'), htmlblocks = '';
+  /*document.title = path;
+  var blocks = path.split('/'), htmlblocks = '';
   for ( var i in blocks ) {
     if ( blocks[i].length > 0 ) {
       htmlblocks += '&nbsp;<span class=block>' + blocks[i] + '</span>'
