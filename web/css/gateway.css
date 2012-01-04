@@ -4,19 +4,36 @@
 article, aside, figure, footer, header, hgroup, 
 menu, nav, section { display: block; }
 
+body { margin: 0px; }
+
+/* Search bar. */
+form#req {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  padding: 10px;
+  background: white;
+}
+
+ul#fuzzy {
+  margin: 10px;
+  margin-top: 40px;
+}
+
 
 /* Entries have the following properties */
 
 a.block, ul#fuzzy>li>a, input#pathreq {
   color: #396fac; /* hsl(212, 50%, 45%) */
-  background: #b3d6ff; /* hsl(212, 50%, 85%) */
-  border: 2px solid #9fbddf; /* hsl(212, 50%, 75%) */
+  /*background: #b3d6ff; /* hsl(212, 50%, 85%) */
+  /*border: 2px solid #9fbddf; /* hsl(212, 50%, 75%) */
   text-decoration: none;
   font-family: "Ubuntu Mono", monospace;
   margin: 0px;
 }
 a.block:hover, ul#fuzzy>li>a:hover, input#pathreq {
-  background: #bdcfff; /* hsl(223, 100%, 87%) */
+  /*background: #bdcfff; /* hsl(223, 100%, 87%) */
 }
 div#path a.block {
   padding-left: 5px; padding-right: 5px;
@@ -25,13 +42,22 @@ div#path a.block {
 div#path a.block:active { position: relative; top: 1px; }
 div#path { display: inline; }
 
-input#pathreq { -webkit-appearance: initial; font-size: 0.9em; }
-input#pathreq:focus { outline: 0px; }
+input#pathreq {
+  -webkit-appearance: initial;
+  font-size: 0.9em;
+  border: 1px solid silver;
+  height: 21px;
+  width: 250px;
+  margin-left: 5px;
+}
+input#pathreq:focus { outline: 0px; border-color: #9fbddf; }
 
 /* The cursor is used to select the entry we want. */
 div.cursor {
   width: 20px;
   float: left;
+  font-size: 0.6em;
+  margin-top: 3px;
 }
 
 
@@ -40,6 +66,6 @@ span.fuzzymatch { font-weight: bolder; }
 ul#fuzzy {
   list-style-type: none;
   padding-left: 0px;
-  border-bottom: 2px solid #9fbddf;
+  /*border-bottom: 2px solid #9fbddf;*/
 }
 ul#fuzzy>li>a { display: block; padding: 7px; border-bottom: 0px; }

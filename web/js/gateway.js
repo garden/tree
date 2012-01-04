@@ -273,10 +273,12 @@ function init () {
 //
 // `entry` is a Number.
 function setCursor (entry) {
-  if (entry < 0 || entry >= slots.length)  return;
+  entry %= slots.length;
+  if (entry < 0)  entry = slots.length - 1;
   if (pointer >= 0)  { slots[pointer].firstChild.innerHTML = '&nbsp;'; }
   pointer = entry;
-  slots[pointer].firstChild.textContent = '>';
+  slots[pointer].firstChild.innerHTML = '&#x25ba;';
+  slots[pointer].scrollIntoView(false);
 }
 
 function nextEntry () { setCursor(pointer + 1); }
