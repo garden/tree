@@ -4,6 +4,23 @@
 article, aside, figure, footer, header, hgroup, 
 menu, nav, section { display: block; }
 
+body { margin: 0px; }
+
+/* Search bar. */
+form#req {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  padding: 10px;
+  background: white;
+}
+
+ul#fuzzy {
+  margin: 10px;
+  margin-top: 40px;
+}
+
 
 /* Entries have the following properties */
 
@@ -25,7 +42,7 @@ div#path a.block {
 div#path a.block:active { position: relative; top: 1px; }
 div#path { display: inline; }
 
-input#pathreq { -webkit-appearance: initial; font-size: 0.9em; }
+input#pathreq { -webkit-appearance: initial; font-size: 0.9em; right: 0px; }
 input#pathreq:focus { outline: 0px; }
 
 /* The cursor is used to select the entry we want. */
