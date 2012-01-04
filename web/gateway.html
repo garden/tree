@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>Our Awesome Search Engine</title>
+<title>{{=dirname|html}}</title>
 <!--[if IE]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
@@ -13,7 +13,8 @@
 </form>
 
 <ul id=fuzzy>{{-filenames|filename|i;
-  <li><a href="./{{=filename|uri|xmlattr}}">{{=filename|html}}</a></li>}}
+  <li><a href="./{{=filename|uri|xmlattr}}"><div class=cursor>&nbsp;</div
+      >{{=filename|html}}</a></li>}}
 </ul>
 
 <script src=/js/scout.js></script>

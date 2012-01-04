@@ -62,6 +62,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       ///console.log('SERVER:ROOT: %s is a dir', file);
       path[0] = '/gateway.html';
       data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
+			data.dirname = file.name || 'The File Tree';
       file.content (function (err, content) {
         if (err) console.error(err);
         data.filenames = [];
