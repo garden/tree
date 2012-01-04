@@ -36,8 +36,8 @@ function setfiles(files) {
 function setpath(path) {
   //console.log('setpath',path);
   cwd = path;
-  document.title = path;
-  /*var blocks = path.split('/'), htmlblocks = '';
+  /*document.title = path;
+  var blocks = path.split('/'), htmlblocks = '';
   for ( var i in blocks ) {
     if ( blocks[i].length > 0 ) {
       htmlblocks += '&nbsp;<span class=block>' + blocks[i] + '</span>'
@@ -215,9 +215,12 @@ addEventListener('load', function () {
       // There is no remaining query (if the query is not complete, it is
       // not shown).
       var path = scorify(scores[i]);
-      html += '<li><a href="' + scores[i][0] + '">' + path + '</a></li>';
+      html += '<li><a href="' + scores[i][0] + '">'
+        + '<div class="cursor">&nbsp;</div>'
+        + path + '</a></li>';
     }
     Scout('#fuzzy').innerHTML = html;
+    selectionInit();
   }
 }, false);
 
@@ -225,4 +228,81 @@ addEventListener('load', function () {
 
 
 })();
+
+
+
+// Manual selection
+//
+
+
+(function() {
+
+
+// Constants.
+var req, res;
+
+addEventListener('load', function () {
+  req = Scout('#pathreq');
+  res = Scout('#fuzzy').children;
+  init();
+}, false);
+
+// State.
+var pointer = -1,   // Item selected (-1 means "none").
+    slots;          // DOM slots wherein you may show a cursor, or a space.
+                    // (Those are initialized by the `init` function).
+
+// Initialization occurs when the drop down entries are reset (or started). The
+// entries already have the cursor.
+function init () {
+  // If there is an entry, set the pointer to the first entry.
+  if (res.length > 0) { // If there is at least one entry...
+    pointer = 0;        // ... set the pointer to the first item.
+  }
+  
+  // Populate slots.
+  slots = document.querySelectorAll('#fuzzy>li>a');
+  
+  setCursor(0);     // Put the cursor on the first entry.
+
+  // Set the event listener.
+  addEventListener('keydown', keyListener, false);
+}
+
+// Set the cursor to the entry specified.
+//
+// `entry` is a Number.
+function setCursor (entry) {
+  if (entry < 0 || entry >= slots.length)  return;
+  if (pointer >= 0)  { slots[pointer].firstChild.innerHTML = '&nbsp;'; }
+  pointer = entry;
+  slots[pointer].firstChild.textContent = '>';
+}
+
+function nextEntry () { setCursor(pointer + 1); }
+
+function prevEntry () { setCursor(pointer - 1); }
+
+
+// When the search widget is focused, if the user presses up/down keys, and
+// the enter key.
+function keyListener (e) {
+  if (e.keyCode === 40) {
+    // Down.
+    nextEntry();
+    e.preventDefault();
+  } else if (e.keyCode === 38) {
+    // Up.
+    prevEntry();
+    e.preventDefault();
+  } else if (e.keyCode === 13) {
+    // Enter.
+    window.location = slots[pointer].href;
+  }
+}
+
+window.selectionInit = init;
+
+})();
+
 
