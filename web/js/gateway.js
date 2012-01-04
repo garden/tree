@@ -226,3 +226,45 @@ addEventListener('load', function () {
 
 })();
 
+
+
+// Manual selection
+//
+
+
+(function() {
+
+
+// Constants.
+var req, res;
+
+addEventListener('load', function () {
+  req = Scout('#pathreq');
+  res = Scout('#fuzzy').children;
+}, false);
+
+// State.
+var pointer = -1;    // Item selected (-1 means "none").
+
+function init () {
+  // If there is an entry, set the pointer to the first entry.
+  if (res.length > 0) { // If there is at least one entry...
+    pointer = 0;        // ... set the pointer to the first item.
+  }
+  // Set the event listener.
+  req.addEventListener('keydown', function(e) {
+    if (e.keyCode === 40) {
+      // Down.
+    } else if (e.keyCode === 38) {
+      // Up.
+    } else if (e.keyCode === 13) {
+      // Enter.
+    }
+  }, false);
+}
+
+window.selectionInit = init;
+
+})();
+
+
