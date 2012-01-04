@@ -32,6 +32,8 @@ input#pathreq:focus { outline: 0px; }
 div.cursor {
   width: 20px;
   float: left;
+  font-size: 0.6em;
+  margin-top: 3px;
 }
 
 
