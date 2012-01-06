@@ -289,6 +289,7 @@ function prevEntry () { setCursor(pointer - 1); }
 // When the search widget is focused, if the user presses up/down keys, and
 // the enter key.
 function keyListener (e) {
+  var empty = Scout('#pathreq').value.length === 0;
   if (e.keyCode === 40) {
     // Down.
     nextEntry();
@@ -297,9 +298,14 @@ function keyListener (e) {
     // Up.
     prevEntry();
     e.preventDefault();
-  } else if (e.keyCode === 13) {
-    // Enter.
+  } else if (e.keyCode === 13 || (empty && e.keyCode === 39)) {
+    // Enter or (Empty and Right).
     window.location = slots[pointer].href;
+  } else if (empty && (e.keyCode === 8 || e.keyCode === 37)) {
+    // Empty and (Backspace or Left).
+    //history.go(-1);
+    var loc = window.location;
+    window.location = loc.origin + loc.pathname.replace(/\/[^\/]+[\/]*$/,'/') + loc.search;
   }
 }
 
