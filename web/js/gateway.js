@@ -86,10 +86,6 @@ addEventListener('DOMContentLoaded', function (event) {
   domfiles = Scout('#files');
   dompath = Scout('#path');
   setpath(cwd);
-  Scout('#pathreq').addEventListener('keydown', function(e) {
-    //console.log('keydown');
-    if ( e.keyCode === 8 && Scout('#pathreq').value.length === 0 ) history.go(-1);
-  });
 }, false);
 
 
@@ -305,7 +301,8 @@ function keyListener (e) {
     // Empty and (Backspace or Left).
     //history.go(-1);
     var loc = window.location;
-    window.location = loc.origin + loc.pathname.replace(/\/[^\/]+[\/]*$/,'/') + loc.search;
+    window.location = loc.protocol + '//' + loc.host +
+      loc.pathname.replace(/\/[^\/]+[\/]*$/,'/') + loc.search;
   }
 }
 
