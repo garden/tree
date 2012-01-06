@@ -56,8 +56,10 @@ input#pathreq:focus { outline: 0px; border-color: #9fbddf; }
 div.cursor {
   width: 20px;
   float: left;
-  font-size: 0.6em;
-  margin-top: 3px;
+  text-align: center;
+  font-family: arial, sans-serif;
+  font-size: 10px;
+  margin-top: 2px;
 }
 
 

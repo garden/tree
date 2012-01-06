@@ -273,7 +273,7 @@ function setCursor (entry) {
   if (entry < 0)  entry = slots.length - 1;
   if (pointer >= 0)  { slots[pointer].firstChild.innerHTML = '&nbsp;'; }
   pointer = entry;
-  slots[pointer].firstChild.innerHTML = '&#x25ba;';
+  slots[pointer].firstChild.innerHTML = '&#x25b6;';
   slots[pointer].scrollIntoView(false);
 }
 
