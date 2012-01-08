@@ -76,8 +76,8 @@
   "mp4": "video/mp4",
   "ogv": "video/ogg",
   "mov": "video/quicktime",
-  "v": "text/x-verilog"
+  "v": "text/x-verilog",
   "webm": "video/webm",
-  "wmv": "video/x-ms-wmv",
+  "wmv": "video/x-ms-wmv"
 }
 
