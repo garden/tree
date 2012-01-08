@@ -10,6 +10,21 @@ will have figured out a way to know when to send files directly and when to open
 them through file tree plugins.
 
 
+## OT
+
+The current Operation Transformation in use (apart from being buggy) uses up a
+lot of space on the server side (we have to store a copy of the file for each
+client editing it, which makes a lot of copies!), and the transformation
+operation used (patch) is quite expansive CPU-wise.
+
+We intend to use finer Operation Transformations such as those devised in Xerox
+PARC [1]. We may add information as we go, since those algorithms have been more
+heavily understood and optimized since then. We will document our effort in
+relevant documentation files (probably along `/lib/sync.js`).
+
+  [1] http://delivery.acm.org/10.1145/220000/215706/p111-nichols.pdf
+
+
 ## TLS
 
 We get a salt from the server.  We send a PBKDF2ed SHA256 key from the
@@ -25,3 +40,4 @@ already are under https.
 We absolutely need TLS (otherwise the whole security system crumbles down).
 We can get it free from StartCom, whose root certificate is in Firefox (and
 probably everywhere else, too).
+

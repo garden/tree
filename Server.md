@@ -13,7 +13,8 @@ out-of-date or incomplete.
   - `query.path` path to access
   - `query.op` operation ( `ls` or `cat` give content )
 
-* `data` open a file for collaboration
+* `data` open a file for collaboration (we might remove it, using `dispatch`
+  instead)
   - `query.path` path of file
   - `query.user` ID timestamp like `+(new Date())`
 

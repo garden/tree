@@ -82,13 +82,12 @@ function CodeMirrorPlug ( path, body, params, update ) {
 
   /// Add onChange to the CodeMirror parameters.
   /// Creation of the editor.
-  params.onChange = function onChange() {
-    console.log('onChange() was triggered, notmychange is',client.notmychange);
+  params.onChange = function onChange(ed, change) {
+    console.log('onChange change: ', change);
     if (update) update(); // the page elements
 
     if (client.notmychange) {
       client.notmychange = false;
-      console.log('ignoring change ' + editor.getValue());
     } else if (plug !== undefined) {
       //// Here, we consider the differences between current text
       //// and the text we had last time we pushed changes.
