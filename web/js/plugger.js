@@ -179,9 +179,19 @@ var lastnetworkissue = 0;
 
 //2. This place is specifically designed to send information to the server.
 
+var acked = true,
+    fsendinglist = [];
+
 // We want to listen to the event of code modification.
 function sending (delta) {
-  return function (params) {
+  return function fsending (params) {
+
+    if (!acked) {
+      fsendinglist.push(fsending);
+      return;
+    }
+
+    acked = false;
 
     // If there was no modification, we do not do anything.
     if (delta.length === 0) { return; }
@@ -199,6 +209,10 @@ function sending (delta) {
     console.log('sending: ' + JSON.stringify(params.data));
     params.resp = function () {
       console.log ('sent');
+      acked = true;
+      if (fsendinglist.lenght > 0) {
+        fsendinglist.shift()();
+      }
     };
     
     params.error = function senderror (status) {
