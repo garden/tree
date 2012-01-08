@@ -45,6 +45,7 @@ var importCodeMirrorMode = ( function() {
     'text/x-stex': 'stex',
     'text/x-tiddlywiki': 'tiddlywiki',
     'text/velocity': 'velocity',
+    'text/x-verilog': 'verilog',
     'text/x-yaml': 'yaml'
   };
 
