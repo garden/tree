@@ -48,7 +48,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       console.error(err);
       data.error = err.message;
       path[0] = '/404.html';
-      camp.Server.emit ('fsplugged', data);
+      camp.server.emit ('fsplugged', data);
       return;
     }
     if (arbor.isoftype(file, 'text/plain')) {
@@ -57,7 +57,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       var mime = arbor.typenamefromtype[file.type];
       data.mime = mime;
       var util = require('util');
-      camp.Server.emit ('fsplugged', data);
+      camp.server.emit ('fsplugged', data);
 
     } else if (arbor.isoftype(file, 'dir')) {
       ///console.log('SERVER:ROOT: %s is a dir', file);
@@ -72,7 +72,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
           data.filenames.push(file);
         }
         ///console.log('SERVER:ROOT: data sent from dir is', data);
-        camp.Server.emit('fsplugged', data);
+        camp.server.emit('fsplugged', data);
       });
     }
   });
@@ -89,10 +89,9 @@ arbor.getroot (function (err, fsroot) {
 
 // Ajax FS API.
 
-camp.add ('fs', function (query) {
+camp.addDiffer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
-  console.log('actions are', camp.Server.Actions['fs']);
   var data = {};
   console.log('SERVER:FS: got query', query);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
@@ -103,9 +102,9 @@ camp.add ('fs', function (query) {
         ///console.log('SERVER:FS: got ' + query.path + ' content');
         if (err) { data.err = err;
           ///console.log('SERVER:FS: data sent from dir is', data);
-          camp.Server.emit('fs', data); return; }
+          camp.server.emit('fs', data); return; }
         dir.content (function (err, content) {
-          if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+          if (err) { data.err = err; camp.server.emit('fs', data); return; }
           data.files = [];
           for (var file in content) {
             var filedata = {name:file,
@@ -113,19 +112,19 @@ camp.add ('fs', function (query) {
             data.files.push(filedata);
           }
           ///console.log('SERVER:FS: data sent from dir is', data);
-          camp.Server.emit ('fs', data);
+          camp.server.emit ('fs', data);
         });
       });
       break;
     case 'cat':
       arbor.getfile (query['path'], function (err, file) {
-        if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+        if (err) { data.err = err; camp.server.emit('fs', data); return; }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
         file.content (function (err, content) {
-          if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+          if (err) { data.err = err; camp.server.emit('fs', data); return; }
           data.content = content;
-          camp.Server.emit ('fs', data);
+          camp.server.emit ('fs', data);
         });
       });
       break;
@@ -138,31 +137,30 @@ camp.add ('fs', function (query) {
     case 'fuzzy':
       // `query` must, here, also have a field `depth` (an integer).
       arbor.getfile (query['path'], function (err, file) {
-        if (err) { data.err = err; camp.Server.emit('fs', data); return; }
+        if (err) { data.err = err; camp.server.emit('fs', data); return; }
         file.subfiles(function(err, subfiles) {
           data.leafs = subfiles;
-          camp.Server.emit('fs', data);
+          camp.server.emit('fs', data);
         }, query['depth']);
       });
       break;
     default:
       return;
   }
-}, function fs(data) {
-  console.log('SERVER:FS:FS');
+}, function(data) {
   return data || {};
 });
 
 
 // Chat
-camp.add('talk', function(data) { camp.Server.emit('incoming', data); });
-camp.add('chat', function() {}, function incoming(data) { return data; });
+camp.add('talk', function(data) { camp.server.emit('chat', data); });
+camp.addDiffer('chat', function() {}, function(data) { return data; });
 
 
 // Options
 var options = {
   port: +process.argv[2],
-  secure: process.argv[3],
+  secure: process.argv[3] === 'yes',
   debug: +process.argv[4]
 }
 
