@@ -30,7 +30,6 @@ var dmp = new diff_match_patch ();
 // Information we keep on the state of the content of the editor.
 window.client = {
   user: +(new Date()),
-  rev: 0,
   copy: '',
   lastcopy: '',
   path: ''          // name of the path to the file.
@@ -52,12 +51,19 @@ var plug = {
     // Send back the new diff if there is something to it.
     if (newdiff.length !== 1 || newdiff[0][0] !== DIFF_EQUAL) {
 
-      // Update the last copy.
-      client.copy = client.lastcopy = content;
+      if (acked) {
+        // Update the last copy.
+        client.copy = client.lastcopy = content;
 
-      // Send the new diff.
-      Scout.send (sending (decodeURI(dmp.diff_toDelta (newdiff))
-            .replace ('%','%25'))) ();
+        // Send the new diff.
+        Scout.send (sending (decodeURI(dmp.diff_toDelta (newdiff))
+              .replace ('%','%25'))) ();
+
+        acked = false;
+      } else {
+        console.error('not acked');
+        resend = true;
+      }
     }
   }
 };
@@ -180,24 +186,16 @@ var lastnetworkissue = 0;
 //2. This place is specifically designed to send information to the server.
 
 var acked = true,
-    fsendinglist = [];
+    resend = false;
 
 // We want to listen to the event of code modification.
 function sending (delta) {
   return function fsending (params) {
 
-    if (!acked) {
-      fsendinglist.push(fsending);
-      return;
-    }
-
-    acked = false;
-
     // If there was no modification, we do not do anything.
     if (delta.length === 0) { return; }
 
     params.data = {
-      rev: client.rev++,      // Newly sent delta begets new revision.
       user: client.user,
       path: client.path,
       delta: delta
@@ -210,13 +208,15 @@ function sending (delta) {
     params.resp = function () {
       console.log ('sent');
       acked = true;
-      if (fsendinglist.lenght > 0) {
-        fsendinglist.shift()();
+      if (resend) {
+        console.log('resending now!');
+        resend = false;
+        plug.newcontent(plug.onnewdiff([]));
       }
     };
     
     params.error = function senderror (status) {
-      console.log('send error: status',JSON.stringify(status));
+      console.log('send error: status', JSON.stringify(status));
     };
 
   };
