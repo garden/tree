@@ -30,7 +30,6 @@ var dmp = new diff_match_patch ();
 // Information we keep on the state of the content of the editor.
 window.client = {
   user: +(new Date()),
-  copy: '',
   lastcopy: '',
   path: ''          // name of the path to the file.
 };
@@ -53,7 +52,7 @@ var plug = {
 
       if (acked) {
         // Update the last copy.
-        client.copy = client.lastcopy = content;
+        client.lastcopy = content;
 
         // Send the new diff.
         Scout.send (sending (decodeURI(dmp.diff_toDelta (newdiff))
@@ -90,10 +89,9 @@ var Scout2 = Scout.maker ();
 
 // client: { lastcopy: 'content before last sync' }
 // delta: patch (in delta form) to apply to our copy.
-// workingcopy: content of our copy, as a string.
 // applylocally: function ( patch ) { return newWorkingCopy; }
 // send: function ( delta ) { }
-function sync (client, delta, workingcopy, applylocally, send) {
+function sync (client, delta, applylocally, send) {
 
   // Patch last copy.
   // Note: dmp.patch_apply returns the resulting text in the first element
@@ -103,7 +101,7 @@ function sync (client, delta, workingcopy, applylocally, send) {
   client.lastcopy = dmp.patch_apply (lastcopypatch, client.lastcopy) [0];
 
   // Patch working copy.
-  workingcopy = applylocally (lastcopypatch);
+  var workingcopy = applylocally (lastcopypatch);
 
   // Create the patch that we want to send to the wire.
   var newdiff = dmp.diff_main (client.lastcopy, workingcopy);
@@ -149,7 +147,7 @@ function getmodif (params) {
     }
     
     // We sync it to our copy.
-    sync (client, resp.delta, client.copy, function applylocally(patch) {
+    sync (client, resp.delta, function applylocally(patch) {
       // Get what our content should look like after this function runs.
       var futurecontent = dmp.patch_apply (patch, client.copy) [0];
       // Figure out the difference w.r.t our working copy.
