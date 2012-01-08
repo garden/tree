@@ -112,7 +112,7 @@ function differedresult (ask, getsentback, treat, sentback) {
     }
 
     req.pause ();   // We must wait for an event to happen.
-    exports.server.on (evtname, function evtnamecb () {
+    var evtnamecb = function () {
       var args = [];    // The argument list to send to action.
       for (var i in arguments) { args.push (arguments[i]); }
       // After all arguments given to `emit`, comes the returned value of
@@ -133,7 +133,8 @@ function differedresult (ask, getsentback, treat, sentback) {
         // Remove callback.
         exports.server.removeListener (evtname, evtnamecb);
       }
-    });
+    }
+    exports.server.on (evtname, evtnamecb);
     var actiondata = getsentback ();
     // actiondata must be {differ:false/true, data:{}}.
     if (actiondata && !actiondata.differ) {
