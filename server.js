@@ -54,7 +54,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
       data.dirname = file.name;  // This will become the title.
-      var mime = arbor.typenamefromtype[file.type];
+      var mime = arbor.type.nameFromType(file.type);
       data.mime = mime;
       var util = require('util');
       camp.server.emit ('fsplugged', data);
