@@ -51,24 +51,23 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       camp.server.emit ('fsplugged', data);
       return;
     }
-    if (arbor.isoftype(file, 'text/plain')) {
+    if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
       data.dirname = file.name;  // This will become the title.
-      var mime = arbor.typenamefromtype[file.type];
+      var mime = arbor.type.nameFromType(file.type);
       data.mime = mime;
       var util = require('util');
       camp.server.emit ('fsplugged', data);
 
-    } else if (arbor.isoftype(file, 'dir')) {
-      ///console.log('SERVER:ROOT: %s is a dir', file);
+    } else if (file.isOfType('dir')) {
       path[0] = '/gateway.html';
       data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
       data.dirname = file.name || 'The File Tree';
       file.content (function (err, content) {
-        if (err) console.error(err);
+        if (err)  console.error(err);
         data.filenames = [];
         for (var file in content) {
-          if (arbor.isoftype(content[file],'dir')) file += '/';
+          if (content[file].isOfType('dir'))  file += '/';
           data.filenames.push(file);
         }
         ///console.log('SERVER:ROOT: data sent from dir is', data);
@@ -82,10 +81,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 });
 
 
-var root;
-arbor.getroot (function (err, fsroot) {
-  root = fsroot;
-});
+var root = arbor.root;
 
 // Ajax FS API.
 
@@ -93,7 +89,7 @@ camp.addDiffer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
-  console.log('SERVER:FS: got query', query);
+  //console.log('SERVER:FS: got query', query);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
@@ -107,8 +103,10 @@ camp.addDiffer ('fs', function (query) {
           if (err) { data.err = err; camp.server.emit('fs', data); return; }
           data.files = [];
           for (var file in content) {
-            var filedata = {name:file,
-                type:arbor.typenamefromtype[content[file].type]};
+            var filedata = {
+              name: file,
+              type: arbor.type.fromName(content[file].type)
+            };
             data.files.push(filedata);
           }
           ///console.log('SERVER:FS: data sent from dir is', data);
