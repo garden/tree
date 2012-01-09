@@ -60,7 +60,7 @@ will be removed when that is no longer so.
   :: File))`  
   Obtain a file, given the "fake" File Tree `path`.
 
-- `getroot :: function (gotroot :: function (err :: Error, root :: File))`  
+- `root :: File`  
   Obtain the root directory, as a File.
 
 

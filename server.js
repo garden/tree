@@ -81,10 +81,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 });
 
 
-var root;
-arbor.getroot (function (err, fsroot) {
-  root = fsroot;
-});
+var root = arbor.root;
 
 // Ajax FS API.
 
@@ -92,7 +89,7 @@ camp.addDiffer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
-  console.log('SERVER:FS: got query', query);
+  //console.log('SERVER:FS: got query', query);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
