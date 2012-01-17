@@ -160,12 +160,9 @@ var options = {
   ca: [],
 };
 var fs = require('fs');
-fs.stat('./https.ca', function(err, stats) {
-  // Actually, I don't care about stats.
-  // I just need to know if the file exists.
-  if (err === undefined)
-    options.ca.push('https.ca');
-});
+if (fs.statSync('./https.ca').isFile()) {
+  options.ca.push('https.ca');
+}
 
 // Let's rock'n'roll!
 camp.start (options);
