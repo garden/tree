@@ -10,10 +10,7 @@
 
 // Location of the root. If this is "/root", the fake root
 // will be at "http://example.com/root/".
-var ROOT_PREFIX = '/root',
-    profiles = {
-      'File system': true
-    };
+var ROOT_PREFIX = '/root';
 
 // Import modules
 var camp = require ('./camp/camp'),
@@ -25,7 +22,7 @@ var camp = require ('./camp/camp'),
 
 sync.main();
 
-if (profiles)  prof.main(profiles);
+prof.main();
 
 // FILE-SYSTEM ACCESS
 //
@@ -158,9 +155,15 @@ camp.addDiffer('chat', function() {}, function(data) { return data; });
 // Options
 var options = {
   port: +process.argv[2],
+  debug: +process.argv[4],
   secure: process.argv[3] === 'yes',
-  debug: +process.argv[4]
-}
+  ca: [],
+};
+var fs = require('fs');
+try {
+  fs.statSync('./https.ca');
+  options.ca.push('https.ca');
+} catch(e) {}
 
 // Let's rock'n'roll!
 camp.start (options);

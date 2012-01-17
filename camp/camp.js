@@ -297,10 +297,15 @@ function listener (req, res) {
 
 function startServer () {
   // Are we running https?
-  if (settings.security.key && settings.security.cert) { // yep
+  if (settings.security.key &&
+      settings.security.cert &&
+      settings.security.ca) { // yep
     https.createServer({
-      key: fs.readFileSync(settings.security.key),
-      cert: fs.readFileSync(settings.security.cert)
+      key:  fs.readFileSync(settings.security.key),
+      cert: fs.readFileSync(settings.security.cert),
+      ca:   settings.security.ca.map(function(ca) {
+        return fs.readFileSync(ca);
+      })
     }, listener).listen(settings.port);
   } else { // nope
     http.createServer(listener).listen(settings.port);
@@ -311,7 +316,6 @@ function startServer () {
 //
 exports.start = function (options) {
   var options = options || {};
-  console.log(options);
 
   for (var setting in options) {
     settings[setting] = options[setting];
@@ -321,6 +325,7 @@ exports.start = function (options) {
   if (options.secure || options.key || options.cert) {
     settings.security.key = options.key || '../https.key';
     settings.security.cert = options.cert || '../https.crt';
+	settings.security.ca = options.ca || [];
   }
 
   settings.port = options.port || (security.key && security.cert ? 443 : 80);
