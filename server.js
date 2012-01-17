@@ -160,9 +160,10 @@ var options = {
   ca: [],
 };
 var fs = require('fs');
-if (fs.statSync('./https.ca').isFile()) {
+try {
+  fs.statSync('./https.ca');
   options.ca.push('https.ca');
-}
+} catch(e) {}
 
 // Let's rock'n'roll!
 camp.start (options);
