@@ -50,7 +50,7 @@ exports.add = (function () {
 
   // The exports.add function is the following.
   var adder = function (action, callback, evtfunc) {
-  	exports.server.Actions[action] = [callback, evtfunc];
+  exports.server.Actions[action] = [callback, evtfunc];
   };
 
   exports.server.Actions = {};    // This will be extended by the add function.
@@ -300,6 +300,7 @@ function startServer () {
   if (settings.security.key &&
       settings.security.cert &&
       settings.security.ca) { // yep
+    console.error(settings.security.ca);
     https.createServer({
       key:  fs.readFileSync(settings.security.key),
       cert: fs.readFileSync(settings.security.cert),
