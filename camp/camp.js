@@ -50,7 +50,7 @@ exports.add = (function () {
 
   // The exports.add function is the following.
   var adder = function (action, callback, evtfunc) {
-  exports.server.Actions[action] = [callback, evtfunc];
+    exports.server.Actions[action] = [callback, evtfunc];
   };
 
   exports.server.Actions = {};    // This will be extended by the add function.
@@ -68,7 +68,6 @@ exports.server.binaries = [
   'rar', 'zip', 'tar', 'gz', 'ogg', 'mp3', 'mpeg', 'wav', 'wma', 'gif', 'jpg',
   'jpeg', 'png', 'svg', 'tiff', 'ico', 'mp4', 'ogv', 'mov', 'webm', 'wmv'
 ];
-
 
 
 // We'll need to parse the query (either POST or GET) as a literal.
@@ -297,18 +296,18 @@ function listener (req, res) {
 
 function startServer () {
   // Are we running https?
-  if (settings.security.key &&
-      settings.security.cert &&
-      settings.security.ca) { // yep
-    console.error(settings.security.ca);
-    https.createServer({
+  if (settings.security.key && settings.security.cert) { // Yep
+    https.createServer ({
       key:  fs.readFileSync(settings.security.key),
       cert: fs.readFileSync(settings.security.cert),
-      ca:   settings.security.ca.map(function(ca) {
-        return fs.readFileSync(ca);
+      ca:   settings.security.ca.map(function(file) {
+        try {
+          var ca = fs.readFileSync(file);
+          return ca;
+        } catch (e) { console.error('CA file not found:', file); }
       })
     }, listener).listen(settings.port);
-  } else { // nope
+  } else { // Nope
     http.createServer(listener).listen(settings.port);
   }
 }
@@ -323,10 +322,10 @@ exports.start = function (options) {
   }
 
   // Populate security values with the corresponding files.
-  if (options.secure || options.key || options.cert) {
+  if (options.secure || options.key || options.cert || options.ca) {
     settings.security.key = options.key || '../https.key';
     settings.security.cert = options.cert || '../https.crt';
-	settings.security.ca = options.ca || [];
+    settings.security.ca = options.ca || [ '../https.ca' ];
   }
 
   settings.port = options.port || (security.key && security.cert ? 443 : 80);
