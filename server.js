@@ -157,13 +157,7 @@ var options = {
   port: +process.argv[2],
   debug: +process.argv[4],
   secure: process.argv[3] === 'yes',
-  ca: [],
 };
-var fs = require('fs');
-try {
-  fs.statSync('./https.ca');
-  options.ca.push('https.ca');
-} catch(e) {}
 
 // Let's rock'n'roll!
 camp.start (options);
