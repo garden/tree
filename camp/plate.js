@@ -76,6 +76,9 @@ Plate.format = function (text, literal) {
   } catch (e) {
     console.error ('Template error: macro "' + macro + '" didn\'t work.\n' +
         'Data processed up to error:\n' + result);
+    console.error ('"' + e.message + '"');
+    console.error ('Parameters given to macro:', params);
+    console.error ('Literal:', literal);
   }
   result += ((boundaries[1]+=1) > text.length? '':
       Plate.format (text.slice (boundaries[1]), literal));
