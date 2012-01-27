@@ -19,6 +19,7 @@ var importCodeMirrorMode = ( function() {
     'text/x-c++src': 'clike',
     'text/x-java': 'clike',
     'text/x-groovy': 'groovy',
+    'text/x-go': 'go',
     'text/x-clojure': 'clojure',
     'text/x-coffeescript': 'coffeescript',
     'text/x-diff': 'diff',
