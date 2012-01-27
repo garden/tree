@@ -16,6 +16,7 @@
   "cs": "text/x-csharp",
   "java": "text/x-java",
   "groovy": "text/x-groovy",
+  "go": "text/x-go",
   "clj": "text/x-clojure",
   "coffee": "text/x-coffeescript",
   "diff": "text/x-diff",
