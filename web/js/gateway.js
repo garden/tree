@@ -99,7 +99,7 @@ addEventListener('DOMContentLoaded', function (event) {
 function showcontrols() {
   Scout('#plus').style.display = 'none';
   Scout('#controls').style.display = 'inline';
-  Scout('#newpath').focus();
+  Scout('#filetype').focus();
 };
 
 function hidecontrols() {
@@ -284,6 +284,7 @@ function init () {
 //
 // `entry` is a Number.
 function setCursor (entry) {
+  if (slots.length === 0) return;
   entry %= slots.length;
   if (entry < 0)  entry = slots.length - 1;
   if (pointer >= 0)  { slots[pointer].firstChild.innerHTML = '&nbsp;'; }
