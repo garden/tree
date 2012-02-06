@@ -6,15 +6,26 @@
 <![endif]-->
 <link rel=stylesheet href=/css/gateway.css>
 
-<form id=req action="javascript:void 0">
-  <div id=path>{{-nav|block|i;<a href='javascript:void({{=i|html}})'
-      class="block">{{=block|html}}/</a>}}</div
-    ><input id=pathreq type=search autofocus>
+<form id=toolbar action="javascript:void 0">
+  <div id=crumbs>{{-nav|block|i;<a href='javascript:void({{=i|html}})' class=crumb>{{=block|html}}/</a>}}</div>
+  <input id=search type=search class=input autofocus>
+  <div id=controls style='display:none'>
+    <select id=filetype>
+      <option selected>folder</option>
+      <option>file</option>
+      <!-- <option>link</option> -->
+    </select>
+    <input id=create value=create type=button>
+  </div>
+  <input id=plus value=+ type=button onfocus=showcontrols() onmouseover=showcontrols()>
 </form>
 
-<ul id=fuzzy>{{-filenames|filename|i;
-  <li><a href="./{{=filename|uri|xmlattr}}"><div class=cursor>&nbsp;</div
-      >{{=filename|html}}</a></li>}}
+<ul id=fuzzy>
+  {{-filenames|filename|i;
+  <li>
+    <a href="./{{=filename|uri|xmlattr}}"><div class=cursor>&{{?i===0|#x25b6;nbsp}};</div>{{=filename|html}}</a>
+  </li>
+  }}
 </ul>
 
 <script src=/js/scout.js></script>

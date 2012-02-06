@@ -7,7 +7,7 @@ menu, nav, section { display: block; }
 body { margin: 0px; }
 
 /* Search bar. */
-form#req {
+form#toolbar {
   position: fixed;
   top: 0px;
   left: 0px;
@@ -24,7 +24,7 @@ ul#fuzzy {
 
 /* Entries have the following properties */
 
-a.block, ul#fuzzy>li>a, input#pathreq {
+a.crumb, ul#fuzzy>li>a, .input {
   color: #396fac; /* hsl(212, 50%, 45%) */
   /*background: #b3d6ff; /* hsl(212, 50%, 85%) */
   /*border: 2px solid #9fbddf; /* hsl(212, 50%, 75%) */
@@ -32,25 +32,25 @@ a.block, ul#fuzzy>li>a, input#pathreq {
   font-family: "Ubuntu Mono", monospace;
   margin: 0px;
 }
-a.block:hover, ul#fuzzy>li>a:hover, input#pathreq {
+a.crumb:hover, ul#fuzzy>li>a:hover, .input {
   /*background: #bdcfff; /* hsl(223, 100%, 87%) */
 }
-div#path a.block {
+div#crumbs a.crumb {
   padding-left: 5px; padding-right: 5px;
   border-right: 0px;
 }
-div#path a.block:active { position: relative; top: 1px; }
-div#path { display: inline; }
+div#crumbs a.crumb:active { position: relative; top: 1px; }
+div#crumbs { display: inline; }
 
-input#pathreq {
+.input {
   -webkit-appearance: initial;
   font-size: 0.9em;
   border: 1px solid silver;
-  height: 21px;
+  /* height: 21px; */
   width: 250px;
   margin-left: 5px;
 }
-input#pathreq:focus { outline: 0px; border-color: #9fbddf; }
+.input:focus { outline: 0px; border-color: #9fbddf; }
 
 /* The cursor is used to select the entry we want. */
 div.cursor {
