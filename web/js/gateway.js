@@ -84,17 +84,33 @@ function getfs(params) {
 
 addEventListener('DOMContentLoaded', function (event) {
   domfiles = Scout('#files');
-  dompath = Scout('#path');
+  dompath = Scout('#crumbs');
   setpath(cwd);
 }, false);
-
-
 
 
 })();
 
 
 
+// Controls.
+//
+
+function showcontrols() {
+  Scout('#plus').style.display = 'none';
+  Scout('#controls').style.display = 'inline';
+  Scout('#newpath').focus();
+};
+
+function hidecontrols() {
+  Scout('#controls').style.display = 'none';
+  Scout('#plus').style.display = 'inline';
+};
+
+(function() {
+  
+  
+})();
 
 
 // Fuzzy matching.
@@ -186,7 +202,7 @@ function scorify (score) {
 
 
 addEventListener('load', function () {
-  var pathreq = Scout('#pathreq'),
+  var pathreq = Scout('#search'),
       depth = 3;        // default recursion level.
 
   // The very first time, we wait to load all leafs.
@@ -230,7 +246,6 @@ addEventListener('load', function () {
 // Manual selection
 //
 
-
 (function() {
 
 
@@ -238,7 +253,7 @@ addEventListener('load', function () {
 var req, res;
 
 addEventListener('load', function () {
-  req = Scout('#pathreq');
+  req = Scout('#search');
   res = Scout('#fuzzy').children;
   init();
 }, false);
@@ -285,7 +300,7 @@ function prevEntry () { setCursor(pointer - 1); }
 // When the search widget is focused, if the user presses up/down keys, and
 // the enter key.
 function keyListener (e) {
-  var empty = Scout('#pathreq').value.length === 0;
+  var empty = Scout('#search').value.length === 0;
   if (e.keyCode === 40) {
     // Down.
     nextEntry();
