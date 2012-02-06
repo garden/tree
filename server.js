@@ -58,6 +58,12 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
     } else if (file.isOfType('dir')) {
       path[0] = '/gateway.html';
+      // FIXME when viewing https://thefiletree.com/dir1/dir2, links go from
+      //       dir1 instead of dir2 (because of the missing /)
+      if ( path[1][path[1].length-1] !== '/' ) {
+        path[1] += '/';
+        data.path += '/';
+      }
       data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
       data.dirname = file.name || 'The File Tree';
       file.content (function (err, content) {
