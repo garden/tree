@@ -4,7 +4,7 @@
 // The following code is covered by the GPLv2 license.
 
 
-// Navigation code.
+// Navigation.
 //
 
 (function() {
@@ -23,5 +23,21 @@
       goback = false;
     }
   }, false);
+
+})();
+
+
+
+// UI.
+//
+
+(function() {
+
+  // Change theme.
+  window.selectTheme = function(node) {
+    var theme = node.options[node.selectedIndex].innerHTML;
+    editor.setOption("theme", theme);
+    document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+  }
 
 })();
