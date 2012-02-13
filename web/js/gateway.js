@@ -107,11 +107,19 @@ function hidecontrols() {
   Scout('#plus').style.display = 'inline';
 };
 
-(function() {
-  
-  
-})();
+Scout('#create').on('click', function(query) {
+  query.action = 'fs';
+  query.data = {
+    op: 'create',
+    path: cwd + Scout('#search').value,
+    type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
+  };
+  query.resp = function() {
+    // TODO document.location = newpath + '?plug=meta';
+  };
+});
 
+  
 
 // Fuzzy matching.
 //
@@ -209,7 +217,7 @@ addEventListener('load', function () {
   pathreq.addEventListener('input', function firstfuzzy() {
     Scout.send(function(q) {
       q.action = 'fs';
-      q.data = {op:'fuzzy', path:cwd, depth:depth};
+      q.data = {op:'ls', path:cwd, depth:depth};
       q.resp = function (r) {
         leafs = r.leafs;
         pathreq.removeEventListener('input', firstfuzzy, false);

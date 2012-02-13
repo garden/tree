@@ -99,22 +99,31 @@ camp.addDiffer ('fs', function (query) {
       ///console.log('SERVER:FS: doing some ls');
       arbor.getfile (query['path'], function (err, dir) {
         ///console.log('SERVER:FS: got ' + query.path + ' content');
-        if (err) { data.err = err;
+        if (err) {
+          data.err = err;
           ///console.log('SERVER:FS: data sent from dir is', data);
-          camp.server.emit('fs', data); return; }
-        dir.content (function (err, content) {
-          if (err) { data.err = err; camp.server.emit('fs', data); return; }
-          data.files = [];
-          for (var file in content) {
-            var filedata = {
-              name: file,
-              type: arbor.type.fromName(content[file].type)
-            };
-            data.files.push(filedata);
-          }
-          ///console.log('SERVER:FS: data sent from dir is', data);
-          camp.server.emit ('fs', data);
-        });
+          camp.server.emit('fs', data); return;
+        }
+        if (query['depth'] && query['depth'] > 1) {
+          dir.subfiles(function(err, subfiles) {
+            data.leafs = subfiles;
+            camp.server.emit('fs', data);
+          }, query['depth']);
+        } else {
+          dir.content (function (err, content) {
+            if (err) { data.err = err; camp.server.emit('fs', data); return; }
+            data.files = [];
+            for (var file in content) {
+              var filedata = {
+                name: file,
+                type: arbor.type.fromName(content[file].type)
+              };
+              data.files.push(filedata);
+            }
+            ///console.log('SERVER:FS: data sent from dir is', data);
+            camp.server.emit ('fs', data);
+          });
+        }
       });
       break;
     case 'cat':
@@ -129,21 +138,14 @@ camp.addDiffer ('fs', function (query) {
         });
       });
       break;
-    case 'touch':
-      //create file
+    case 'create':
+      console.log('TODO create',query['type'],query['path']);
+      break;
     case 'rm':
-      //delete file
+      console.log('TODO delete',query['path']);
+      break;
     case 'cp':
-      //copy file
-    case 'fuzzy':
-      // `query` must, here, also have a field `depth` (an integer).
-      arbor.getfile (query['path'], function (err, file) {
-        if (err) { data.err = err; camp.server.emit('fs', data); return; }
-        file.subfiles(function(err, subfiles) {
-          data.leafs = subfiles;
-          camp.server.emit('fs', data);
-        }, query['depth']);
-      });
+      console.log('TODO copy',query['path'],'to',query['to']);
       break;
     default:
       return;
