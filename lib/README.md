@@ -26,11 +26,11 @@ will be removed when that is no longer so.
 
 ### API:
 
-- `type :: Object`  
+- `type :: Object`
   See the type API.
 
 - `File :: function (typename :: String, name :: String, getcontent :: function
-  (whengot :: function (err :: Error, content :: Buffer)))`  
+  (whengot :: function (err :: Error, content :: Buffer)))`
   Constructor of the File object. Do not use. Use `getfile` instead.
   File objects contain the following functions:
 
@@ -48,19 +48,19 @@ will be removed when that is no longer so.
   * `this.subfiles :: function ()`: gives all the leafs of a folder recursively,
     as an Array, including folders.
 
-- `fsfiles :: Object`  
+- `fsfiles :: Object`
   The keys are the "fake" paths of all files we have in memory. The values are
   those files (of type File).
 
-- `sanitizepath :: function (path :: String)`  
+- `sanitizepath :: function (path :: String)`
   Given a path on the hard drive, this function returns the corresponding "fake"
   path in the File Tree hierarchy.
 
 - `getfile :: function (path :: String, callback :: function (err :: Error, file
-  :: File))`  
+  :: File))`
   Obtain a file, given the "fake" File Tree `path`.
 
-- `root :: File`  
+- `root :: File`
   Obtain the root directory, as a File.
 
 
