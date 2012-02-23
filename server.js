@@ -14,7 +14,7 @@ var ROOT_PREFIX = '/root';
 
 // Import modules
 var camp = require ('./camp/camp'),
-    arbor = require ('./lib/fs'),
+    ftree = require ('./lib/fs'),
     sync = require ('./lib/sync'),
     prof = require ('./lib/profiler'),
     nodepath = require ('path');
@@ -40,7 +40,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   ///console.log('SERVER:ROOT: what is %s?', path[1]);
-  arbor.getfile (path[1], function (err, file) {
+  ftree.file (path[1], function (err, file) {
     if (err) {
       console.error(err);
       data.error = err.message;
@@ -50,10 +50,9 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     }
     if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
-      data.dirname = file.name;  // This will become the title.
-      var mime = arbor.type.nameFromType(file.type);
-      data.mime = mime;
-      var util = require('util');
+      data.mime = ftree.type.nameFromType[file.meta.type];
+      // The dirname will become the title.
+      data.dirname = nodepath.basename(file.path);
       camp.server.emit ('fsplugged', data);
 
     } else if (file.isOfType('dir')) {
@@ -66,12 +65,12 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       }
       data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
       data.dirname = file.name || 'The File Tree';
-      file.content (function (err, content) {
+      file.files (function (err, files) {
         if (err)  console.error(err);
         data.filenames = [];
-        for (var file in content) {
-          if (content[file].isOfType('dir'))  file += '/';
-          data.filenames.push(file);
+        for (var i = 0; i < files.length; i++) {
+          data.filenames.push(nodepath.basename(files[i].path) +
+            (files[i].isOfType('dir')? '/': ''));
         }
         ///console.log('SERVER:ROOT: data sent from dir is', data);
         camp.server.emit('fsplugged', data);
@@ -84,7 +83,6 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 });
 
 
-var root = arbor.root;
 
 // Ajax FS API.
 
@@ -92,54 +90,48 @@ camp.addDiffer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
-  //console.log('SERVER:FS: got query', query);
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
-      ///console.log('SERVER:FS: doing some ls');
-      arbor.getfile (query['path'], function (err, dir) {
-        ///console.log('SERVER:FS: got ' + query.path + ' content');
-        if (err) { data.err = err;
-          ///console.log('SERVER:FS: data sent from dir is', data);
-          camp.server.emit('fs', data); return; }
-        dir.content (function (err, content) {
+      ftree.file (query['path'], function (err, dir) {
+        if (err) {
+          data.err = err;
+          camp.server.emit('fs', data); return;
+        }
+        dir.files (function (err, files) {
           if (err) { data.err = err; camp.server.emit('fs', data); return; }
           data.files = [];
-          for (var file in content) {
-            var filedata = {
-              name: file,
-              type: arbor.type.fromName(content[file].type)
-            };
-            data.files.push(filedata);
+          for (var i = 0; i < files.length; i++) {
+            data.files.push({
+              name: files[i],
+              type: ftree.type.nameFromType[files[i].type]
+            });
           }
-          ///console.log('SERVER:FS: data sent from dir is', data);
           camp.server.emit ('fs', data);
         });
       });
       break;
     case 'cat':
-      arbor.getfile (query['path'], function (err, file) {
+      ftree.file (query['path'], function (err, file) {
         if (err) { data.err = err; camp.server.emit('fs', data); return; }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
-        file.content (function (err, content) {
+        file.open (function (err) {
           if (err) { data.err = err; camp.server.emit('fs', data); return; }
           data.content = content;
           camp.server.emit ('fs', data);
         });
       });
       break;
-    case 'touch':
+    case 'mk':
       //create file
     case 'rm':
       //delete file
-    case 'cp':
-      //copy file
     case 'fuzzy':
       // `query` must, here, also have a field `depth` (an integer).
-      arbor.getfile (query['path'], function (err, file) {
+      ftree.file (query['path'], function (err, dir) {
         if (err) { data.err = err; camp.server.emit('fs', data); return; }
-        file.subfiles(function(err, subfiles) {
+        dir.subfiles(function(err, subfiles) {
           data.leafs = subfiles;
           camp.server.emit('fs', data);
         }, query['depth']);
