@@ -98,17 +98,24 @@ camp.addDiffer ('fs', function (query) {
           data.err = err;
           camp.server.emit('fs', data); return;
         }
-        dir.files (function (err, files) {
-          if (err) { data.err = err; camp.server.emit('fs', data); return; }
-          data.files = [];
-          for (var i = 0; i < files.length; i++) {
-            data.files.push({
-              name: files[i],
-              type: ftree.type.nameFromType[files[i].type]
-            });
-          }
-          camp.server.emit ('fs', data);
-        });
+        if (query.depth && query.depth > 1) {
+          dir.subfiles(function(err, subfiles) {
+            data.leafs = subfiles;
+            camp.server.emit('fs', data);
+          }, query.depth);
+        } else {
+          dir.files (function (err, files) {
+            if (err) { data.err = err; camp.server.emit('fs', data); return; }
+            data.files = [];
+            for (var i = 0; i < files.length; i++) {
+              data.files.push({
+                name: files[i],
+                type: ftree.type.nameFromType[files[i].type]
+              });
+            }
+            camp.server.emit ('fs', data);
+          });
+        }
       });
       break;
     case 'cat':
@@ -125,17 +132,12 @@ camp.addDiffer ('fs', function (query) {
       break;
     case 'mk':
       //create file
+      console.log('TODO create',query['type'],query['path']);
+      break;
     case 'rm':
       //delete file
-    case 'fuzzy':
-      // `query` must, here, also have a field `depth` (an integer).
-      ftree.file (query['path'], function (err, dir) {
-        if (err) { data.err = err; camp.server.emit('fs', data); return; }
-        dir.subfiles(function(err, subfiles) {
-          data.leafs = subfiles;
-          camp.server.emit('fs', data);
-        }, query['depth']);
-      });
+      console.log('TODO delete',query['path']);
+      break;
       break;
     default:
       return;

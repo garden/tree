@@ -34,7 +34,7 @@
   .toolbar {
     position: absolute;
     bottom: 0px;
-    height: 27px;
+    height: 25px;
   }
 </style>
 
@@ -63,12 +63,6 @@
 
     importCodeMirrorMode("{{=mime|jsonstring}}");
 
-    // Change theme.
-    function selectTheme(node) {
-      var theme = node.options[node.selectedIndex].innerHTML;
-      editor.setOption("theme", theme);
-      document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
-    }
 
   </script>
 

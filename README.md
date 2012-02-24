@@ -1,6 +1,6 @@
-# Tree
+# tree
 
-The Collaborative Operating System.
+The Collaborative Operating System
 
 ## Get it
 
@@ -25,5 +25,5 @@ The Collaborative Operating System.
 
 - [ScoutCamp] (http://espadrine.github.com/ScoutCamp) (LGPL license)
 - [CodeMirror2] (http://codemirror.net) (MIT license)
-- [diff_match_patch] (http://code.google.com/p/google-diff-match-patch) (Apache license)
+- [diff-match-patch] (http://code.google.com/p/google-diff-match-patch) (Apache license)
 
