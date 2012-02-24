@@ -130,14 +130,32 @@ camp.addDiffer ('fs', function (query) {
         });
       });
       break;
-    case 'mk':
+    case 'mkfile':
       //create file
-      console.log('TODO create',query['type'],query['path']);
+      ftree.file (query.path, function(err, file) {
+        file.mkfile(query.filename, function(err) {
+          data.err = err;
+          camp.server.emit('fs', data);
+        });
+      });
+      break;
+    case 'mkdir':
+      //create file
+      ftree.file (query.path, function(err, file) {
+        file.mkdir(query.filename, function(err) {
+          data.err = err;
+          camp.server.emit('fs', data);
+        });
+      });
       break;
     case 'rm':
       //delete file
-      console.log('TODO delete',query['path']);
-      break;
+      ftree.file (query.path, function(err, file) {
+        file.rm(function (err) {
+          data.err = err;
+          camp.server.emit('fs', data);
+        });
+      });
       break;
     default:
       return;
