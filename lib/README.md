@@ -88,9 +88,13 @@ This rules the file type system.
 
 - `addType(mimeType :: String, parents :: Array)` adds a new mime type to the
   type system, with fallbacks as a list of types (integers).
-- `fromName(mimeType :: String)` gives the type (a number) from the mime type.
-- `nameFromType(type :: Number)` gives the mime type from the number type.
+- `fromName :: Object` gives the type (a number) from the mime type (String).
+- `nameFromType :: Array` gives the mime type from the number type.
 - `isCompatible(type :: Number, ancestor :: Number)` is true if `type` is
   compatible with `ancestor`.
+- `guessType(path :: String, cb :: Function)` The callback has two parameters,
+  an error, and a plausible number type.
+- `driver(type :: Number)` yields the driver corresponding to the indicated
+  type. Drivers are specified in the `driver.js` file.
 
 
