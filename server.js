@@ -93,7 +93,7 @@ camp.addDiffer ('fs', function (query) {
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
-      ftree.file (query['path'], function (err, dir) {
+      ftree.file (query.path, function (err, dir) {
         if (err) {
           data.err = err;
           camp.server.emit('fs', data); return;
@@ -119,7 +119,7 @@ camp.addDiffer ('fs', function (query) {
       });
       break;
     case 'cat':
-      ftree.file (query['path'], function (err, file) {
+      ftree.file (query.path, function (err, file) {
         if (err) { data.err = err; camp.server.emit('fs', data); return; }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
