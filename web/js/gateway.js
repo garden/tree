@@ -1,7 +1,37 @@
 // gateway.js: roaming motor behind the gateway system.
 // It is used whenever a user hits a directory file.
-// Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
+// Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
 // The following code is covered by the GPLv2 license.
+
+
+
+// Controls.
+//
+
+function showcontrols() {
+  Scout('#plus').style.display = 'none';
+  Scout('#controls').style.display = 'inline';
+  Scout('#filetype').focus();
+};
+
+function hidecontrols() {
+  Scout('#controls').style.display = 'none';
+  Scout('#plus').style.display = 'inline';
+};
+
+Scout('#create').on('click', function(query) {
+  query.action = 'fs';
+  query.data = {
+    op: 'create',
+    path: cwd,
+    name: Scout('#search').value,
+    type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
+  };
+  query.resp = function() {
+    // TODO document.location = newpath + '?plug=meta';
+  };
+});
+
 
 
 // Navigation code.
@@ -90,34 +120,6 @@ addEventListener('DOMContentLoaded', function (event) {
 
 
 })();
-
-
-
-// Controls.
-//
-
-function showcontrols() {
-  Scout('#plus').style.display = 'none';
-  Scout('#controls').style.display = 'inline';
-  Scout('#filetype').focus();
-};
-
-function hidecontrols() {
-  Scout('#controls').style.display = 'none';
-  Scout('#plus').style.display = 'inline';
-};
-
-Scout('#create').on('click', function(query) {
-  query.action = 'fs';
-  query.data = {
-    op: 'create',
-    path: cwd + Scout('#search').value,
-    type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
-  };
-  query.resp = function() {
-    // TODO document.location = newpath + '?plug=meta';
-  };
-});
 
   
 
