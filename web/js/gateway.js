@@ -27,8 +27,11 @@ Scout('#create').on('click', function(query) {
     name: Scout('#search').value,
     type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
   };
-  query.resp = function() {
-    // TODO document.location = newpath + '?plug=meta';
+  query.resp = function (data) {
+    if (data.error) {
+      console.error(data.error); return;
+    }
+    document.location = cwd + Scout('#search').value; // TODO + '?plug=/util/meta';
   };
 });
 
