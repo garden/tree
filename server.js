@@ -14,7 +14,7 @@ var ROOT_PREFIX = '/root';
 
 // Import modules
 var camp = require ('./camp/camp'),
-    treefs = require ('./lib/fs'),
+    ftree = require ('./lib/fs'),
     sync = require ('./lib/sync'),
     prof = require ('./lib/profiler'),
     nodepath = require ('path');
@@ -40,7 +40,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   // TODO: in the future, this will be the #plug system.
   // If they want a directory, load gateway.
   ///console.log('SERVER:ROOT: what is %s?', path[1]);
-  treefs.file (path[1], function (err, file) {
+  ftree.file (path[1], function (err, file) {
     if (err) {
       console.error(err);
       data.error = err.message;
@@ -51,7 +51,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     }
     if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
-      data.mime = treefs.type.nameFromType[file.meta.type];
+      data.mime = ftree.type.nameFromType[file.meta.type];
       // The dirname will become the title.
       data.dirname = nodepath.basename(file.path);
       camp.server.emit ('fsplugged', data);
@@ -94,7 +94,7 @@ camp.addDiffer ('fs', function (query) {
   if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
-      treefs.file (query.path, function (err, dir) {
+      ftree.file (query.path, function (err, dir) {
         if (err) {
           data.err = err;
           camp.server.emit('fs', data); return;
@@ -113,7 +113,7 @@ camp.addDiffer ('fs', function (query) {
             for (var i = 0; i < files.length; i++) {
               data.files.push({
                 name: files[i],
-                type: treefs.type.nameFromType[files[i].type]
+                type: ftree.type.nameFromType[files[i].type]
               });
             }
             camp.server.emit ('fs', data);
@@ -122,7 +122,7 @@ camp.addDiffer ('fs', function (query) {
       });
       break;
     case 'cat':
-      treefs.file (query.path, function (err, file) {
+      ftree.file (query.path, function (err, file) {
         if (err) { data.err = err; camp.server.emit('fs', data); return; }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
@@ -135,7 +135,7 @@ camp.addDiffer ('fs', function (query) {
       break;
     case 'create':
       console.log('trying to create',query.type,'named',query.name,'in',query.path);
-      treefs.file (query.path, function(err, file) {
+      ftree.file (query.path, function(err, file) {
         // file or folder?
         (query.type === "folder" ? file.driver.mkdir : file.driver.mkfile) (query.path + query.name, function(err) {
           data.err = err;
@@ -145,7 +145,7 @@ camp.addDiffer ('fs', function (query) {
       });
       break;
     case 'rm':
-      treefs.file (query.path, function(err, file) {
+      ftree.file (query.path, function(err, file) {
         file.rm(function (err) {
           data.err = err;
           camp.server.emit('fs', data);

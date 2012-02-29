@@ -1,6 +1,6 @@
 // gateway.js: roaming motor behind the gateway system.
 // It is used whenever a user hits a directory file.
-// Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+// Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
 // The following code is covered by the GPLv2 license.
 
 
