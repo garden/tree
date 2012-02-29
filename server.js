@@ -44,6 +44,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     if (err) {
       console.error(err);
       data.error = err.message;
+      // TODO change HTTP return code to 404 instead of 200
       path[0] = '/404.html';
       camp.server.emit ('fsplugged', data);
       return;
@@ -98,11 +99,13 @@ camp.addDiffer ('fs', function (query) {
           data.err = err;
           camp.server.emit('fs', data); return;
         }
+        // ls -r
         if (query.depth && query.depth > 1) {
           dir.subfiles(function(err, subfiles) {
             data.leafs = subfiles;
             camp.server.emit('fs', data);
           }, query.depth);
+        // ls .
         } else {
           dir.files (function (err, files) {
             if (err) { data.err = err; camp.server.emit('fs', data); return; }
@@ -130,26 +133,18 @@ camp.addDiffer ('fs', function (query) {
         });
       });
       break;
-    case 'mkfile':
-      //create file
+    case 'create':
+      console.log('trying to create',query.type,'named',query.name,'in',query.path);
       ftree.file (query.path, function(err, file) {
-        file.mkfile(query.filename, function(err) {
+        // file or folder?
+        (query.type === "folder" ? file.driver.mkdir : file.driver.mkfile) (query.path + query.name, function(err) {
           data.err = err;
-          camp.server.emit('fs', data);
-        });
-      });
-      break;
-    case 'mkdir':
-      //create file
-      ftree.file (query.path, function(err, file) {
-        file.mkdir(query.filename, function(err) {
-          data.err = err;
+          data.path = ROOT_PREFIX + query.path + query.name;
           camp.server.emit('fs', data);
         });
       });
       break;
     case 'rm':
-      //delete file
       ftree.file (query.path, function(err, file) {
         file.rm(function (err) {
           data.err = err;

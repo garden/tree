@@ -6,13 +6,13 @@
 <![endif]-->
 <link rel=stylesheet href=/css/gateway.css>
 
-<form id=toolbar action="javascript:void 0">
+<form id=toolbar action="javascript:void 0" autocomplete=off>
   <div id=crumbs>{{-nav|block|i;<a href='javascript:void({{=i|html}})' class=crumb>{{=block|html}}/</a>}}</div>
   <input id=search type=search class=input autofocus>
   <div id=controls style='display:none'>
     <select id=filetype>
-      <option selected>folder</option>
-      <option>file</option>
+      <option selected>file</option>
+      <option>folder</option>
       <!-- <option>link</option> -->
     </select>
     <input id=create value=create type=button>
@@ -22,9 +22,7 @@
 
 <ul id=fuzzy>
   {{-filenames|filename|i;
-  <li>
-    <a href="./{{=filename|uri|xmlattr}}"><div class=cursor>&{{?i==0|#x25b6;nbsp}};</div>{{=filename|html}}</a>
-  </li>
+  <li><div class=cursor>&{{?i==0|#x25b6;nbsp}};</div><a href="./{{=filename|uri|xmlattr}}">{{=filename|html}}</a></li>
   }}
 </ul>
 

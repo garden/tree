@@ -1,16 +1,16 @@
 # tree
 
-The Collaborative Operating System
+The Collaborative Operating System - https://thefiletree.com
 
 ## Get it
 
-- install [node] (http://nodejs.org) & [jsmin] (http://www.crockford.com/javascript/jsmin.html)
-- fork or download the [tree] (http://github.com/garden/tree)
+- install [node] (http://nodejs.org)
+- fork or download [tree] (http://github.com/garden/tree)
 
 ## Use it
 
 - `make`
-- [browse] (http://localhost/)
+- [localhost] (http://localhost/)
 - enjoy!
 
 ## Contribute
@@ -19,11 +19,11 @@ The Collaborative Operating System
 - send [pull requests] (http://help.github.com/send-pull-requests)
 - contact [Thaddee Tyl] (http://github.com/inbox/new/espadrine), [Jan Keromnes] (http://github.com/inbox/new/jankeromnes)
 
-## Included
+## Includes
 
-[tree] (http://github.com/garden/tree) (GPLv2 license) also contains code from
+This project is covered by the GPLv2 license, and contains:
 
 - [ScoutCamp] (http://espadrine.github.com/ScoutCamp) (LGPL license)
 - [CodeMirror2] (http://codemirror.net) (MIT license)
-- [diff-match-patch] (http://code.google.com/p/google-diff-match-patch) (Apache license)
+- [google-diff-match-patch] (http://code.google.com/p/google-diff-match-patch) (Apache license)
 

@@ -4,6 +4,37 @@
 // The following code is covered by the GPLv2 license.
 
 
+
+// Controls.
+//
+
+function showcontrols() {
+  Scout('#plus').style.display = 'none';
+  Scout('#controls').style.display = 'inline';
+  Scout('#filetype').focus();
+};
+
+function hidecontrols() {
+  Scout('#controls').style.display = 'none';
+  Scout('#plus').style.display = 'inline';
+};
+
+Scout('#create').on('click', function(query) {
+  query.action = 'fs';
+  query.data = {
+    op: 'create',
+    path: cwd,
+    name: Scout('#search').value,
+    type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
+  };
+  query.resp = function (data) {
+    if (data.error) console.error(data.error);
+    else if (data.path) document.location = data.path; // TODO + '?plug=/util/meta';
+  };
+});
+
+
+
 // Navigation code.
 //
 
@@ -90,34 +121,6 @@ addEventListener('DOMContentLoaded', function (event) {
 
 
 })();
-
-
-
-// Controls.
-//
-
-function showcontrols() {
-  Scout('#plus').style.display = 'none';
-  Scout('#controls').style.display = 'inline';
-  Scout('#filetype').focus();
-};
-
-function hidecontrols() {
-  Scout('#controls').style.display = 'none';
-  Scout('#plus').style.display = 'inline';
-};
-
-Scout('#create').on('click', function(query) {
-  query.action = 'fs';
-  query.data = {
-    op: 'create',
-    path: cwd + Scout('#search').value,
-    type: Scout('#filetype').options[Scout('#filetype').selectedIndex].innerHTML
-  };
-  query.resp = function() {
-    // TODO document.location = newpath + '?plug=meta';
-  };
-});
 
   
 
@@ -235,16 +238,13 @@ addEventListener('load', function () {
       // There is no remaining query (if the query is not complete, it is
       // not shown).
       var path = scorify(scores[i]);
-      html += '<li><a href="' + scores[i][0] + '">'
-        + '<div class="cursor">&nbsp;</div>'
-        + path + '</a></li>';
+      html += '<li><div class="cursor">&nbsp;</div><a href="' + scores[i][0] +
+              '">' + path + '</a></li>';
     }
     Scout('#fuzzy').innerHTML = html;
     selectionInit();
   }
 }, false);
-
-
 
 
 })();
@@ -280,7 +280,7 @@ function init () {
   }
   
   // Populate slots.
-  slots = document.querySelectorAll('#fuzzy>li>a');
+  slots = document.querySelectorAll('#fuzzy>li');
   
   setCursor(0);     // Put the cursor on the first entry.
 
@@ -320,7 +320,7 @@ function keyListener (e) {
     e.preventDefault();
   } else if (e.keyCode === 13 || (empty && e.keyCode === 39)) {
     // Enter or (Empty and Right).
-    window.location = slots[pointer].href;
+    window.location = slots[pointer].firstChild.nextSibling.href;
   } else if (empty && (e.keyCode === 8 || e.keyCode === 37)) {
     // Empty and (Backspace or Left).
     //history.go(-1);
