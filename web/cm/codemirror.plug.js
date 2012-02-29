@@ -98,7 +98,10 @@ function CodeMirrorPlug ( path, body, params, update ) {
   };
   var editor = CodeMirror (body, params);
 
-  /// Some useful primitive that talks to the CodeMirror editor.
+  /// Importing the required hightlight modes
+  if (params.mode) importCodeMirrorMode(params.mode);
+
+  /// CodeMirror extension for content syncing.
   client.notmychange = false;
   var extenditor = {
     applydiff : function(change, editor) {

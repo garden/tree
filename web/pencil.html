@@ -23,25 +23,17 @@
 <script src=/cm/codemirror.plug.js></script>
 
 <style>
-  html body { margin: 0px; padding: 0px; width: 100%; height: 100%; position: absolute; }
-  .CodeMirror-scroll {
-    height: auto;
-    width: 100%;
-    position: fixed;
-    bottom: 27px;
-    top: 0px;
-  }
-  .toolbar {
-    position: absolute;
-    bottom: 0px;
-    height: 25px;
-  }
+  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
+  .CodeMirror-scroll {position: fixed; top: 0px; bottom: 0px; height: auto; width: 100%;}
+  .tools {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
+  div#toolbox {display: none}
 </style>
 
 <body class="cm-s-default">
 
-  <div class=toolbar>
-    <select onchange="selectTheme(this)">
+  <input id=wrench class=tools type=button value=&#9881; onmouseover=showtools()>
+  <div id=toolbox class=tools>
+    <select onchange="selectTheme(this)" title="change theme">
       <option selected>default</option>
       <option>night</option>
       <option>neat</option>
@@ -54,19 +46,13 @@
   </div>
 
   <script>
-
-    // Create a CodeMirror2 editor.
-    editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
-      mode: "text/plain",
-      tabMode: "shift"
-    });
-
-    importCodeMirrorMode("{{=mime|jsonstring}}");
-
-
+  // Create a CodeMirror2 editor.
+  editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
+    mode: "{{=mime|jsonstring}}",
+    lineNumbers: true
+  });
   </script>
 
   <!-- Google Analytics -->
   <script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
 
-</body>

@@ -139,6 +139,7 @@ camp.addDiffer ('fs', function (query) {
         // file or folder?
         (query.type === "folder" ? file.driver.mkdir : file.driver.mkfile) (query.path + query.name, function(err) {
           data.err = err;
+          data.path = ROOT_PREFIX + query.path + query.name;
           camp.server.emit('fs', data);
         });
       });

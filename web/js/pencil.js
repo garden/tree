@@ -4,40 +4,56 @@
 // The following code is covered by the GPLv2 license.
 
 
-// Navigation.
+
+// UI
+//
+
+function showtools() {
+  Scout('#wrench').style.display = 'none';
+  Scout('#toolbox').style.display = 'inline';
+};
+
+function hidetools() {
+  Scout('#toolbox').style.display = 'none';
+  Scout('#wrench').style.display = 'inline';
+};
+
+// CodeMirror theme
+function selectTheme(node) {
+  var theme = node.options[node.selectedIndex].innerHTML;
+  editor.setOption("theme", theme);
+  document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+}
+
+
+
+// Navigation
 //
 
 (function() {
 
-  // We can go back on shortcut
-  var goback = true;
+  // Hot back shortcut is active
+  var hotback = true;
 
+  // If a key is pressed...
   addEventListener('keydown', function(e) {
-    if (goback && (e.keyCode === 8 || e.keyCode === 37)) {
-      // Can go back and (Backspace or Left).
+
+    // If hot back is active and (Backspace or Left), we go back.
+    if (hotback && (e.keyCode === 8 || e.keyCode === 37)) {
       //history.go(-1);
       var loc = window.location;
       window.location = loc.protocol + '//' + loc.host +
         loc.pathname.replace(/\/[^\/]+[\/]*$/,'/') + loc.search;
-    } else {
-      goback = false;
     }
+
+    // In any case, after keydown we deactivate hot back
+    hotback = false;
+
   }, false);
 
-})();
-
-
-
-// UI.
-//
-
-(function() {
-
-  // Change theme.
-  window.selectTheme = function(node) {
-    var theme = node.options[node.selectedIndex].innerHTML;
-    editor.setOption("theme", theme);
-    document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
-  }
+  // If the user clicks, deactivate hot back
+  addEventListener('mousedown', function() {hotback = false;});
 
 })();
+
+
