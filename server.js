@@ -29,7 +29,7 @@ prof.main();
 
 // Redirection of `http://<DNS>.tld/root/something`
 // to look for `/root/something`.
-camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
+camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
   // Default plug
   path[0] = '/pencil.html';
@@ -87,7 +87,7 @@ camp.handle (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
 // Ajax FS API.
 
-camp.addDiffer ('fs', function (query) {
+camp.addDefer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
@@ -162,7 +162,7 @@ camp.addDiffer ('fs', function (query) {
 
 // Chat
 camp.add('talk', function(data) { camp.server.emit('chat', data); });
-camp.addDiffer('chat', function() {}, function(data) { return data; });
+camp.addDefer('chat', function() {}, function(data) { return data; });
 
 
 // Options

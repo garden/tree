@@ -104,15 +104,15 @@ actions is to treat servers more like applications.  You first serve the
 graphical interface, in html and css, and then, you let the user interact with
 the server's data seemlessly through ajax calls.
 
-You may also differ the moment when you send the json back to the client.  The
-basic idea is, you want to send it when an event is raised: `camp.server.emit
-('actionname', data)`.  In that case, use the `camp.addDiffer` function.
+You may also defer the moment when you send the json back to the client.  The
+basic idea is, you want to send it when an event is raised: `camp.emit
+('actionname', data)`.  In that case, use the `camp.addDefer` function.
 You need to add a third parameter to the definition of your action, to be run
 when the event is emitted:
 
-    camp.addDiffer ( 'actionname', function () {
+    camp.addDefer ( 'actionname', function () {
       …
-      return {differ:true, data:localdata};
+      return {defer:true, data:localdata};
     }, function actionname (data1, data2, localdata) {
       return json;
     });
@@ -120,15 +120,15 @@ when the event is emitted:
     …
 
     // Somewhere, sometime later:
-    camp.server.emit ( 'actionname', data1, data2);
+    camp.emit ( 'actionname', data1, data2);
 
 The name of the event to raise is either the name of the third parameter to
-`addDiffer`, or, if it has no name, the name of the action.
+`addDefer`, or, if it has no name, the name of the action.
 
-Please note that the second parameter to `addDiffer` (if given) returns
-information to indicate whether you wish to differ this action.
+Please note that the second parameter to `addDefer` (if given) returns
+information to indicate whether you wish to defer this action.
 
-If you do want to differ, `data` will be given as an argument to the third
+If you do want to defer, `data` will be given as an argument to the third
 parameter, when the event is emitted.
 Otherwise, `data` is the data sent back to the client.
 
@@ -146,14 +146,14 @@ directory).
 
     var posts = ['This is the f1rst p0st!'];
 
-    camp.handle ( /\/first\/post.html/, function ( query, path ) {
+    camp.route ( /\/first\/post.html/, function ( query, path ) {
       return {
         text: posts[0],
         comments: ['first comment!', 'second comment...']
       };
     });
 
-In this `camp.handle` function, `query` is the object literal associated to the
+In this `camp.route` function, `query` is the object literal associated to the
 query string sent in the URL.  For instance, `/first/post.html?key=value` has an
 associated query of `{"key": "value"}`.  
 The path, on the other side, corresponds to the match object that comes from
@@ -188,7 +188,7 @@ grammar of the templating language.
 
 The camp.js binding is a very straightforward function; namely:
 
-    camp.handle ( paths = /pattern/, call = function ( query = {}, path = [] ) {
+    camp.route ( paths = /pattern/, call = function ( query = {}, path = [] ) {
       return {};
     });
 
@@ -264,7 +264,7 @@ macro `i`):
 The `literal` object contains all objects that are given to the template, and
 the params are what is given to the macro between pipe characters `|`.
 
-You may, just as with `Camp.addDiffer` actions, give `Camp.handle` a third
+You may, just as with `camp.addDefer` actions, give `camp.route` a third
 parameter, a function, to serve as a callback for the event that will trigger
 that function (and will send the templated document back to the client).
 Since we cannot use the action name as an event name (there are no action), we
@@ -273,10 +273,10 @@ use the name of the function given as a third parameter.
 
 ## Fall through
 
-There are three steps when treating URLs.  Once it has not matched any handle,
+There are three steps when treating URLs.  Once it has not matched any route,
 it is matched against the web/ folder on hard drive.  Finally, if nothing was
 found before, it returns a 404 message.  This can be overriden by the
-`camp.notfound` function, which is identical to the `camp.handle` function.  It
+`camp.notfound` function, which is identical to the `camp.route` function.  It
 does the same thing, too, but only after even searching in the file system
 failed to provide a result.
 
