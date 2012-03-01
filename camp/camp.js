@@ -32,7 +32,7 @@ var settings = {
 var catches = [],
     fallthrough = [];
 
-exports.handle = function (paths, literalcall, evtcb) {
+exports.route = function (paths, literalcall, evtcb) {
   catches.push ([RegExp(paths).source, literalcall, evtcb]);
 };
 
@@ -58,8 +58,10 @@ exports.add = (function () {
   return adder;
 })();
 
-exports.addDiffer = exports.add;
 
+// Useful aliases
+exports.addDefer = exports.add;
+exports.emit = function(e,f) {exports.server.emit(e,f);}
 
 exports.server.mime = require('./mime.json');
 
@@ -91,13 +93,13 @@ function Ask (req, res) {
   return {req:req, res:res};
 }
 
-/* Differed sendback function (choice between func and object).
+/* Deferred sendback function (choice between func and object).
  * `ask` is the client request environment.
  * `getsentback` is the function that returns either an object or ∅.
  * `treat(res)` is a func that the result goes through and is sent.
  * `sentback` is a function, fired by the event whose name is
  * that function's name. */
-function differedresult (ask, getsentback, treat, sentback) {
+function deferredresult (ask, getsentback, treat, sentback) {
   var req = ask.req,
       res = ask.res;
   if (sentback !== undefined) {
@@ -135,8 +137,8 @@ function differedresult (ask, getsentback, treat, sentback) {
     }
     exports.server.on (evtname, evtnamecb);
     var actiondata = getsentback ();
-    // actiondata must be {differ:false/true, data:{}}.
-    if (actiondata && !actiondata.differ) {
+    // actiondata must be {defer:false/true, data:{}}.
+    if (actiondata && !actiondata.defer) {
       res.end (treat (actiondata.data || {}));
       exports.server.removeListener (evtname, evtnamecb);
     }
@@ -154,7 +156,7 @@ function differedresult (ask, getsentback, treat, sentback) {
 //
 // - look into the 'web' folder (default)
 // - trigger the corresponding action (if it starts with a $)
-// - run the template (if camp.handle was used)
+// - run the template (if camp.route was used)
 //
 
 function listener (req, res) {
@@ -188,7 +190,7 @@ function listener (req, res) {
           var getsentback = function() {
             return exports.server.Actions[action][0] (query);
           },  evtcb =  exports.server.Actions[action][1];
-          differedresult (ask, getsentback, JSON.stringify, evtcb);
+          deferredresult (ask, getsentback, JSON.stringify, evtcb);
         } else {
           res.end ('404');
         }
@@ -235,7 +237,7 @@ function listener (req, res) {
 
         // `platepaths[0][2]` is the callback associated to the event,
         // if it exists.
-        differedresult (ask, completion, treat, platepaths[0][2]);
+        deferredresult (ask, completion, treat, platepaths[0][2]);
 
       };
 
@@ -328,7 +330,8 @@ exports.start = function (options) {
     settings.security.ca = options.ca || [ '../https.ca' ];
   }
 
-  settings.port = options.port || (security.key && security.cert ? 443 : 80);
+  settings.port = options.port ||
+    (settings.security.key && settings.security.cert ? 443 : 80);
   settings.debug = options.debug || 0;
 
   startServer();

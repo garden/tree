@@ -88,16 +88,24 @@ Plate.format = function (text, literal) {
 // Helper function to parse simple expressions.
 // Can throw pretty easily if the template is too complex.
 Plate.value = function (literal, strval) {
-  strval = strval.replace (
-      /([a-zA-Z$_][a-zA-Z$_0-9]*(\.[a-zA-Z$_][a-zA-Z$_0-9]*)*)/g
-      , 'literal.$1');
-  var val;
-  try { val = eval ('('+ strval +')'); } catch(e) {
+  try {
+    // Special-case faster, single variable access lookups.
+    if (/^[a-zA-Z_\$]+$/.test(strval)) {
+      return literal[strval];
+    } else {
+      // Putting literal in the current scope.  Ugly as hell.
+      var evalLiteral = "";
+      for (var field in literal) {
+        evalLiteral += "var " + field + " = literal['" + field + "'];";
+      }
+      return eval (evalLiteral + '('+ strval +');');
+    }
+  } catch(e) {
     console.error ('Template error: literal ' + JSON.stringify (strval) +
-                 ' is missing.');
+                   ' is missing.\n', e);
     return '';
   }
-  return val;
+  return strval;
 };
 
 Plate.macros = {
@@ -118,8 +126,8 @@ Plate.macros = {
   '?': function (literal, params) {
     var val = Plate.value (literal, params[0]);
     if (val) {
-      return params[1];
-    } else return params[2]? params[2]: '';
+      return Plate.format(params[1], literal);
+    } else return params[2]? Plate.format(params[2], literal): '';
   },
   '-': function (literal, params) {
     var val = Plate.value (literal, params[0]);
