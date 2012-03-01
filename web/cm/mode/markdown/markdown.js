@@ -13,11 +13,11 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
   ,   strong   = 'strong'
   ,   emstrong = 'emstrong';
 
-  var hrRE = /^[*-=_]/
-  ,   ulRE = /^[*-+]\s+/
-  ,   olRE = /^[0-9]\.\s+/
+  var hrRE = /^[*\-=_]/
+  ,   ulRE = /^[*\-+]\s+/
+  ,   olRE = /^[0-9]+\.\s+/
   ,   headerRE = /^(?:\={3,}|-{3,})$/
-  ,   codeRE = /^(k:\t|\s{4,})/
+  ,   codeRE = /^(?:\t|\s{4,})/
   ,   textRE = /^[^\[*_\\<>`]+/;
 
   function switchInline(stream, state, f) {
@@ -34,35 +34,23 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
   // Blocks
 
   function blockNormal(stream, state) {
+    var match;
     if (stream.match(codeRE)) {
       stream.skipToEnd();
       return code;
-    }
-    
-    if (stream.eatSpace()) {
+    } else if (stream.eatSpace()) {
       return null;
-    }
-    
-    if (stream.peek() === '#' || stream.match(headerRE)) {
-      stream.skipToEnd();
-      return header;
-    }
-    if (stream.eat('>')) {
+    } else if (stream.peek() === '#' || stream.match(headerRE)) {
+      state.header = true;
+    } else if (stream.eat('>')) {
       state.indentation++;
-      return quote;
-    }
-    if (stream.peek() === '[') {
+      state.quote = true;
+    } else if (stream.peek() === '[') {
       return switchInline(stream, state, footnoteLink);
-    }
-    if (hrRE.test(stream.peek())) {
-      var re = new RegExp('(?:\s*['+stream.peek()+']){3,}$');
-      if (stream.match(re, true)) {
-        return hr;
-      }
-    }
-    
-    var match;
-    if (match = stream.match(ulRE, true) || stream.match(olRE, true)) {
+    } else if (hrRE.test(stream.peek()) &&
+               stream.match(new RegExp('(?:\s*['+stream.peek()+']){3,}$'), true)) {
+      return hr;
+    } else if (match = stream.match(ulRE, true) || stream.match(olRE, true)) {
       state.indentation += match[0].length;
       return list;
     }
@@ -82,8 +70,39 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   // Inline
   function getType(state) {
-    return state.strong ? (state.em ? emstrong : strong)
-                        : (state.em ? em       : null);
+    
+    // Set defaults
+    returnValue = '';
+    
+    // Strong / Emphasis
+    if(state.strong){
+      if(state.em){
+        returnValue += (returnValue ? ' ' : '') + emstrong;
+      } else {
+        returnValue += (returnValue ? ' ' : '') + strong;
+      }
+    } else {
+      if(state.em){
+        returnValue += (returnValue ? ' ' : '') + em;
+      }
+    }
+    
+    // Header
+    if(state.header){
+      returnValue += (returnValue ? ' ' : '') + header;
+    }
+    
+    // Quotes
+    if(state.quote){
+      returnValue += (returnValue ? ' ' : '') + quote;
+    }
+    
+    // Check valud and return
+    if(!returnValue){
+      returnValue = null;
+    }
+    return returnValue;
+    
   }
 
   function handleText(stream, state) {
@@ -192,7 +211,9 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         inline: inlineNormal,
         text: handleText,
         em: false,
-        strong: false
+        strong: false,
+        header: false,
+        quote: false
       };
     },
 
@@ -207,12 +228,23 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         inline: s.inline,
         text: s.text,
         em: s.em,
-        strong: s.strong
+        strong: s.strong,
+        header: s.header,
+        quote: s.quote
       };
     },
 
     token: function(stream, state) {
       if (stream.sol()) {
+        // Reset EM state
+        state.em = false;
+        // Reset STRONG state
+        state.strong = false;
+        // Reset state.header
+        state.header = false;
+        // Reset state.quote
+        state.quote = false;
+
         state.f = state.block;
         var previousIndentation = state.indentation
         ,   currentIndentation = 0;
