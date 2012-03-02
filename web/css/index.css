@@ -4,7 +4,7 @@ h1 {font-size: 2em;}
 h2 {font-size: 1.5em;}
 h1, h2 {
   font-family: arial, sans-serif; font-weight: normal;
-  margin: 0px; color: #444;
+  margin: 1px; color: #444;
 }
 header, nav {vertical-align: middle; padding: 10px; display: table-cell;}
 nav {width: 100%}
@@ -17,7 +17,7 @@ footer #copy {color: silver; padding: 10px; display: block; float: right;}
 footer a, footer a:visited {color: #5d5d5d; padding: 10px; display: block; float: left;}
 footer a:hover {text-decoration: underline;}
 iframe {
-  border: 1px solid #ddd; height: 330px; width: 50%; max-width: 700px; min-width: 500px; margin: 5px;
+  border: 1px solid #ddd; height: 330px; width: 50%; max-width: 650px; min-width: 500px; margin: 5px;
   box-shadow: 0 1px 0 rgba(255,255,255,0.4),0 0 10px rgba(0,0,0,0.1);
 }
 .buttons {display: table; margin: auto; padding-right: 20%}
