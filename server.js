@@ -80,6 +80,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
   });
 
 }, function fsplugged(data) {
+  ///console.log('$FSPLUGGED: sending data',data);
   return data;
 });
 
