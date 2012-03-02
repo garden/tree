@@ -46,7 +46,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       data.error = err.message;
       // TODO change HTTP return code to 404 instead of 200
       path[0] = '/404.html';
-      camp.server.emit ('fsplugged', data);
+      camp.emit ('fsplugged', data);
       return;
     }
     if (file.isOfType('text/plain')) {
@@ -54,7 +54,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       data.mime = ftree.type.nameFromType[file.meta.type];
       // The dirname will become the title.
       data.dirname = nodepath.basename(file.path);
-      camp.server.emit ('fsplugged', data);
+      camp.emit ('fsplugged', data);
 
     } else if (file.isOfType('dir')) {
       path[0] = '/gateway.html';
@@ -74,7 +74,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
             (files[i].isOfType('dir')? '/': ''));
         }
         ///console.log('$SERVER:ROOT: data sent from dir is', data);
-        camp.server.emit('fsplugged', data);
+        camp.emit('fsplugged', data);
       });
     }
   });
@@ -98,18 +98,18 @@ camp.addDefer ('fs', function (query) {
       ftree.file (query.path, function (err, dir) {
         if (err) {
           data.err = err;
-          camp.server.emit('fs', data); return;
+          camp.emit('fs', data); return;
         }
         // ls -r
         if (query.depth && query.depth > 1) {
           dir.subfiles(function(err, subfiles) {
             data.leafs = subfiles;
-            camp.server.emit('fs', data);
+            camp.emit('fs', data);
           }, query.depth);
         // ls .
         } else {
           dir.files (function (err, files) {
-            if (err) { data.err = err; camp.server.emit('fs', data); return; }
+            if (err) { data.err = err; camp.emit('fs', data); return; }
             data.files = [];
             for (var i = 0; i < files.length; i++) {
               data.files.push({
@@ -117,20 +117,20 @@ camp.addDefer ('fs', function (query) {
                 type: ftree.type.nameFromType[files[i].type]
               });
             }
-            camp.server.emit ('fs', data);
+            camp.emit ('fs', data);
           });
         }
       });
       break;
     case 'cat':
       ftree.file (query.path, function (err, file) {
-        if (err) { data.err = err; camp.server.emit('fs', data); return; }
+        if (err) { data.err = err; camp.emit('fs', data); return; }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
         file.open (function (err) {
-          if (err) { data.err = err; camp.server.emit('fs', data); return; }
+          if (err) { data.err = err; camp.emit('fs', data); return; }
           data.content = content;
-          camp.server.emit ('fs', data);
+          camp.emit ('fs', data);
         });
       });
       break;
@@ -138,10 +138,16 @@ camp.addDefer ('fs', function (query) {
       console.log('trying to create',query.type,'named',query.name,'in',query.path);
       ftree.file (query.path, function(err, file) {
         // file or folder?
-        (query.type === "folder" ? file.driver.mkdir : file.driver.mkfile) (query.path + query.name, function(err) {
-          data.err = err;
-          data.path = ROOT_PREFIX + query.path + query.name;
-          camp.server.emit('fs', data);
+        if (err !== null) {
+          console.error('server: file %s asked for. %s', query.path, err);
+          camp.emit('fs', {err:err});
+          return;
+        }
+        (query.type === "folder"? file.mkdir: file.mkfile).bind(file)
+          (query.name, function(err) {
+            data.err = err;
+            data.path = ROOT_PREFIX + nodepath.join(query.path, query.name);
+            camp.emit('fs', data);
         });
       });
       break;
@@ -149,7 +155,7 @@ camp.addDefer ('fs', function (query) {
       ftree.file (query.path, function(err, file) {
         file.rm(function (err) {
           data.err = err;
-          camp.server.emit('fs', data);
+          camp.emit('fs', data);
         });
       });
       break;
@@ -162,7 +168,7 @@ camp.addDefer ('fs', function (query) {
 
 
 // Chat
-camp.add('talk', function(data) { camp.server.emit('chat', data); });
+camp.add('talk', function(data) { camp.emit('chat', data); });
 camp.addDefer('chat', function() {}, function(data) { return data; });
 
 
