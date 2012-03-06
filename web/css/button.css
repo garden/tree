@@ -1,7 +1,7 @@
 .button {
   font-family: arial, sans-serif; font-weight: bold;
   color: #fff; text-align: center;
-  padding: 8px 20px; display: block; margin: 5px;
+  padding: 8px 20px; display: block; margin: 3px;
 
   -webkit-border-radius:5px;
   -moz-border-radius:5px;
