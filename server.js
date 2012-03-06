@@ -27,8 +27,8 @@ prof.main();
 // FILE-SYSTEM ACCESS
 //
 
-// Redirection of `http://<DNS>.tld/root/something`
-// to look for `/root/something`.
+// Redirection of `http://<DNS>/root/something`
+// to look for `/root/something` in the File System.
 camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
   // Default plug
@@ -49,15 +49,19 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
       camp.emit ('fsplugged', data);
       return;
     }
+    data.lookup = function(key) {
+      if (query[key]) return query[key];
+      if (file.meta[key]) return file.meta[key];
+      return null;
+    };
     if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
       data.mime = ftree.type.nameFromType[file.meta.type];
       // The file name will become the title.
       data.filename = nodepath.basename(file.path);
       // TODO benchmark if following line really optimizes display speed
-      data.content = (file.content || '').replace(/</g,'\\u003c');
+      data.content = file.content;
       camp.emit ('fsplugged', data);
-
     } else if (file.isOfType('dir')) {
       path[0] = '/gateway.html';
       if ( path[1][path[1].length-1] !== '/' ) {
@@ -175,12 +179,12 @@ camp.addDefer ('fs', function (query) {
 });
 
 
-// Chat
+// A little chat demo
 camp.add('talk', function(data) { camp.emit('chat', data); });
 camp.addDefer('chat', function() {}, function(data) { return data; });
 
 
-// Options
+// Read options from `argv`
 var options = {
   port: +process.argv[2],
   debug: +process.argv[4],

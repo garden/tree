@@ -20,11 +20,8 @@ function hidetools() {
 
 // CodeMirror theme
 function selectTheme(node) {
-  var theme = node.options[node.selectedIndex].innerHTML;
-  editor.setOption("theme", theme);
-  document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+  editor.setTheme(node.options[node.selectedIndex].innerHTML);
 }
-
 
 
 // Navigation

@@ -22,8 +22,14 @@ function CodeMirrorPlug ( path, body, params, update ) {
   };
   var editor = CodeMirror (body, params);
 
+  editor.setTheme = function(theme) {
+    editor.setOption("theme", theme);
+    document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+  }
+
   /// Temporary mime type fix for `+xml`
   if (params.mode.indexOf('+xml') == params.mode.length - 4) editor.setOption('mode','xml');
+  if (params.theme && params.theme.length > 0) editor.setTheme(params.theme);
 
   /// CodeMirror extension for content syncing.
   client.notmychange = false;
@@ -71,3 +77,4 @@ function CodeMirrorPlug ( path, body, params, update ) {
   return editor;
 
 };
+
