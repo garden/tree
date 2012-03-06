@@ -101,7 +101,7 @@ function CodeMirrorPlug ( path, body, params, update ) {
   var editor = CodeMirror (body, params);
 
   /// Importing the required hightlight modes
-  if (params.mode) importCodeMirrorMode(params.mode);
+  //if (params.mode) importCodeMirrorMode(params.mode);
 
   /// CodeMirror extension for content syncing.
   client.notmychange = false;
