@@ -1,7 +1,3 @@
-@font-face {
-  font-family: Collegiate;
-  src: url("Collegiate.ttf");
-}
 .ribbon-holder {
   position: absolute;
   overflow: hidden;
@@ -18,14 +14,13 @@
   text-decoration: none !important;
 }
 .ribbon {
-  font-family: Collegiate, arial, sans-serif;
-  letter-spacing: -.1px;
+  font-family: arial, sans-serif;
   opacity: 0.95;
 
-  padding: 0.25em 0;
+  padding: 0.25em 0em;
   position: relative;
   display: block;
-  top: 2.5em;
+  top: 3em;
 
   /* Defaults friendly for white pages. */
   -webkit-box-shadow: 0 0 13px #888;
@@ -44,7 +39,7 @@
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
   transform: rotate(45deg);
-  right: -2.5em;
+  right: -3.5em;
 }
 .left .ribbon {
   -webkit-transform: rotate(-45deg);
@@ -52,7 +47,7 @@
   -ms-transform: rotate(-45deg);
   -o-transform: rotate(-45deg);
   transform: rotate(-45deg);
-  left: -2.5em;
+  left: -3.5em;
 }
 .white.ribbon {
   color: #111;

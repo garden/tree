@@ -14,7 +14,6 @@ a.crumb, ul#fuzzy>li>a, .input, .cursor {
 }
 a.crumb:hover, ul#fuzzy>li>a:hover {text-decoration: underline;}
 div#crumbs a.crumb {padding-left: 5px; padding-right: 5px; border-right: 0px;}
-div#crumbs a.crumb:active {position: relative; top: 1px;}
 div#crumbs {display: inline;}
 
 .input {-webkit-appearance: initial; font-size: 0.9em; border: 1px solid silver; width: 250px; margin-left: 5px;}
