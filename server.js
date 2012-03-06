@@ -73,7 +73,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
           data.filenames.push(nodepath.basename(files[i].path) +
             (files[i].isOfType('dir')? '/': ''));
         }
-        ///console.log('$SERVER:ROOT: data sent from dir is', data);
+        ///console.log('server:root: data sent from dir is', data);
         camp.emit('fsplugged', data);
       });
     }
