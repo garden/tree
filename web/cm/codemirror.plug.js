@@ -3,84 +3,6 @@
  * The following code is covered by the GPLv2 license. */
 
 
-// Prepare CodeMirror2's syntax highlighting scripts
-var importCodeMirrorMode = ( function() {
-
-  /// Mime types supported by CodeMirror2
-  var mimes = {
-    'text/css': 'css',
-    'text/html': 'htmlmixed',
-    'text/xml': 'xml',
-    'image/svg+xml': 'xml',
-    'text/javascript': 'javascript',
-    'application/json': 'javascript',
-    'text/x-csharp': 'clike',
-    'text/x-csrc': 'clike',
-    'text/x-c++src': 'clike',
-    'text/x-java': 'clike',
-    'text/x-go': 'go',
-    'text/x-groovy': 'groovy',
-    'text/x-clojure': 'clojure',
-    'text/x-coffeescript': 'coffeescript',
-    'text/x-diff': 'diff',
-    'text/x-ecl': 'ecl',
-    'text/x-haskell': 'haskell',
-    'text/less': 'less',
-    'text/x-lua': 'lua',
-    'text/x-markdown': 'markdown',
-    'text/x-mysql': 'mysql',
-    'text/n-triples': 'ntriples',
-    'text/x-pascal': 'pascal',
-    'text/x-perl': 'perl',
-    'text/x-php': 'php',
-    'text/x-plsql': 'plsql',
-    'text/x-properties': 'properties',
-    'text/x-python': 'python',
-    'text/x-rpm-spec': 'spec',
-    'text/x-rpm-changes': 'changes',
-    'text/x-rsrc': 'r',
-    'text/x-rst': 'rst',
-    'text/x-ruby': 'ruby',
-    'text/x-rustsrc': 'rust',
-    'text/x-scheme': 'scheme',
-    'text/x-stsrc': 'smalltalk',
-    'text/x-sparql-query': 'sparql',
-    'text/x-stex': 'stex',
-    'text/x-tiddlywiki': 'tiddlywiki',
-    'text/velocity': 'velocity',
-    'text/x-verilog': 'verilog',
-    'text/x-yaml': 'yaml'
-  };
-
-  /// Import CodeMirror2 mode scripts for a given mime type
-  return function importCodeMirrorModes ( mime ) {
-    var mode;
-    if ( mime === 'text/html' ) {
-      importCodeMirrorMode('text/css');
-      importCodeMirrorMode('text/javascript');
-    }
-    if ( mime === 'text/html' || mime === 'text/x-markdown' ) { 
-      importCodeMirrorMode('text/xml');
-    }
-    if ( mode = mimes[mime] ) {
-
-      if ( mode === 'diff' || mode === 'tiddlywiki' ) {
-        var link = document.createElement('link');
-        link.rel = "stylesheet";
-        link.href = "/cm/mode/" + mode + "/" + mode + ".css";
-        document.head.appendChild(link);
-      }
-      document.write("<script src='/cm/mode/" + mode + "/" + mode + ".js'></script>");
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('setting mode',mode,'because mime type is',mime);
-        editor.setOption("mode",mode);
-      });
-    }
-  };
-
-})();
-
-
 // Plug CodeMirror2 into TheFileTree for realtime text sync
 function CodeMirrorPlug ( path, body, params, update ) { 
 
@@ -100,8 +22,8 @@ function CodeMirrorPlug ( path, body, params, update ) {
   };
   var editor = CodeMirror (body, params);
 
-  /// Importing the required hightlight modes
-  if (params.mode) importCodeMirrorMode(params.mode);
+  /// Temporary mime type fix for `+xml`
+  if (params.mode.indexOf('+xml') == params.mode.length - 4) editor.setOption('mode','xml');
 
   /// CodeMirror extension for content syncing.
   client.notmychange = false;
