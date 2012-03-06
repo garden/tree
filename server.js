@@ -19,10 +19,10 @@ var camp = require ('./camp/camp'),
     prof = require ('./lib/profiler'),
     nodepath = require ('path');
 
-
+// Init subroutines
 sync.main();
-
 prof.main();
+
 
 // FILE-SYSTEM ACCESS
 //
@@ -52,26 +52,34 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
     if (file.isOfType('text/plain')) {
       path[0] = '/pencil.html';
       data.mime = ftree.type.nameFromType[file.meta.type];
-      // The dirname will become the title.
-      data.dirname = nodepath.basename(file.path);
+      // The file name will become the title.
+      data.filename = nodepath.basename(file.path);
+      // TODO benchmark if following line really optimizes display speed
+      data.content = (file.content || '').replace(/</g,'\\u003c');
       camp.emit ('fsplugged', data);
 
     } else if (file.isOfType('dir')) {
       path[0] = '/gateway.html';
-      // FIXME when viewing https://thefiletree.com/dir1/dir2, links go from
-      //       dir1 instead of dir2 (because of the missing /)
       if ( path[1][path[1].length-1] !== '/' ) {
-        path[1] += '/';
-        data.path += '/';
+        // FIXME consider redirecting user to path[1] + '/' instead
+        path[1] += '/'; data.path += '/';
       }
-      data.nav = path[1].split('/').filter(function(e){return e.length > 0;});
-      data.dirname = file.name || 'The File Tree';
+      data.nav = [];
+      var crumbs = path[1].split('/').filter(function(e) { 
+        return e.length > 0;
+      });
+      var subpath = ROOT_PREFIX + '/';
+      for ( var i = 0; i < crumbs.length; i++ ) {
+        subpath += crumbs[i] + '/';
+        data.nav.push({name: crumbs[i], path: subpath});
+      }
+      data.dirname = nodepath.basename(file.path) || 'The File Tree';
       file.files (function (err, files) {
         if (err)  console.error(err);
-        data.filenames = [];
+        data.files = [];
         for (var i = 0; i < files.length; i++) {
-          data.filenames.push(nodepath.basename(files[i].path) +
-            (files[i].isOfType('dir')? '/': ''));
+          var filepath = ROOT_PREFIX + files[i].path + (files[i].isOfType('dir')?'/':'');
+          data.files.push({name: nodepath.basename(filepath), path: filepath});
         }
         ///console.log('server:root: data sent from dir is', data);
         camp.emit('fsplugged', data);

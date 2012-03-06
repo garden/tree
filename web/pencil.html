@@ -1,7 +1,7 @@
 <!doctype html>
 <html manifest="/pencil.appcache">
 <meta charset=utf-8>
-<title>{{=dirname|html}}</title>
+<title> {{=filename|html}} </title>
 
 <link rel=stylesheet href=/cm/codemirror.css>
 
@@ -39,7 +39,9 @@
   // Create a CodeMirror2 editor.
   editor = CodeMirrorPlug("{{=path|jsonstring}}", document.body, {
     mode: "{{=mime|jsonstring}}",
-    lineNumbers: true
+    content: "{{=content|jsonstring}}",
+    lineNumbers: true,
+    extraKeys: {"Ctrl-Space": function(cm) {CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);}}
   });
   </script>
 
