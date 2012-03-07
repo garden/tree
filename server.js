@@ -16,6 +16,7 @@ var ROOT_PREFIX = '/root';
 var camp = require ('./camp/camp'),
     ftree = require ('./lib/fs'),
     sync = require ('./lib/sync'),
+    plug = require ('./lib/plug'),
     prof = require ('./lib/profiler'),
     nodepath = require ('path');
 
@@ -31,64 +32,13 @@ prof.main();
 // to look for `/root/something` in the File System.
 camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
-  // Default plug
-  path[0] = '/pencil.html';
+  // FIXME HACK for Camp to set `text/html` mime type before this function returns
+  path[0] = 'a.html';
 
-  // Template data
-  var data = {path:path[1]};
-
-  // TODO: in the future, this will be the #plug system.
-  // If they want a directory, load gateway.
-  ///console.log('SERVER:ROOT: what is %s?', path[1]);
-  ftree.file (path[1], function (err, file) {
-    if (err) {
-      console.error(err);
-      data.error = err.message;
-      // TODO change HTTP return code to 404 instead of 200
-      path[0] = '/404.html';
-      camp.emit ('fsplugged', data);
-      return;
-    }
-    data.lookup = function(key) {
-      if (query[key]) return query[key];
-      if (file.meta[key]) return file.meta[key];
-      return null;
-    };
-    if (file.isOfType('text/plain')) {
-      path[0] = '/pencil.html';
-      data.mime = ftree.type.nameFromType[file.meta.type];
-      // The file name will become the title.
-      data.filename = nodepath.basename(file.path);
-      // TODO benchmark if following line really optimizes display speed
-      data.content = file.content;
-      camp.emit ('fsplugged', data);
-    } else if (file.isOfType('dir')) {
-      path[0] = '/gateway.html';
-      if ( path[1][path[1].length-1] !== '/' ) {
-        // FIXME consider redirecting user to path[1] + '/' instead
-        path[1] += '/'; data.path += '/';
-      }
-      data.nav = [];
-      var crumbs = path[1].split('/').filter(function(e) { 
-        return e.length > 0;
-      });
-      var subpath = ROOT_PREFIX + '/';
-      for ( var i = 0; i < crumbs.length; i++ ) {
-        subpath += crumbs[i] + '/';
-        data.nav.push({name: crumbs[i], path: subpath});
-      }
-      data.dirname = nodepath.basename(file.path) || 'The File Tree';
-      file.files (function (err, files) {
-        if (err)  console.error(err);
-        data.files = [];
-        for (var i = 0; i < files.length; i++) {
-          var filepath = ROOT_PREFIX + files[i].path + (files[i].isOfType('dir')?'/':'');
-          data.files.push({name: nodepath.basename(filepath), path: filepath});
-        }
-        ///console.log('server:root: data sent from dir is', data);
-        camp.emit('fsplugged', data);
-      });
-    }
+  plug.plug (query, path, function (err, plugpath, data) {
+    if (err) console.error(err);
+    path[0] = plugpath;
+    camp.emit ('fsplugged', data);
   });
 
 }, function fsplugged(data) {
