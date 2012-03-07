@@ -1,5 +1,6 @@
 <!doctype html>
 <meta charset=utf-8>
+<meta name=viewport content='width=device-width'>
 <title> {{=dirname|html}} </title>
 <!--[if IE]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -7,10 +8,9 @@
 <link rel=stylesheet href=/css/gateway.css>
 
 <form id=toolbar action="javascript:void 0" autocomplete=off>
-  <div id=crumbs>
-  {{-nav|crumb|i;
-    <a href='{{=crumb.path|uri}}' class=crumb>{{=crumb.name|html}}/</a>
-  }}
+  <div id=crumbs>{{-
+  nav|crumb|i;
+    <a href={{=crumb.path|uri}} class=crumb>{{=crumb.name|html}}/</a>}}
   </div>
   <input id=search type=search class=input autofocus>
   <div id=controls style='display:none'>
@@ -24,10 +24,9 @@
   <input id=plus value=+ type=button onfocus=showcontrols() onmouseover=showcontrols()>
 </form>
 
-<ul id=fuzzy>
-  {{-files|file|i;
-  <li><div class=cursor>&{{?i==0|#x25b6;nbsp}};</div><a href="{{=file.path|uri|xmlattr}}">{{=file.name|html}}</a></li>
-  }}
+<ul id=fuzzy>{{-
+  files|file|i;
+  <li><div class=cursor>&{{?i==0|#x25b6;nbsp}};</div><a href={{=file.path|uri|xmlattr}}>{{=file.name|html}}</a></li>}}
 </ul>
 
 <script src=/js/scout.js></script>
