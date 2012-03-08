@@ -33,7 +33,7 @@
   // Create a CodeMirror2 editor.
   editor = CodeMirrorPlug({{=path|json}}, document.body, {
     mode: {{=mime|json}},
-    content: {{=content|json|html}},
+    content: {{=file.content|json|html}},
     lineNumbers: true,
     theme: {{=lookup('theme')|json}} || 'default',
     extraKeys: {"Ctrl-Space": function(cm) {CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);}}
