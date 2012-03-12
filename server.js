@@ -5,7 +5,7 @@
 // Please look for documentation in `./Server.md`
 
 
-// SERVER CONFIGURATION
+// SERVER CONFIG
 //
 
 // Location of the root. If this is "/root", the fake root
@@ -25,10 +25,10 @@ sync.main();
 prof.main();
 
 
-// FILE-SYSTEM ACCESS
+// ROUTING
 //
 
-// Redirection of `http://<DNS>/root/something`
+// Redirection of `https://<DNS>/root/something`
 // to look for `/root/something` in the File System.
 camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
@@ -48,7 +48,7 @@ camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
 
 
 
-// Ajax FS API.
+// AJAX FS API
 
 camp.addDefer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.

@@ -4,7 +4,6 @@
 // The following code is covered by the GPLv2 license.
 
 
-
 // Controls.
 //
 

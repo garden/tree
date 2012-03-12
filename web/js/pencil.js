@@ -43,8 +43,10 @@ function selectTheme(node) {
         loc.pathname.replace(/\/[^\/]+[\/]*$/,'/') + loc.search;
     }
 
-    // In any case, after keydown we deactivate hot back
-    hotback = false;
+    // If not Right, we deactivate hot back
+    else if (e.keyCode !== 39) {
+      hotback = false;
+    }
 
   }, false);
 
