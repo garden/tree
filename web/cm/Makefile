@@ -15,7 +15,8 @@ update:
 	@CSSFILE=codemirror$$(date "+%Y-%m-%d").css;  \
 	cat mirror/lib/*.css | $(CSSMIN) >> $$CSSFILE;  \
 	cat mirror/lib/util/*.css | $(CSSMIN) >> $$CSSFILE;  \
-	cat mirror/theme/*.css | $(CSSMIN) >> $$CSSFILE
+	cat mirror/theme/*.css | $(CSSMIN) >> $$CSSFILE; \
+	cat mirror/mode/*/*.css | $(CSSMIN) >> $$CSSFILE
 	@rm -rf mirror
 	@echo
 	@echo "Don't forget to update types and paths!"
