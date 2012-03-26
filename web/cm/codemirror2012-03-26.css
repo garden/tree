@@ -168,7 +168,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-cobalt span.cm-builtin, .cm-s-cobalt span.cm-special { color: #ff9e59; }
 .cm-s-cobalt span.cm-link { color: #845dc4; }
 .cm-s-eclipse span.cm-meta {color: #FF1717;}
-.cm-s-eclipse span.cm-keyword { font-weight: bold; color: #7F0055; }
+.cm-s-eclipse span.cm-keyword { line-height: 1em; font-weight: bold; color: #7F0055; }
 .cm-s-eclipse span.cm-atom {color: #219;}
 .cm-s-eclipse span.cm-number {color: #164;}
 .cm-s-eclipse span.cm-def {color: #00f;}
@@ -193,8 +193,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 	color:black !important;;
 }
 .cm-s-elegant span.cm-number, .cm-s-elegant span.cm-string, .cm-s-elegant span.cm-atom {color: #762;}
-.cm-s-elegant span.cm-comment {color: #262;font-style: italic;}
-.cm-s-elegant span.cm-meta {color: #555;font-style: italic;}
+.cm-s-elegant span.cm-comment {color: #262; font-style: italic; line-height: 1em;}
+.cm-s-elegant span.cm-meta {color: #555; font-style: italic; line-height: 1em;}
 .cm-s-elegant span.cm-variable {color: black;}
 .cm-s-elegant span.cm-variable-2 {color: #b11;}
 .cm-s-elegant span.cm-qualifier {color: #555;}
@@ -202,6 +202,51 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-elegant span.cm-builtin {color: #30a;}
 .cm-s-elegant span.cm-error {background-color: #fdd;}
 .cm-s-elegant span.cm-link {color: #762;}
+/*
+http://lesscss.org/ dark theme
+Ported to CodeMirror by Peter Kroon
+*/
+.CodeMirror{
+  line-height: 15px;
+}
+.cm-s-lesser-dark {
+  font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', 'Monaco', Courier, monospace !important;
+  font-size:12px;
+}
+
+.cm-s-lesser-dark { background: #262626; color: #EBEFE7; text-shadow: 0 -1px 1px #262626; }
+.cm-s-lesser-dark div.CodeMirror-selected {background: #45443B !important;} /* 33322B*/
+.cm-s-lesser-dark .CodeMirror-cursor { border-left: 1px solid white !important; }
+.cm-s-lesser-dark .CodeMirror-lines { margin-left:3px; margin-right:3px; }/*editable code holder*/
+
+div.CodeMirror span.CodeMirror-matchingbracket { color: #7EFC7E; }/*65FC65*/
+
+.cm-s-lesser-dark .CodeMirror-gutter { background: #262626; border-right:1px solid #aaa; padding-right:3px; min-width:2.5em; }
+.cm-s-lesser-dark .CodeMirror-gutter-text { color: #777; }
+
+.cm-s-lesser-dark span.cm-keyword { color: #599eff; }
+.cm-s-lesser-dark span.cm-atom { color: #C2B470; }
+.cm-s-lesser-dark span.cm-number { color: #B35E4D; }
+.cm-s-lesser-dark span.cm-def {color: color: white;}
+.cm-s-lesser-dark span.cm-variable { color:#D9BF8C; }
+.cm-s-lesser-dark span.cm-variable-2 { color: #669199; }
+.cm-s-lesser-dark span.cm-variable-3 { color: white; }
+.cm-s-lesser-dark span.cm-property {color: #92A75C;}
+.cm-s-lesser-dark span.cm-operator {color: #92A75C;}
+.cm-s-lesser-dark span.cm-comment { color: #666; }
+.cm-s-lesser-dark span.cm-string { color: #BCD279; }
+.cm-s-lesser-dark span.cm-string-2 {color: #f50;}
+.cm-s-lesser-dark span.cm-meta { color: #738C73; }
+.cm-s-lesser-dark span.cm-error { color: #9d1e15; }
+.cm-s-lesser-dark span.cm-qualifier {color: #555;}
+.cm-s-lesser-dark span.cm-builtin { color: #ff9e59; }
+.cm-s-lesser-dark span.cm-bracket { color: #EBEFE7; }
+.cm-s-lesser-dark span.cm-tag { color: #669199; }
+.cm-s-lesser-dark span.cm-attribute {color: #00c;}
+.cm-s-lesser-dark span.cm-header {color: #a0a;}
+.cm-s-lesser-dark span.cm-quote {color: #090;}
+.cm-s-lesser-dark span.cm-hr {color: #999;}
+.cm-s-lesser-dark span.cm-link {color: #00c;}
 /* Based on Sublime Text's Monokai theme */
 
 .cm-s-monokai {background: #272822; color: #f8f8f2;}
@@ -231,10 +276,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
   color: white !important;
 }
 .cm-s-neat span.cm-comment { color: #a86; }
-.cm-s-neat span.cm-keyword { font-weight: bold; color: blue; }
+.cm-s-neat span.cm-keyword { line-height: 1em; font-weight: bold; color: blue; }
 .cm-s-neat span.cm-string { color: #a22; }
-.cm-s-neat span.cm-builtin { font-weight: bold; color: #077; }
-.cm-s-neat span.cm-special { font-weight: bold; color: #0aa; }
+.cm-s-neat span.cm-builtin { line-height: 1em; font-weight: bold; color: #077; }
+.cm-s-neat span.cm-special { line-height: 1em; font-weight: bold; color: #0aa; }
 .cm-s-neat span.cm-variable { color: black; }
 .cm-s-neat span.cm-number, .cm-s-neat span.cm-atom { color: #3a3; }
 .cm-s-neat span.cm-meta {color: #555;}
@@ -268,7 +313,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-rubyblue .CodeMirror-gutter-text { color: white; }
 .cm-s-rubyblue .CodeMirror-cursor { border-left: 1px solid white !important; }
 
-.cm-s-rubyblue span.cm-comment { color: #999; font-style:italic; }
+.cm-s-rubyblue span.cm-comment { color: #999; font-style:italic; line-height: 1em; }
 .cm-s-rubyblue span.cm-atom { color: #F4C20B; }
 .cm-s-rubyblue span.cm-number, .cm-s-rubyblue span.cm-attribute { color: #82C6E0; }
 .cm-s-rubyblue span.cm-keyword { color: #F0F; }
@@ -281,6 +326,78 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-rubyblue span.cm-link { color: #F4C20B; }
 .cm-s-rubyblue span.CodeMirror-matchingbracket { color:#F0F !important; }
 .cm-s-rubyblue span.cm-builtin, .cm-s-rubyblue span.cm-special { color: #FF9D00; }
+/*
+Copyright (C) 2011 by MarkLogic Corporation
+Author: Mike Brevoort <mike@brevoort.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+.cm-s-xq-dark { background: #0a001f; color: #f8f8f8; }
+.cm-s-xq-dark span.CodeMirror-selected { background: #a8f !important; }
+.cm-s-xq-dark .CodeMirror-gutter { background: #0a001f; border-right: 1px solid #aaa; }
+.cm-s-xq-dark .CodeMirror-gutter-text { color: #f8f8f8; }
+.cm-s-xq-dark .CodeMirror-cursor { border-left: 1px solid white !important; }
+
+.cm-s-xq-dark span.cm-keyword {color: #FFBD40;}
+.cm-s-xq-dark span.cm-atom {color: #6C8CD5;}
+.cm-s-xq-dark span.cm-number {color: #164;}
+.cm-s-xq-dark span.cm-def {color: #FFF; text-decoration:underline;}
+.cm-s-xq-dark span.cm-variable {color: #FFF;}
+.cm-s-xq-dark span.cm-variable-2 {color: #EEE;}
+.cm-s-xq-dark span.cm-variable-3 {color: #DDD;}
+.cm-s-xq-dark span.cm-property {}
+.cm-s-xq-dark span.cm-operator {}
+.cm-s-xq-dark span.cm-comment {color: gray;}
+.cm-s-xq-dark span.cm-string {color: #9FEE00;}
+.cm-s-xq-dark span.cm-meta {color: yellow;}
+.cm-s-xq-dark span.cm-error {color: #f00;}
+.cm-s-xq-dark span.cm-qualifier {color: #FFF700;}
+.cm-s-xq-dark span.cm-builtin {color: #30a;}
+.cm-s-xq-dark span.cm-bracket {color: #cc7;}
+.cm-s-xq-dark span.cm-tag {color: #FFBD40;}
+.cm-s-xq-dark span.cm-attribute {color: #FFF700;}
 span.cm-rangeinfo {color: #a0b;}
 span.cm-minus {color: red;}
 span.cm-plus {color: #2b2;}
+.cm-s-default span.cm-header {color: blue; font-weight:bold;}
+.cm-s-default span.cm-code {color: #a50;}
+.cm-s-default span.cm-code-inline {color: #660;}
+
+.cm-s-default span.cm-quote {color: #555;}
+.cm-s-default span.cm-list {color: #c60;}
+.cm-s-default span.cm-hr {color: #999;}
+.cm-s-default span.cm-em {font-style: italic;}
+.cm-s-default span.cm-strong {font-weight: bold;}
+
+.cm-s-default span.cm-link-external {color: blue;}
+.cm-s-default span.cm-brace {color: #170; font-weight: bold;}
+.cm-s-default span.cm-macro {color: #9E3825;}
+.cm-s-default span.cm-table {color: blue; font-weight: bold;}
+.cm-s-default span.cm-warning {color: red; font-weight: bold;}
+
+.cm-s-default span.cm-underlined {text-decoration: underline;}
+.cm-s-default span.cm-line-through {text-decoration: line-through;}
+
+.cm-s-default span.cm-comment {color: #666;}
+
+.cm-s-default span.cm-preamble {color: #b26818; font-weight: bold;}
+.cm-s-default span.cm-macro {color: #b218b2;}
+.cm-s-default span.cm-section {color: green; font-weight: bold;}
+.cm-s-default span.cm-script {color: red;}
+.cm-s-default span.cm-issue {color: yellow;}
