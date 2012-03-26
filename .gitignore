@@ -3,9 +3,8 @@
 *.out
 *.pid
 
+https.*
 publish
-
 node_modules/
 
-# Tools
 tools/.params
