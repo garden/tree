@@ -13,7 +13,7 @@ a.crumb, ul#fuzzy>li>a, .input, .cursor {
   color: #396fac; text-decoration: none; font-family: "Ubuntu Mono", monospace; margin: 0px;
 }
 a.crumb:hover, ul#fuzzy>li>a:hover {text-decoration: underline;}
-div#crumbs a.crumb {padding-left: 5px; padding-right: 5px; border-right: 0px;}
+div#crumbs a.crumb {padding-left: 5px; padding-right: 0px; border-right: 0px;}
 div#crumbs {display: inline;}
 
 .input {-webkit-appearance: initial; font-size: 0.9em; border: 1px solid silver; width: 250px; margin-left: 5px;}
