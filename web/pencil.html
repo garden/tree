@@ -15,19 +15,50 @@
 <style>
   html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
   .CodeMirror-scroll {position: fixed; top: 0px; bottom: 0px; height: auto; width: 100%;}
-  .tools {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
-  div#toolbox {display: none}
+  .left {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
+  .right {position: fixed; margin: 0px; bottom: 0px; right: 0px; z-index: 42;}
+  .box {display: none}
 </style>
 
 <body class="cm-s-default">
 
-  <input id=wrench class=tools type=button value=&#9881; onmouseover=showtools()>
-  <div id=toolbox class=tools>
-    <select onchange="selectTheme(this)" title="change theme">{{-
+  <div class=left>
+    <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
       ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue']|theme|i;
       <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
     </select>
+    <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench')>
   </div>
+
+  <form name=runform class=right method=post onsubmit=runCode() target=_blank enctype=multipart/form-data>
+    <select name=lang id=runbox class=box title='choose language'>
+      <optgroup label='in browser'>
+        <option>JavaScript</option>
+      </optgroup>
+      <optgroup label='validator.nu'>
+        <option>HTML5</option>
+      </optgroup>
+      <optgroup label='W3C'>
+        <option>HTML</option>
+        <option>XHTML</option>
+        <option>CSS</option>
+        <option>XML</option>
+      </optgroup>
+      <optgroup label=codepad.org>{{-
+      ['C','C++','D','Haskell','Lua','OCaml','PHP','Perl','Plain Text','Python','Ruby','Scheme','Tcl']|lang|i;
+        <option>{{=lang|html}}</option>}}
+      </optgroup>
+    </select>
+    <input name=code type=hidden>
+    <input name=content type=hidden>
+    <input name=ucn_text type=hidden>
+    <input name=ucn_text_mime type=hidden>
+    <input name=ucn_task type=hidden value=conformance>
+    <input name=showimagereport type=hidden value=yes>
+    <input name=showsource type=hidden value=yes>
+    <input name=run type=hidden value=True>
+    <input id=run type=submit value=&#9654; onmouseover=showbox('run')>
+  </form>
 
   <script>
   // Create a CodeMirror2 editor.

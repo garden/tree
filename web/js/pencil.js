@@ -8,19 +8,69 @@
 // UI
 //
 
-function showtools() {
-  Scout('#wrench').style.display = 'none';
-  Scout('#toolbox').style.display = 'inline';
+function showbox(name) {
+  //Scout('#' + name).style.display = 'none';
+  Scout('#' + name + 'box').style.display = 'inline';
 };
 
-function hidetools() {
-  Scout('#toolbox').style.display = 'none';
-  Scout('#wrench').style.display = 'inline';
+function hidebox(name) {
+  Scout('#' + name + 'box').style.display = 'none';
+  Scout('#' + name).style.display = 'inline';
 };
 
 // CodeMirror theme
 function selectTheme(node) {
   editor.setTheme(node.options[node.selectedIndex].innerHTML);
+  hidebox('wrench');
+};
+
+// Code execution
+function runCode() {
+  hidebox('run');
+
+  var lang = document.runform.lang.value;
+  console.log(lang);
+
+  // In browser
+  if (lang === 'JavaScript') {
+    setTimeout(runJS, 0);
+    return false;
+  }
+
+  // Validators
+  if (lang === 'HTML5') {
+    document.runform.action = 'http://html5.validator.nu/';
+    document.runform.content.value = editor.getValue();
+    return true;
+  }
+  if (lang === 'HTML' || lang === 'XHTML' || lang === 'CSS' || lang === 'XML') {
+    document.runform.action = 'http://validator.w3.org/unicorn/check#validate-by-input';
+    document.runform.ucn_text.value = editor.getValue();
+    switch (lang) {
+      case 'HTML': document.runform.ucn_text_mime.value = 'text/html'; break;
+      case 'XHTML': document.runform.ucn_text_mime.value = 'application/xhtml+xml'; break;
+      case 'CSS': document.runform.ucn_text_mime.value = 'text/css'; break;
+      case 'XML': document.runform.ucn_text_mime.value = 'text/xml'; break;
+    }
+    return true;
+  }
+
+  // CodePad.org
+  document.runform.action = 'http://codepad.org/';
+  document.runform.code.value = editor.getValue();
+  return true;
+};
+
+// Run JavaScript
+function runJS() {
+  var result;
+  try {
+    result = eval(editor.getValue());
+  } catch (e) {
+    result = e;
+  }
+  if (result === undefined) result = 'No errors!';
+  alert(result);
 }
 
 
