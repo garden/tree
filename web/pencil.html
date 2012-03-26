@@ -27,7 +27,7 @@
       ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
       <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
     </select>
-    <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench')>
+    <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench') onclick=hidebox('wrench')>
   </div>
 
   <form name=runform class=right method=post onsubmit=runCode() target=_blank enctype=multipart/form-data>
