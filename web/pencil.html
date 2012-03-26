@@ -24,7 +24,7 @@
 
   <div class=left>
     <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
-      ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue']|theme|i;
+      ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
       <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
     </select>
     <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench')>
