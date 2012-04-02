@@ -38,11 +38,6 @@ function runCode() {
   }
 
   // Validators
-  if (lang === 'HTML5') {
-    document.runform.action = 'http://html5.validator.nu/';
-    document.runform.content.value = editor.getValue();
-    return true;
-  }
   if (lang === 'HTML' || lang === 'XHTML' || lang === 'CSS' || lang === 'XML') {
     document.runform.action = 'http://validator.w3.org/unicorn/check#validate-by-input';
     document.runform.ucn_text.value = editor.getValue();
