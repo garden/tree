@@ -1,0 +1,403 @@
+.CodeMirror {
+  line-height: 1em;
+  font-family: monospace;
+}
+
+.CodeMirror-scroll {
+  overflow: auto;
+  height: 300px;
+  /* This is needed to prevent an IE[67] bug where the scrolled content
+     is visible outside of the scrolling box. */
+  position: relative;
+  outline: none;
+}
+
+.CodeMirror-gutter {
+  position: absolute; left: 0; top: 0;
+  z-index: 10;
+  background-color: #f7f7f7;
+  border-right: 1px solid #eee;
+  min-width: 2em;
+  height: 100%;
+}
+.CodeMirror-gutter-text {
+  color: #aaa;
+  text-align: right;
+  padding: .4em .2em .4em .4em;
+  white-space: pre !important;
+}
+.CodeMirror-lines {
+  padding: .4em;
+  white-space: pre;
+}
+
+.CodeMirror pre {
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+  -o-border-radius: 0;
+  border-radius: 0;
+  border-width: 0; margin: 0; padding: 0; background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0; margin: 0;
+  white-space: pre;
+  word-wrap: normal;
+}
+
+.CodeMirror-wrap pre {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.CodeMirror-wrap .CodeMirror-scroll {
+  overflow-x: hidden;
+}
+
+.CodeMirror textarea {
+  outline: none !important;
+}
+
+.CodeMirror pre.CodeMirror-cursor {
+  z-index: 10;
+  position: absolute;
+  visibility: hidden;
+  border-left: 1px solid black;
+  border-right:none;
+  width:0;
+}
+.CodeMirror pre.CodeMirror-cursor.CodeMirror-overwrite {}
+.CodeMirror-focused pre.CodeMirror-cursor {
+  visibility: visible;
+}
+
+div.CodeMirror-selected { background: #d9d9d9; }
+.CodeMirror-focused div.CodeMirror-selected { background: #d7d4f0; }
+
+.CodeMirror-searching {
+  background: #ffa;
+  background: rgba(255, 255, 0, .4);
+}
+
+/* Default theme */
+
+.cm-s-default span.cm-keyword {color: #708;}
+.cm-s-default span.cm-atom {color: #219;}
+.cm-s-default span.cm-number {color: #164;}
+.cm-s-default span.cm-def {color: #00f;}
+.cm-s-default span.cm-variable {color: black;}
+.cm-s-default span.cm-variable-2 {color: #05a;}
+.cm-s-default span.cm-variable-3 {color: #085;}
+.cm-s-default span.cm-property {color: black;}
+.cm-s-default span.cm-operator {color: black;}
+.cm-s-default span.cm-comment {color: #a50;}
+.cm-s-default span.cm-string {color: #a11;}
+.cm-s-default span.cm-string-2 {color: #f50;}
+.cm-s-default span.cm-meta {color: #555;}
+.cm-s-default span.cm-error {color: #f00;}
+.cm-s-default span.cm-qualifier {color: #555;}
+.cm-s-default span.cm-builtin {color: #30a;}
+.cm-s-default span.cm-bracket {color: #cc7;}
+.cm-s-default span.cm-tag {color: #170;}
+.cm-s-default span.cm-attribute {color: #00c;}
+.cm-s-default span.cm-header {color: #a0a;}
+.cm-s-default span.cm-quote {color: #090;}
+.cm-s-default span.cm-hr {color: #999;}
+.cm-s-default span.cm-link {color: #00c;}
+
+span.cm-header, span.cm-strong {font-weight: bold;}
+span.cm-em {font-style: italic;}
+span.cm-emstrong {font-style: italic; font-weight: bold;}
+span.cm-link {text-decoration: underline;}
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: #0f0;}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
+.CodeMirror-dialog {
+  position: relative;
+}
+
+.CodeMirror-dialog > div {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: white;
+  border-bottom: 1px solid #eee;
+  z-index: 15;
+  padding: .1em .8em;
+  overflow: hidden;
+  color: #333;
+}
+
+.CodeMirror-dialog input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 20em;
+  color: inherit;
+  font-family: monospace;
+}
+.CodeMirror-completions {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+}
+.CodeMirror-completions select {
+  background: #fafafa;
+  outline: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: monospace;
+}
+.cm-s-cobalt { background: #002240; color: white; }
+.cm-s-cobalt div.CodeMirror-selected { background: #b36539 !important; }
+.cm-s-cobalt .CodeMirror-gutter { background: #002240; border-right: 1px solid #aaa; }
+.cm-s-cobalt .CodeMirror-gutter-text { color: #d0d0d0; }
+.cm-s-cobalt .CodeMirror-cursor { border-left: 1px solid white !important; }
+
+.cm-s-cobalt span.cm-comment { color: #08f; }
+.cm-s-cobalt span.cm-atom { color: #845dc4; }
+.cm-s-cobalt span.cm-number, .cm-s-cobalt span.cm-attribute { color: #ff80e1; }
+.cm-s-cobalt span.cm-keyword { color: #ffee80; }
+.cm-s-cobalt span.cm-string { color: #3ad900; }
+.cm-s-cobalt span.cm-meta { color: #ff9d00; }
+.cm-s-cobalt span.cm-variable-2, .cm-s-cobalt span.cm-tag { color: #9effff; }
+.cm-s-cobalt span.cm-variable-3, .cm-s-cobalt span.cm-def { color: white; }
+.cm-s-cobalt span.cm-error { color: #9d1e15; }
+.cm-s-cobalt span.cm-bracket { color: #d8d8d8; }
+.cm-s-cobalt span.cm-builtin, .cm-s-cobalt span.cm-special { color: #ff9e59; }
+.cm-s-cobalt span.cm-link { color: #845dc4; }
+.cm-s-eclipse span.cm-meta {color: #FF1717;}
+.cm-s-eclipse span.cm-keyword { line-height: 1em; font-weight: bold; color: #7F0055; }
+.cm-s-eclipse span.cm-atom {color: #219;}
+.cm-s-eclipse span.cm-number {color: #164;}
+.cm-s-eclipse span.cm-def {color: #00f;}
+.cm-s-eclipse span.cm-variable {color: black;}
+.cm-s-eclipse span.cm-variable-2 {color: #0000C0;}
+.cm-s-eclipse span.cm-variable-3 {color: #0000C0;}
+.cm-s-eclipse span.cm-property {color: black;}
+.cm-s-eclipse span.cm-operator {color: black;}
+.cm-s-eclipse span.cm-comment {color: #3F7F5F;}
+.cm-s-eclipse span.cm-string {color: #2A00FF;}
+.cm-s-eclipse span.cm-string-2 {color: #f50;}
+.cm-s-eclipse span.cm-error {color: #f00;}
+.cm-s-eclipse span.cm-qualifier {color: #555;}
+.cm-s-eclipse span.cm-builtin {color: #30a;}
+.cm-s-eclipse span.cm-bracket {color: #cc7;}
+.cm-s-eclipse span.cm-tag {color: #170;}
+.cm-s-eclipse span.cm-attribute {color: #00c;}
+.cm-s-eclipse span.cm-link {color: #219;}
+
+.cm-s-eclipse .CodeMirror-matchingbracket {
+	border:1px solid grey;
+	color:black !important;;
+}
+.cm-s-elegant span.cm-number, .cm-s-elegant span.cm-string, .cm-s-elegant span.cm-atom {color: #762;}
+.cm-s-elegant span.cm-comment {color: #262; font-style: italic; line-height: 1em;}
+.cm-s-elegant span.cm-meta {color: #555; font-style: italic; line-height: 1em;}
+.cm-s-elegant span.cm-variable {color: black;}
+.cm-s-elegant span.cm-variable-2 {color: #b11;}
+.cm-s-elegant span.cm-qualifier {color: #555;}
+.cm-s-elegant span.cm-keyword {color: #730;}
+.cm-s-elegant span.cm-builtin {color: #30a;}
+.cm-s-elegant span.cm-error {background-color: #fdd;}
+.cm-s-elegant span.cm-link {color: #762;}
+/*
+http://lesscss.org/ dark theme
+Ported to CodeMirror by Peter Kroon
+*/
+.CodeMirror{
+  line-height: 15px;
+}
+.cm-s-lesser-dark {
+  font-family: 'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', 'Monaco', Courier, monospace !important;
+  font-size:12px;
+}
+
+.cm-s-lesser-dark { background: #262626; color: #EBEFE7; text-shadow: 0 -1px 1px #262626; }
+.cm-s-lesser-dark div.CodeMirror-selected {background: #45443B !important;} /* 33322B*/
+.cm-s-lesser-dark .CodeMirror-cursor { border-left: 1px solid white !important; }
+.cm-s-lesser-dark .CodeMirror-lines { margin-left:3px; margin-right:3px; }/*editable code holder*/
+
+div.CodeMirror span.CodeMirror-matchingbracket { color: #7EFC7E; }/*65FC65*/
+
+.cm-s-lesser-dark .CodeMirror-gutter { background: #262626; border-right:1px solid #aaa; padding-right:3px; min-width:2.5em; }
+.cm-s-lesser-dark .CodeMirror-gutter-text { color: #777; }
+
+.cm-s-lesser-dark span.cm-keyword { color: #599eff; }
+.cm-s-lesser-dark span.cm-atom { color: #C2B470; }
+.cm-s-lesser-dark span.cm-number { color: #B35E4D; }
+.cm-s-lesser-dark span.cm-def {color: color: white;}
+.cm-s-lesser-dark span.cm-variable { color:#D9BF8C; }
+.cm-s-lesser-dark span.cm-variable-2 { color: #669199; }
+.cm-s-lesser-dark span.cm-variable-3 { color: white; }
+.cm-s-lesser-dark span.cm-property {color: #92A75C;}
+.cm-s-lesser-dark span.cm-operator {color: #92A75C;}
+.cm-s-lesser-dark span.cm-comment { color: #666; }
+.cm-s-lesser-dark span.cm-string { color: #BCD279; }
+.cm-s-lesser-dark span.cm-string-2 {color: #f50;}
+.cm-s-lesser-dark span.cm-meta { color: #738C73; }
+.cm-s-lesser-dark span.cm-error { color: #9d1e15; }
+.cm-s-lesser-dark span.cm-qualifier {color: #555;}
+.cm-s-lesser-dark span.cm-builtin { color: #ff9e59; }
+.cm-s-lesser-dark span.cm-bracket { color: #EBEFE7; }
+.cm-s-lesser-dark span.cm-tag { color: #669199; }
+.cm-s-lesser-dark span.cm-attribute {color: #00c;}
+.cm-s-lesser-dark span.cm-header {color: #a0a;}
+.cm-s-lesser-dark span.cm-quote {color: #090;}
+.cm-s-lesser-dark span.cm-hr {color: #999;}
+.cm-s-lesser-dark span.cm-link {color: #00c;}
+/* Based on Sublime Text's Monokai theme */
+
+.cm-s-monokai {background: #272822; color: #f8f8f2;}
+.cm-s-monokai div.CodeMirror-selected {background: #49483E !important;}
+.cm-s-monokai .CodeMirror-gutter {background: #272822; border-right: 0px;}
+.cm-s-monokai .CodeMirror-gutter-text {color: #d0d0d0;}
+.cm-s-monokai .CodeMirror-cursor {border-left: 1px solid #f8f8f0 !important;}
+
+.cm-s-monokai span.cm-comment {color: #75715e;}
+.cm-s-monokai span.cm-atom {color: #ae81ff;}
+.cm-s-monokai span.cm-number {color: #ae81ff;}
+
+.cm-s-monokai span.cm-property, .cm-s-monokai span.cm-attribute {color: #a6e22e;}
+.cm-s-monokai span.cm-keyword {color: #f92672;}
+.cm-s-monokai span.cm-string {color: #e6db74;}
+
+.cm-s-monokai span.cm-variable {color: #a6e22e;}
+.cm-s-monokai span.cm-variable-2 {color: #9effff;}
+.cm-s-monokai span.cm-def {color: #fd971f;}
+.cm-s-monokai span.cm-error {background: #f92672; color: #f8f8f0;}
+.cm-s-monokai span.cm-bracket {color: #f8f8f2;}
+.cm-s-monokai span.cm-tag {color: #f92672;}
+.cm-s-monokai span.cm-link {color: #ae81ff;}
+
+.cm-s-monokai .CodeMirror-matchingbracket {
+  text-decoration: underline;
+  color: white !important;
+}
+.cm-s-neat span.cm-comment { color: #a86; }
+.cm-s-neat span.cm-keyword { line-height: 1em; font-weight: bold; color: blue; }
+.cm-s-neat span.cm-string { color: #a22; }
+.cm-s-neat span.cm-builtin { line-height: 1em; font-weight: bold; color: #077; }
+.cm-s-neat span.cm-special { line-height: 1em; font-weight: bold; color: #0aa; }
+.cm-s-neat span.cm-variable { color: black; }
+.cm-s-neat span.cm-number, .cm-s-neat span.cm-atom { color: #3a3; }
+.cm-s-neat span.cm-meta {color: #555;}
+.cm-s-neat span.cm-link { color: #3a3; }
+/* Loosely based on the Midnight Textmate theme */
+
+.cm-s-night { background: #0a001f; color: #f8f8f8; }
+.cm-s-night div.CodeMirror-selected { background: #a8f !important; }
+.cm-s-night .CodeMirror-gutter { background: #0a001f; border-right: 1px solid #aaa; }
+.cm-s-night .CodeMirror-gutter-text { color: #f8f8f8; }
+.cm-s-night .CodeMirror-cursor { border-left: 1px solid white !important; }
+
+.cm-s-night span.cm-comment { color: #6900a1; }
+.cm-s-night span.cm-atom { color: #845dc4; }
+.cm-s-night span.cm-number, .cm-s-night span.cm-attribute { color: #ffd500; }
+.cm-s-night span.cm-keyword { color: #599eff; }
+.cm-s-night span.cm-string { color: #37f14a; }
+.cm-s-night span.cm-meta { color: #7678e2; }
+.cm-s-night span.cm-variable-2, .cm-s-night span.cm-tag { color: #99b2ff; }
+.cm-s-night span.cm-variable-3, .cm-s-night span.cm-def { color: white; }
+.cm-s-night span.cm-error { color: #9d1e15; }
+.cm-s-night span.cm-bracket { color: #8da6ce; }
+.cm-s-night span.cm-comment { color: #6900a1; }
+.cm-s-night span.cm-builtin, .cm-s-night span.cm-special { color: #ff9e59; }
+.cm-s-night span.cm-link { color: #845dc4; }
+.cm-s-rubyblue { font:13px/1.4em Trebuchet, Verdana, sans-serif; }	/* - customized editor font - */
+
+.cm-s-rubyblue { background: #112435; color: white; }
+.cm-s-rubyblue div.CodeMirror-selected { background: #38566F !important; }
+.cm-s-rubyblue .CodeMirror-gutter { background: #1F4661; border-right: 7px solid #3E7087; min-width:2.5em; }
+.cm-s-rubyblue .CodeMirror-gutter-text { color: white; }
+.cm-s-rubyblue .CodeMirror-cursor { border-left: 1px solid white !important; }
+
+.cm-s-rubyblue span.cm-comment { color: #999; font-style:italic; line-height: 1em; }
+.cm-s-rubyblue span.cm-atom { color: #F4C20B; }
+.cm-s-rubyblue span.cm-number, .cm-s-rubyblue span.cm-attribute { color: #82C6E0; }
+.cm-s-rubyblue span.cm-keyword { color: #F0F; }
+.cm-s-rubyblue span.cm-string { color: #F08047; }
+.cm-s-rubyblue span.cm-meta { color: #F0F; }
+.cm-s-rubyblue span.cm-variable-2, .cm-s-rubyblue span.cm-tag { color: #7BD827; }
+.cm-s-rubyblue span.cm-variable-3, .cm-s-rubyblue span.cm-def { color: white; }
+.cm-s-rubyblue span.cm-error { color: #AF2018; }
+.cm-s-rubyblue span.cm-bracket { color: #F0F; }
+.cm-s-rubyblue span.cm-link { color: #F4C20B; }
+.cm-s-rubyblue span.CodeMirror-matchingbracket { color:#F0F !important; }
+.cm-s-rubyblue span.cm-builtin, .cm-s-rubyblue span.cm-special { color: #FF9D00; }
+/*
+Copyright (C) 2011 by MarkLogic Corporation
+Author: Mike Brevoort <mike@brevoort.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+.cm-s-xq-dark { background: #0a001f; color: #f8f8f8; }
+.cm-s-xq-dark span.CodeMirror-selected { background: #a8f !important; }
+.cm-s-xq-dark .CodeMirror-gutter { background: #0a001f; border-right: 1px solid #aaa; }
+.cm-s-xq-dark .CodeMirror-gutter-text { color: #f8f8f8; }
+.cm-s-xq-dark .CodeMirror-cursor { border-left: 1px solid white !important; }
+
+.cm-s-xq-dark span.cm-keyword {color: #FFBD40;}
+.cm-s-xq-dark span.cm-atom {color: #6C8CD5;}
+.cm-s-xq-dark span.cm-number {color: #164;}
+.cm-s-xq-dark span.cm-def {color: #FFF; text-decoration:underline;}
+.cm-s-xq-dark span.cm-variable {color: #FFF;}
+.cm-s-xq-dark span.cm-variable-2 {color: #EEE;}
+.cm-s-xq-dark span.cm-variable-3 {color: #DDD;}
+.cm-s-xq-dark span.cm-property {}
+.cm-s-xq-dark span.cm-operator {}
+.cm-s-xq-dark span.cm-comment {color: gray;}
+.cm-s-xq-dark span.cm-string {color: #9FEE00;}
+.cm-s-xq-dark span.cm-meta {color: yellow;}
+.cm-s-xq-dark span.cm-error {color: #f00;}
+.cm-s-xq-dark span.cm-qualifier {color: #FFF700;}
+.cm-s-xq-dark span.cm-builtin {color: #30a;}
+.cm-s-xq-dark span.cm-bracket {color: #cc7;}
+.cm-s-xq-dark span.cm-tag {color: #FFBD40;}
+.cm-s-xq-dark span.cm-attribute {color: #FFF700;}
+span.cm-rangeinfo {color: #a0b;}
+span.cm-minus {color: red;}
+span.cm-plus {color: #2b2;}
+.cm-s-default span.cm-header {color: blue; font-weight:bold;}
+.cm-s-default span.cm-code {color: #a50;}
+.cm-s-default span.cm-code-inline {color: #660;}
+
+.cm-s-default span.cm-quote {color: #555;}
+.cm-s-default span.cm-list {color: #c60;}
+.cm-s-default span.cm-hr {color: #999;}
+.cm-s-default span.cm-em {font-style: italic;}
+.cm-s-default span.cm-strong {font-weight: bold;}
+
+.cm-s-default span.cm-link-external {color: blue;}
+.cm-s-default span.cm-brace {color: #170; font-weight: bold;}
+.cm-s-default span.cm-macro {color: #9E3825;}
+.cm-s-default span.cm-table {color: blue; font-weight: bold;}
+.cm-s-default span.cm-warning {color: red; font-weight: bold;}
+
+.cm-s-default span.cm-underlined {text-decoration: underline;}
+.cm-s-default span.cm-line-through {text-decoration: line-through;}
+
+.cm-s-default span.cm-comment {color: #666;}
+
+.cm-s-default span.cm-preamble {color: #b26818; font-weight: bold;}
+.cm-s-default span.cm-macro {color: #b218b2;}
+.cm-s-default span.cm-section {color: green; font-weight: bold;}
+.cm-s-default span.cm-script {color: red;}
+.cm-s-default span.cm-issue {color: yellow;}

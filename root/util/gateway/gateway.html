@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name=viewport content='width=device-width'>
+<title> {{=title|html}} </title>
+<!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<link rel=stylesheet href=/util/gateway/gateway.css?template=no>
+
+<form id=toolbar action="javascript:void 0" autocomplete=off>
+  <div id=crumbs>{{-
+  nav|crumb|i;
+    <a href={{=crumb.path|uri}} class=crumb>{{=crumb.name|html}}/</a>}}
+  </div>
+  <input id=search type=search class=input autofocus>
+  <div id=controls style='display:none'>
+    <select id=filetype>
+      <option selected>file</option>
+      <option>folder</option>
+      <!-- <option>link</option> -->
+    </select>
+    <input id=create value=create type=button>
+  </div>
+  <input id=plus value=+ type=button onfocus=showcontrols() onmouseover=showcontrols()>
+</form>
+
+<ul id=fuzzy>{{-
+  files|file|i;
+  <li><div class=cursor>&{{?i==0|#9654;nbsp}};</div><a href={{=file.path|uri|xmlattr}}>{{=file.name|html}}</a></li>}}
+</ul>
+
+<script src=/util/gateway/scout.js?template=no></script>
+<script src=/util/gateway/gateway.js?template=no></script>
+
+<!-- Google Analytics -->
+<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
+
