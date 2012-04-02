@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset=utf-8>
+<title> {{=title|html}} </title>
+
+<body></body>
+
+<script src=/js/showdown.js></script>
+
+<script>
+  var text = {{=file.content|json|html}};
+
+  var converter = new Showdown.converter();
+  var html = converter.makeHtml(text);
+
+  document.body.innerHTML = html;
+</script>
