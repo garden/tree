@@ -324,14 +324,13 @@ exports.start = function (options) {
   }
 
   // Populate security values with the corresponding files.
-  if (options.secure || options.key || options.cert || options.ca) {
+  if (options.secure) {
     settings.security.key = options.key || '../https.key';
     settings.security.cert = options.cert || '../https.crt';
-    settings.security.ca = options.ca || [ '../https.ca' ];
+    settings.security.ca = options.ca || [];
   }
 
-  settings.port = options.port ||
-    (settings.security.key && settings.security.cert ? 443 : 80);
+  settings.port = options.port || (options.secure ? 443 : 80);
   settings.debug = options.debug || 0;
 
   startServer();

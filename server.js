@@ -29,15 +29,12 @@ prof.main();
 // to look for `root/something` in the File System.
 camp.route (/\/(.*)/, function (query, path) {
 
-  console.error('incoming query',query,path);
-
   // FIXME HACK for Camp to set `text/html` mime type before this function returns
   path[0] = 'a.html';
 
   plug.plug (query, path, function (err, plugpath, data) {
     if (err) console.error(err);
     path[0] = '/' + driver.relativepath(plugpath);
-    console.error('emitting',data);
     camp.emit ('fsplugged', data);
   });
 
@@ -135,9 +132,13 @@ camp.addDefer('chat', function() {}, function(data) { return data; });
 // Read options from `argv`
 var options = {
   port: +process.argv[2],
-  debug: +process.argv[4],
   secure: process.argv[3] === 'yes',
+  debug: +process.argv[4],
+  key: 'https.key',
+  cert: 'https.crt',
+  ca: ['https.ca']
 };
+
 
 // Let's rock'n'roll!
 camp.start (options);
