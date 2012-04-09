@@ -34,7 +34,7 @@ camp.route (/\/(.*)/, function (query, path) {
 
   plug.plug (query, path, function (err, plugpath, data) {
     if (err) console.error(err);
-    path[0] = '/' + driver.relativepath(plugpath);
+    path[0] = '/' + driver.relative(plugpath);
     camp.emit ('fsplugged', data);
   });
 
