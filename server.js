@@ -9,7 +9,14 @@
 //
 
 // Import modules
-var camp = require('./camp/camp'),
+var camp = require('camp').start({
+      port: +process.argv[2],
+      secure: process.argv[3] === 'yes',
+      debug: +process.argv[4],
+      key: 'https.key',
+      cert: 'https.crt',
+      ca: ['https.ca']
+    }),
     ftree = require('./lib/fs'),
     sync = require('./lib/sync'),
     plug = require('./lib/plug'),
@@ -18,36 +25,28 @@ var camp = require('./camp/camp'),
     nodepath = require('path');
 
 // Init subroutines
-sync.main();
-prof.main();
+sync.main(camp);
+prof.main(camp);
 
 
 // ROUTING
 //
 
 // Redirection of `https://<DNS>/something`
-// to look for `root/something` in the File System.
-camp.route (/\/(.*)/, function (query, path) {
-
-  // FIXME HACK for Camp to set `text/html` mime type before this function returns
-  path[0] = 'a.html';
-
+// to look for `something` in the File System.
+camp.route (/\/(.*)/, function (query, path, end) {
   plug.plug (query, path, function (err, plugpath, data) {
     if (err) console.error(err);
-    path[0] = '/' + driver.relative(plugpath);
-    camp.emit ('fsplugged', data);
+    path[0] = plugpath;
+    end(data);
   });
-
-}, function fsplugged(data) {
-  ///console.log('$FSPLUGGED: sending data',data);
-  return data;
 });
 
 
 
 // AJAX FS API
 
-camp.addDefer ('fs', function (query) {
+camp.ajax.on ('fs', function (query, end) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
@@ -56,18 +55,18 @@ camp.addDefer ('fs', function (query) {
       ftree.file (query.path, function (err, dir) {
         if (err) {
           data.err = err;
-          camp.emit('fs', data); return;
+          return end(data);
         }
         // ls -r
         if (query.depth && query.depth > 1) {
           dir.subfiles(function(err, subfiles) {
             data.leafs = subfiles;
-            camp.emit('fs', data);
+            end(data);
           }, query.depth);
         // ls .
         } else {
           dir.files (function (err, files) {
-            if (err) { data.err = err; camp.emit('fs', data); return; }
+            if (err) { data.err = err; return end(data); }
             data.files = [];
             for (var i = 0; i < files.length; i++) {
               data.files.push({
@@ -75,20 +74,20 @@ camp.addDefer ('fs', function (query) {
                 type: ftree.type.nameFromType[files[i].type]
               });
             }
-            camp.emit ('fs', data);
+            end(data);
           });
         }
       });
       break;
     case 'cat':
       ftree.file (query.path, function (err, file) {
-        if (err) { data.err = err; camp.emit('fs', data); return; }
+        if (err) { data.err = err; end(data); }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
         file.open (function (err) {
-          if (err) { data.err = err; camp.emit('fs', data); return; }
+          if (err) { data.err = err; end(data); }
           data.content = content;
-          camp.emit ('fs', data);
+          end(data);
         });
       });
       break;
@@ -97,14 +96,14 @@ camp.addDefer ('fs', function (query) {
         // file or folder?
         if (err !== null) {
           console.error('server: file %s asked for. %s', query.path, err);
-          camp.emit('fs', {err:err});
+          end({err:err});
           return;
         }
         (query.type === "folder"? file.mkdir: file.mkfile).bind(file)
           (query.name, function(err) {
             data.err = err;
             data.path = nodepath.join(query.path, query.name);
-            camp.emit('fs', data);
+            end(data);
         });
       });
       break;
@@ -112,38 +111,15 @@ camp.addDefer ('fs', function (query) {
       ftree.file (query.path, function(err, file) {
         file.rm(function (err) {
           data.err = err;
-          camp.emit('fs', data);
+          end(data);
         });
       });
       break;
     default:
       return;
   }
-}, function(data) {
-  return data || {};
 });
 
 
-// A little chat demo
-camp.add('talk', function(data) { camp.emit('chat', data); });
-camp.addDefer('chat', function() {}, function(data) { return data; });
-
-
-// Read options from `argv`
-var options = {
-  port: +process.argv[2],
-  secure: process.argv[3] === 'yes',
-  debug: +process.argv[4],
-  key: 'https.key',
-  cert: 'https.crt',
-  ca: ['https.ca']
-};
-
-
-// Let's rock'n'roll!
-camp.start (options);
-
-console.log('tree is live! ' + ( options.secure === 'yes' ? 'https' : 'http' )
-    + '://localhost' + ( options.port ? ':' + options.port : '' ) + '/');
 
 

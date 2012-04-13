@@ -1,7 +1,7 @@
 /* plugger.js: allows plugs to have an api into the nifty collaboration engine.
  * Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
  * The following code is covered by the GPLv2 license. */
- 
+
 (function () {
 
 
@@ -84,9 +84,6 @@ var giveplug = function (path, onnewcontent, onnewdiff) {
 
 
 
-// We need this instance of scout to avoid conflicts.
-var Scout2 = Scout.maker ();
-
 // client: { lastcopy: 'content before last sync' }
 // delta: patch (in delta form) to apply to our copy.
 // applylocally: function ( patch ) { return newWorkingCopy; }
@@ -112,7 +109,7 @@ function sync (client, delta, applylocally, send) {
 
   // Update the last copy.
   client.lastcopy = workingcopy;
-  
+
   // Send back the new diff if there is something to it.
   if (newdiff.length !== 1 || newdiff[0][0] !== DIFF_EQUAL) {
     // Send the new delta.
@@ -124,62 +121,29 @@ function sync (client, delta, applylocally, send) {
 //1. This place is specifically designed to receive information from the server.
 
 // Whenever we load the page, we shall send nothing to
-// the "in" action of the server.
-function getmodif (params) {
+// the "dispatch" channel of the server.
+Scout.EventSource('dispatch').onrecv(function (resp) {
+  console.log ('received', resp);
 
-  params.action = 'dispatch';
-  params.data = {
-    user: client.user,
-    path: client.path
-  };
-  console.log ('dispatched');
-  
-  params.resp = function receiving (resp) {
-    // We received new information from a collaborator!
-    // (this can be fired a long time after the enclosing function.)
+  // If it is us, we have already done the modification.
+  if (resp.user === client.user) return;
 
-    console.log ('received', resp);
+  // We sync it to our copy.
+  sync (client, resp.delta, function applylocally(patch) {
+    // Get what our content should look like after this function runs.
+    var futurecontent = dmp.patch_apply (patch, client.copy) [0];
+    // Figure out the difference w.r.t our working copy.
+    var change = dmp.diff_main (client.copy, futurecontent);
 
-    // If it is us, we have already done the modification.
-    if (resp.user === client.user) {
-      Scout2.send (getmodif) ();   // We relaunch the connection.
-      return;
-    }
-    
-    // We sync it to our copy.
-    sync (client, resp.delta, function applylocally(patch) {
-      // Get what our content should look like after this function runs.
-      var futurecontent = dmp.patch_apply (patch, client.copy) [0];
-      // Figure out the difference w.r.t our working copy.
-      var change = dmp.diff_main (client.copy, futurecontent);
+    // Consult plug.
+    client.copy = (plug.onnewdiff? plug.onnewdiff (change):
+      plug.onnewcontent (futurecontent));
 
-      // Consult plug.
-      client.copy = (plug.onnewdiff? plug.onnewdiff (change):
-        plug.onnewcontent (futurecontent));
-
-      return client.copy;
-    }, function sendnewdelta (delta) {
-      Scout.send (sending (delta)) ();
-    });
-    
-    Scout2.send (getmodif) ();   // We relaunch the connection.
-  };
-
-  params.error = function receiveerror(status) {
-    console.log('getmodif xhr error: status',status);
-    var now = +new Date ();
-    if (status === 0 && now - lastnetworkissue > 5000) {
-      // Network issues are not too frequent.
-      lastnetworkissue = now;
-      Scout2 = Scout.maker();
-      Scout2.send (getmodif) ();   // We relaunch the connection.
-    } else {
-      console.log ('connection lost.');
-    }
-  };
-}
-var lastnetworkissue = 0;
-
+    return client.copy;
+  }, function sendnewdelta (delta) {
+    Scout.send (sending (delta)) ();
+  });
+});
 
 //2. This place is specifically designed to send information to the server.
 
@@ -200,7 +164,7 @@ function sending (delta) {
     };
 
     params.action = 'new';
-    
+
     // DEBUG
     console.log('sending: ' + JSON.stringify(params.data));
     params.resp = function () {
@@ -212,7 +176,7 @@ function sending (delta) {
         plug.newcontent(plug.onnewdiff([]));
       }
     };
-    
+
     params.error = function senderror (status) {
       console.log('send error: status', JSON.stringify(status));
     };
@@ -236,19 +200,17 @@ function getdata() {
 
       client.copy = client.lastcopy = resp.data;
       plug.onnewcontent (client.copy);
-
-      Scout2.send (getmodif) ();      // Make the first dispatch link.
     };
   }) ();
 }
 
-// When we leave, tell the server.
-window.onunload = function () {
-  Scout.send (function (params) {
-    params.action = 'kill';
-    params.data = {user:client.user, path:client.path};
-  }) ();
-};
+//// When we leave, tell the server.
+//window.onunload = function () {
+//  Scout.send (function (params) {
+//    params.action = 'kill';
+//    params.data = {user:client.user, path:client.path};
+//  }) ();
+//};
 
 
 
