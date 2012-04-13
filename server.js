@@ -8,17 +8,14 @@
 // SERVER CONFIG
 //
 
-// Location of the root. If this is "/root", the fake root
-// will be at "http://example.com/root/".
-var ROOT_PREFIX = '/root';
-
 // Import modules
-var camp = require ('./camp/camp'),
-    ftree = require ('./lib/fs'),
-    sync = require ('./lib/sync'),
-    plug = require ('./lib/plug'),
-    prof = require ('./lib/profiler'),
-    nodepath = require ('path');
+var camp = require('./camp/camp'),
+    ftree = require('./lib/fs'),
+    sync = require('./lib/sync'),
+    plug = require('./lib/plug'),
+    prof = require('./lib/profiler'),
+    driver = require('./lib/driver'),
+    nodepath = require('path');
 
 // Init subroutines
 sync.main();
@@ -28,16 +25,16 @@ prof.main();
 // ROUTING
 //
 
-// Redirection of `https://<DNS>/root/something`
-// to look for `/root/something` in the File System.
-camp.route (new RegExp(ROOT_PREFIX + '/(.*)'), function (query, path) {
+// Redirection of `https://<DNS>/something`
+// to look for `root/something` in the File System.
+camp.route (/\/(.*)/, function (query, path) {
 
   // FIXME HACK for Camp to set `text/html` mime type before this function returns
   path[0] = 'a.html';
 
   plug.plug (query, path, function (err, plugpath, data) {
     if (err) console.error(err);
-    path[0] = plugpath;
+    path[0] = '/' + driver.relative(plugpath);
     camp.emit ('fsplugged', data);
   });
 
@@ -54,7 +51,6 @@ camp.addDefer ('fs', function (query) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
-  if (query.path) query.path = query.path.slice(ROOT_PREFIX.length);
   switch (query['op']) {
     case 'ls':
       ftree.file (query.path, function (err, dir) {
@@ -97,7 +93,6 @@ camp.addDefer ('fs', function (query) {
       });
       break;
     case 'create':
-      console.log('trying to create',query.type,'named',query.name,'in',query.path);
       ftree.file (query.path, function(err, file) {
         // file or folder?
         if (err !== null) {
@@ -108,7 +103,7 @@ camp.addDefer ('fs', function (query) {
         (query.type === "folder"? file.mkdir: file.mkfile).bind(file)
           (query.name, function(err) {
             data.err = err;
-            data.path = ROOT_PREFIX + nodepath.join(query.path, query.name);
+            data.path = nodepath.join(query.path, query.name);
             camp.emit('fs', data);
         });
       });
@@ -137,14 +132,18 @@ camp.addDefer('chat', function() {}, function(data) { return data; });
 // Read options from `argv`
 var options = {
   port: +process.argv[2],
-  debug: +process.argv[4],
   secure: process.argv[3] === 'yes',
+  debug: +process.argv[4],
+  key: 'https.key',
+  cert: 'https.crt',
+  ca: ['https.ca']
 };
+
 
 // Let's rock'n'roll!
 camp.start (options);
 
 console.log('tree is live! ' + ( options.secure === 'yes' ? 'https' : 'http' )
-    + '://localhost' + ( options.port !== 80 ? ':' + options.port : '' ) + '/');
+    + '://localhost' + ( options.port ? ':' + options.port : '' ) + '/');
 
 
