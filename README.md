@@ -1,6 +1,6 @@
 # tree
 
-The Collaborative Operating System - https://thefiletree.com
+The Collaborative Operating System - [thefiletree.com] (https://thefiletree.com)
 
 ## Get it
 
