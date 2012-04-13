@@ -12,7 +12,7 @@ JSMIN = uglifyjs jsmin google-closure.sh
 LOG = node.log
 
 # The name you gave your main server file.
-SERVER = server.js
+SERVER = app.js
 
 # The folder where your precious website is.
 WEB = web
