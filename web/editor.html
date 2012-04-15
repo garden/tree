@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset=utf-8>
+  <title> Collaborative editing with CodeMirror </title>
+  <link rel=stylesheet href=/cm/codemirror2012-03-26.css?plug=none>
+  <style>
+    h1 {
+      font-size: 48px; line-height: 64px;
+      margin: 8px 0;
+    }
+    .CodeMirror-scroll {
+      height: 600px;
+    }
+    .other-user {
+      position: absolute;
+      background: #aaa;
+      width: auto;
+    }
+    .other-user pre {
+      border-left: 1px solid #aaa;
+      position: absolute; bottom: 100%;
+    }
+    .other-user-selection {
+      background: rgba(200, 200, 200, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="wrapper">
+    <h1>Collaborative editing with CodeMirror</h1>
+  </div>
+
+  <script src=/cm/codemirror2012-03-26.js?plug=none></script>
+  <script src=/socket.io/socket.io.js></script>
+  <script src=/ot/ot.js?plug=none></script>
+  <script src=/pencil/client.js?plug=none></script>
+</body>
+
+</html>
