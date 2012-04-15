@@ -32,10 +32,8 @@ prof.main(camp);
 // ROUTING
 //
 
-// Redirection of `https://<DNS>/something`
-// to look for `something` in the File System.
-camp.route (/\/(.*)/, function (query, path, end) {
-  plug.plug (query, path, function (err, plugpath, data) {
+camp.route (/\/(.*)/, function (query, path, end, ask) {
+  plug.plug (query, path, ask, function (err, plugpath, data) {
     if (err) console.error(err);
     path[0] = plugpath;
     end(data);
