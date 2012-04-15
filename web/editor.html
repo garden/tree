@@ -3,7 +3,7 @@
 
 <head>
   <meta charset=utf-8>
-  <title> Collaborative editing with CodeMirror </title>
+  <title> {{=title|html}} </title>
   <link rel=stylesheet href=/cm/codemirror2012-03-26.css?plug=none>
   <style>
     h1 {
@@ -36,7 +36,50 @@
   <script src=/cm/codemirror2012-03-26.js?plug=none></script>
   <script src=/socket.io/socket.io.js></script>
   <script src=/ot/ot.js?plug=none></script>
-  <script src=/pencil/client.js?plug=none></script>
+
+  <script>
+    (function () {
+      var CodeMirrorClient = ot.CodeMirrorClient;
+
+      var socket = io.connect('/');
+
+      // uncomment to simulate more latency
+      /*(function () {
+        var emit = socket.emit;
+        var queue = [];
+        socket.emit = function () {
+          queue.push(arguments);
+        };
+        setInterval(function () {
+          if (queue.length) {
+            emit.apply(socket, queue.shift());
+          }
+        }, 800);
+      })();*/
+
+      var name = {{=user|json}};
+
+      socket.emit('auth', { name: name });
+
+      socket.once('doc', function (obj) {
+        var str = obj.str, revision = obj.revision, users = obj.users;
+
+        var wrapper = document.getElementById('wrapper');
+
+        var cm = window.cm = CodeMirror(wrapper, {
+          mode: {{=file.mime|json}},
+          value: str,
+          content: {{=file.content|json|html}},
+          lineNumbers: true,
+          lineWrapping: true,
+          theme: {{=lookup('theme')|json}} || 'default'
+        });
+
+        var cmClient = new CodeMirrorClient(revision, cm, socket, name, users);
+      });
+    })();
+  </script>
+
 </body>
 
 </html>
