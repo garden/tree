@@ -11,7 +11,7 @@ update:
 	cat mirror/lib/codemirror.js | $(JSMIN) > $$JSFILE;  \
 	cat mirror/lib/util/*.js | $(JSMIN) >> $$JSFILE;  \
 	cat mirror/mode/*/*.js | $(JSMIN) >> $$JSFILE;  \
-	cat mirror/mode/*/*/*.js | $(JSMIN) >> $$JSFILE;  \
+	cat mirror/mode/rpm/*/*.js | $(JSMIN) >> $$JSFILE;  \
 	cat mirror/keymap/*.js | $(JSMIN) >> $$JSFILE
 	@echo "Compressing css files..."
 	@CSSFILE=codemirror$(DATE).css;  \
