@@ -24,9 +24,11 @@ var camp = require('camp').start({
     driver = require('./lib/driver'),
     nodepath = require('path');
 
+
 // Init subroutines
 sync.main(camp);
 prof.main(camp);
+plug.main(camp);
 
 
 // ROUTING

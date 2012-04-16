@@ -33,7 +33,7 @@
     box.value = '';
   });
 
-  Scout.EventSource('all').onrecv(function (data) {
+  Scout.eventSource('all').onrecv(function (data) {
     var p = d.createElement('p');
     wall.appendChild(p).textContent = data.nick + ': ' + data.message;
     box.focus();
