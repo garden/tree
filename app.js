@@ -24,21 +24,20 @@ var camp = require('camp').start({
     driver = require('./lib/driver'),
     nodepath = require('path');
 
+// Socket.io: silence will fall!
+camp.io.configure('development', function () { camp.io.set('log level', 0); });
+
+
 // Init subroutines
 sync.main(camp);
 prof.main(camp);
+plug.main(camp);
 
 
 // ROUTING
 //
 
-camp.route (/\/(.*)/, function (query, path, end, ask) {
-  plug.plug (query, path, ask, function (err, plugpath, data) {
-    if (err) console.error(err);
-    path[0] = plugpath;
-    end(data);
-  });
-});
+camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
 
 

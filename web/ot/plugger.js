@@ -122,7 +122,7 @@ function sync (client, delta, applylocally, send) {
 
 // Whenever we load the page, we shall send nothing to
 // the "dispatch" channel of the server.
-Scout.EventSource('dispatch').onrecv(function (resp) {
+Scout.eventSource('dispatch').onrecv(function (resp) {
   console.log ('received', resp);
 
   // If it is us, we have already done the modification.
