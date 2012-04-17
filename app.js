@@ -34,13 +34,7 @@ plug.main(camp);
 // ROUTING
 //
 
-camp.route (/\/(.*)/, function (query, path, end, ask) {
-  plug.plug (query, path, ask, function (err, plugpath, data) {
-    if (err) console.error(err);
-    path[0] = plugpath;
-    end(data);
-  });
-});
+camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
 
 
