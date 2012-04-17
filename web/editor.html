@@ -62,7 +62,7 @@
     content: {{=file.content|json|html}},
     lineNumbers: true,
     theme: {{=lookup('theme')|json}} || 'default',
-    keyMap: {{=lookup('keymap')|json}},
+    keyMap: {{=lookup('keymap')|json}} || 'default',
     extraKeys: {
       "Ctrl-Space": function(cm) {
         CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);

@@ -68,7 +68,7 @@
         lineNumbers: true,
         lineWrapping: true,
         theme: {{=lookup('theme')|json}} || 'default',
-        keyMap: {{=lookup('keymap')|json}}
+        keyMap: {{=lookup('keymap')|json}} || 'default'
       });
 
       cm.setTheme = function(theme) {
