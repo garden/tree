@@ -76,18 +76,18 @@ start:
 	@echo "start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
-	  cd $(PUBLISH) ; sudo node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
+	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) ;  \
 	else  \
-	  cd $(PUBLISH) ; node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
+	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) ;  \
 	fi
 
 startweb:
 	@echo "start web"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
-	  cd $(WEB) ; sudo node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
+	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) ;  \
 	else  \
-	  cd $(WEB) ; node ../$(SERVER) $(PORT) $(SECURE) $(DEBUG) > ../$(LOG) ;  \
+	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) ;  \
 	fi
 
 test:

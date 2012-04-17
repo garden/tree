@@ -35,13 +35,14 @@
 
   <script src=/cm/codemirror2012-04-15.js?plug=none></script>
   <script src=/$socket.io/socket.io.js></script>
+  <script src=/sc/scout.js?plug=none></script>
   <script src=/ot/ot.js?plug=none></script>
 
   <script>
     (function () {
       var CodeMirrorClient = ot.CodeMirrorClient;
 
-      var socket = io.connect('/');
+      var socket = Scout.socket({{=file.path|json}});
 
       // uncomment to simulate more latency
       /*(function () {
