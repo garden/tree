@@ -20,7 +20,7 @@ function hidebox(name) {
 
 // CodeMirror theme
 function selectTheme(node) {
-  editor.setTheme(node.options[node.selectedIndex].innerHTML);
+  window.cm.setTheme(node.options[node.selectedIndex].innerHTML);
   hidebox('wrench');
 };
 
@@ -40,7 +40,7 @@ function runCode() {
   // Validators
   if (lang === 'HTML' || lang === 'XHTML' || lang === 'CSS' || lang === 'XML') {
     document.runform.action = 'http://validator.w3.org/unicorn/check#validate-by-input';
-    document.runform.ucn_text.value = editor.getValue();
+    document.runform.ucn_text.value = window.cm.getValue();
     switch (lang) {
       case 'HTML': document.runform.ucn_text_mime.value = 'text/html'; break;
       case 'XHTML': document.runform.ucn_text_mime.value = 'application/xhtml+xml'; break;
@@ -52,7 +52,7 @@ function runCode() {
 
   // CodePad.org
   document.runform.action = 'http://codepad.org/';
-  document.runform.code.value = editor.getValue();
+  document.runform.code.value = window.cm.getValue();
   return true;
 };
 
@@ -60,7 +60,7 @@ function runCode() {
 function runJS() {
   var result;
   try {
-    result = eval(editor.getValue());
+    result = eval(window.cm.getValue());
   } catch (e) {
     result = e;
   }

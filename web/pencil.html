@@ -1,16 +1,8 @@
 <!doctype html>
-<!-- <html manifest="/pencil.appcache"> -->
 <meta charset=utf-8>
 <title> {{=title|html}} </title>
 
 <link rel=stylesheet href=/cm/codemirror2012-04-15.css?plug=none>
-
-<script src=/sc/scout.js?plug=none></script>
-<script src=/ot/diff_match_patch.js?plug=none></script>
-<script src=/ot/plugger.js?plug=none></script>
-<script src=/cm/codemirror2012-04-15.js?plug=none></script>
-<script src=/cm/codemirror.plug.js?plug=none></script>
-<script src=/pencil/pencil.js?plug=none></script>
 
 <style>
   html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
@@ -18,58 +10,77 @@
   .left {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
   .right {position: fixed; margin: 0px; bottom: 0px; right: 0px; z-index: 42;}
   .box {display: none}
+  .other-user {position: absolute; background: #aaa; width: auto;}
+  .other-user pre {border-left: 1px solid #aaa; position: absolute; bottom: 100%;}
+  .other-user-selection {background: rgba(200, 200, 200, 0.4);}
 </style>
 
 <body class=cm-s-default onload=selectTheme(Scout('#wrenchbox'))>
 
-  <div class=left>
-    <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
-      ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
-      <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
-    </select>
-    <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench') onclick=hidebox('wrench')>
-  </div>
+<div class=container id=wrapper></div>
 
-  <form name=runform class=right method=post onsubmit=runCode() target=_blank enctype=multipart/form-data>
-    <select name=lang id=runbox class=box>
-      <optgroup label='in browser'>
-        <option>JavaScript</option>
-      </optgroup>
-      <optgroup label='W3C'>
-        <option>HTML</option>
-        <option>XHTML</option>
-        <option>CSS</option>
-        <option>XML</option>
-      </optgroup>
-      <optgroup label=codepad.org>{{-
-      ['C','C++','D','Haskell','Lua','OCaml','PHP','Perl','Plain Text','Python','Ruby','Scheme','Tcl']|lang|i;
-        <option>{{=lang|html}}</option>}}
-      </optgroup>
-    </select>
-    <input name=code type=hidden>
-    <input name=content type=hidden>
-    <input name=ucn_text type=hidden>
-    <input name=ucn_text_mime type=hidden>
-    <input name=ucn_task type=hidden value=conformance>
-    <input name=run type=hidden value=True>
-    <input id=run type=submit value=&#9654; onmouseover=showbox('run')>
-  </form>
+<div class=left>
+  <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
+    ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
+    <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
+  </select>
+  <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench') onclick=hidebox('wrench')>
+</div>
 
-  <script>
-  // Create a CodeMirror2 editor.
-  editor = CodeMirrorPlug({{=file.path|json}}, document.body, {
-    mode: {{=file.mime|json}},
-    content: {{=file.content|json|html}},
-    lineNumbers: true,
-    theme: {{=lookup('theme')|json}} || 'default',
-    keyMap: {{=lookup('keymap')|json}},
-    extraKeys: {
-      "Ctrl-Space": function(cm) {
-        CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
+<script src=/cm/codemirror2012-04-15.js?plug=none></script>
+<script src=/$socket.io/socket.io.js></script>
+<script src=/sc/scout.js?plug=none></script>
+<script src=/ot/ot.js?plug=none></script>
+<script src=/pencil/pencil.js?plug=none></script>
+
+<script>
+  (function () {
+    var CodeMirrorClient = ot.CodeMirrorClient;
+
+    var socket = Scout.socket({{=file.path|json}});
+
+    // uncomment to simulate more latency
+    /*(function () {
+      var emit = socket.emit;
+      var queue = [];
+      socket.emit = function () {
+        queue.push(arguments);
+      };
+      setInterval(function () {
+        if (queue.length) {
+          emit.apply(socket, queue.shift());
+        }
+      }, 800);
+    })();*/
+
+    var name = {{=user|json}};
+
+    socket.emit('auth', { name: name });
+
+    socket.once('doc', function (obj) {
+      var str = obj.str, revision = obj.revision, users = obj.users;
+      var wrapper = document.getElementById('wrapper');
+
+      var cm = window.cm = CodeMirror(wrapper, {
+        mode: {{=file.mime|json}},
+        value: str,
+        content: {{=file.content|json|html}},
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: {{=lookup('theme')|json}} || 'default',
+        keyMap: {{=lookup('keymap')|json}}
+      });
+
+      cm.setTheme = function(theme) {
+        cm.setOption("theme", theme);
+        document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
       }
-    }
-  });
-  </script>
 
-  <!-- Google Analytics -->
-  <script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
+      var cmClient = new CodeMirrorClient(revision, cm, socket, name, users);
+    });
+  })();
+
+</script>
+
+<!-- Google Analytics -->
+<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
