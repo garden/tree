@@ -29,9 +29,7 @@
 </head>
 
 <body>
-  <div class="container" id="wrapper">
-    <h1>Collaborative editing with CodeMirror</h1>
-  </div>
+  <div class="container" id="wrapper"></div>
 
   <script src=/cm/codemirror2012-04-15.js?plug=none></script>
   <script src=/$socket.io/socket.io.js></script>
@@ -60,6 +58,7 @@
 
       var name = {{=user|json}};
 
+      console.log('emit auth')
       socket.emit('auth', { name: name });
 
       socket.once('doc', function (obj) {
@@ -67,6 +66,7 @@
 
         var wrapper = document.getElementById('wrapper');
 
+        console.log('creating cm')
         var cm = window.cm = CodeMirror(wrapper, {
           mode: {{=file.mime|json}},
           value: str,

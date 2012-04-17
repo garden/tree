@@ -24,6 +24,9 @@ var camp = require('camp').start({
     driver = require('./lib/driver'),
     nodepath = require('path');
 
+// Socket.io: silence will fall!
+camp.io.configure('development', function () { camp.io.set('log level', 0); });
+
 
 // Init subroutines
 sync.main(camp);
