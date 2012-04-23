@@ -8,25 +8,13 @@
 // UI
 //
 
-function showbox(name) {
-  //Scout('#' + name).style.display = 'none';
-  Scout('#' + name + 'box').style.display = 'inline';
-};
-
-function hidebox(name) {
-  Scout('#' + name + 'box').style.display = 'none';
-  Scout('#' + name).style.display = 'inline';
-};
-
 // CodeMirror theme
 function selectTheme(node) {
   window.cm.setTheme(node.options[node.selectedIndex].innerHTML);
-  hidebox('wrench');
 };
 
 // Code execution
 function runCode() {
-  hidebox('run');
 
   var lang = document.runform.lang.value;
   console.log(lang);

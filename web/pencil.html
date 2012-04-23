@@ -2,28 +2,54 @@
 <meta charset=utf-8>
 <title> {{=title|html}} </title>
 
+<link rel=stylesheet href=/pencil/pencil.css?plug=none>
 <link rel=stylesheet href=/cm/codemirror2012-04-15.css?plug=none>
 
 <style>
-  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-  .CodeMirror-scroll {position: fixed; top: 0px; bottom: 0px; height: auto; width: 100%;}
-  .left {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
-  .right {position: fixed; margin: 0px; bottom: 0px; right: 0px; z-index: 42;}
-  .box {display: none}
-  .other-client {position: absolute; }
-  .other-client pre {border-left-width: 2px; border-left-style: solid; position: absolute; bottom: 100%; }
+  html, body {position:absolute; margin:0px; padding:0px; width:100%; height:100%}
+  .CodeMirror-scroll {position:fixed; top:35px; bottom:0px; height:auto; width:100%}
+  .toolbar {
+     position: fixed;
+     top: 0px;
+     height: 28px;
+     width: 100%;
+     padding: 3px 0;
+     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+   }
+  .controls {float:right; margin-right: 3px;}
+  .btn-group, .btn-group select {display:inline; float:left;}
+  .left {position:fixed; margin:0px; bottom:0px; left:0px; z-index:42}
+  .right {position:fixed; margin:0px; bottom:0px; right:0px; z-index:42}
+  .box {display:none}
+  .other-client {position:absolute}
+  .other-client pre {border-left-width:2px; border-left-style:solid; position:absolute; bottom:100%}
+  div.container ul {position:fixed; right:20px; top:40px; margin:0px; list-style:none}
+  div.container ul li {background: #900; color: white; padding:2px 4px 3px;
+    border-radius:2px; margin-bottom:3px; font-family:"Ubuntu Mono", monospace;
+    font-size: 9pt; float:right; clear:right; line-height: 1em;}
 </style>
 
-<body class=cm-s-default onload=selectTheme(Scout('#wrenchbox'))>
+<body class=cm-s-default>
 
 <div class=container id=wrapper></div>
 
-<div class=left>
-  <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
-    ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
-    <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
-  </select>
-  <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench') onclick=hidebox('wrench')>
+<div class='toolbar CodeMirror-gutter'>
+  <div class=controls>
+    <div class=btn-group>
+      <a class='btn disabled' title=undo href='javascript:void 0'>&#8630;</a>
+      <a class='btn disabled' title=redo href='javascript:void 0'>&#8631;</a>
+    </div>
+    <div class=btn-group>
+      <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
+      <a class=btn href='javascript:void 0' title=run>&#9654;</a>
+    </div>
+    <div class=btn-group>
+      <select onchange=selectTheme(this) title=theme>{{-
+        ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
+        <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
+      </select>
+    </div>
+  </div>
 </div>
 
 <script src=/cm/codemirror2012-04-15.js?plug=none></script>
@@ -34,41 +60,41 @@
 
 <script>
   (function () {
-    var CodeMirrorClient = ot.CodeMirrorClient;
-
     var socket = Scout.socket({{=file.path|json}});
 
-    // uncomment to simulate more latency
-    /*(function () {
-      var emit = socket.emit;
-      var queue = [];
-      socket.emit = function () {
-        queue.push(arguments);
-      };
-      setInterval(function () {
-        if (queue.length) {
-          emit.apply(socket, queue.shift());
-        }
-      }, 800);
-    })();*/
+    // Templated information
+    var mime = {{=file.mime|json}},
+        theme = {{=lookup('theme')|json}} || 'default',
+        keymap = {{=lookup('keymap')|json}} || 'default',
+        wrapper = document.getElementById('wrapper'),
+        delay;
 
-    var wrapper = document.getElementById('wrapper');
-
+    // CodeMirror
     var cm = window.cm = CodeMirror(wrapper, {
-      mode: {{=file.mime|json}},
-      value: '',
+      mode: mime,
+      value: {{=file.content|json|html}}, // FIXME why is this always null?
       lineNumbers: true,
       lineWrapping: true,
-      theme: {{=lookup('theme')|json}} || 'default',
-      keyMap: {{=lookup('keymap')|json}} || 'default'
+      theme: theme,
+      keyMap: keymap,
+      onChange: function() {
+        clearTimeout(delay);
+        delay = setTimeout(function () {
+          postMessage('changed', '*');
+        }, 300);
+      }
     });
 
+    // CodeMirror Themes
     cm.setTheme = function(theme) {
-      cm.setOption("theme", theme);
-      document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
-    };
+      cm.setOption('theme', theme);
+      document.body.className =
+        document.body.className.replace(/cm-s-\w+/, 'cm-s-' + theme);
+    }
+    cm.setTheme(theme);
 
-    var cmClient = new CodeMirrorClient(socket, cm);
+    // Operational Transformation
+    var cmClient = new ot.CodeMirrorClient(socket, cm);
     wrapper.appendChild(cmClient.clientListEl);
   })();
 
