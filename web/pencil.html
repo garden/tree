@@ -36,12 +36,12 @@
 <div class='toolbar CodeMirror-gutter'>
   <div class=controls>
     <div class=btn-group>
-      <a class=btn href="#" title=undo>&#8630;</a>
-      <a class=btn href="#" title=redo>&#8631;</a>
+      <a class='btn disabled' title=undo href='javascript:void 0'>&#8630;</a>
+      <a class='btn disabled' title=redo href='javascript:void 0'>&#8631;</a>
     </div>
     <div class=btn-group>
-      <a class=btn href="#" title=settings>&#9881;</a>
-      <a class=btn href="#" title=run>&#9654;</a>
+      <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
+      <a class=btn href='javascript:void 0' title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
@@ -60,19 +60,19 @@
 
 <script>
   (function () {
-    var CodeMirrorClient = ot.CodeMirrorClient;
-
     var socket = Scout.socket({{=file.path|json}});
 
+    // Templated information
     var mime = {{=file.mime|json}},
         theme = {{=lookup('theme')|json}} || 'default',
         keymap = {{=lookup('keymap')|json}} || 'default',
         wrapper = document.getElementById('wrapper'),
         delay;
 
+    // CodeMirror
     var cm = window.cm = CodeMirror(wrapper, {
       mode: mime,
-      value: {{=file.content|json|html}},
+      value: {{=file.content|json|html}}, // FIXME why is this always null?
       lineNumbers: true,
       lineWrapping: true,
       theme: theme,
@@ -85,15 +85,16 @@
       }
     });
 
+    // CodeMirror Themes
     cm.setTheme = function(theme) {
       cm.setOption('theme', theme);
       document.body.className =
         document.body.className.replace(/cm-s-\w+/, 'cm-s-' + theme);
     }
-
     cm.setTheme(theme);
 
-    var cmClient = new CodeMirrorClient(socket, cm);
+    // Operational Transformation
+    var cmClient = new ot.CodeMirrorClient(socket, cm);
     wrapper.appendChild(cmClient.clientListEl);
   })();
 
