@@ -931,7 +931,7 @@ if (typeof module === 'object') {
 
   CodeMirrorClient.prototype.createClientListItem = function (client) {
     var el = document.createElement('li');
-    el.style.color = client.color;
+    el.style.background = client.color;
     el.appendChild(document.createTextNode(client.name));
     return el;
   };
