@@ -10,9 +10,8 @@
   .left {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
   .right {position: fixed; margin: 0px; bottom: 0px; right: 0px; z-index: 42;}
   .box {display: none}
-  .other-user {position: absolute; background: #aaa; width: auto;}
-  .other-user pre {border-left: 1px solid #aaa; position: absolute; bottom: 100%;}
-  .other-user-selection {background: rgba(200, 200, 200, 0.4);}
+  .other-client {position: absolute; }
+  .other-client pre {border-left-width: 2px; border-left-style: solid; position: absolute; bottom: 100%; }
 </style>
 
 <body class=cm-s-default onload=selectTheme(Scout('#wrenchbox'))>
@@ -53,31 +52,24 @@
       }, 800);
     })();*/
 
-    var name = {{=user|json}};
+    var wrapper = document.getElementById('wrapper');
 
-    socket.emit('auth', { name: name });
-
-    socket.once('doc', function (obj) {
-      var str = obj.str, revision = obj.revision, users = obj.users;
-      var wrapper = document.getElementById('wrapper');
-
-      var cm = window.cm = CodeMirror(wrapper, {
-        mode: {{=file.mime|json}},
-        value: str,
-        content: {{=file.content|json|html}},
-        lineNumbers: true,
-        lineWrapping: true,
-        theme: {{=lookup('theme')|json}} || 'default',
-        keyMap: {{=lookup('keymap')|json}} || 'default'
-      });
-
-      cm.setTheme = function(theme) {
-        cm.setOption("theme", theme);
-        document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
-      }
-
-      var cmClient = new CodeMirrorClient(revision, cm, socket, name, users);
+    var cm = window.cm = CodeMirror(wrapper, {
+      mode: {{=file.mime|json}},
+      value: '',
+      lineNumbers: true,
+      lineWrapping: true,
+      theme: {{=lookup('theme')|json}} || 'default',
+      keyMap: {{=lookup('keymap')|json}} || 'default'
     });
+
+    cm.setTheme = function(theme) {
+      cm.setOption("theme", theme);
+      document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+    };
+
+    var cmClient = new CodeMirrorClient(socket, cm);
+    wrapper.appendChild(cmClient.clientListEl);
   })();
 
 </script>
