@@ -2,11 +2,14 @@
 <meta charset=utf-8>
 <title> {{=title|html}} </title>
 
+<link rel=stylesheet href=/pencil/pencil.css?plug=none>
 <link rel=stylesheet href=/cm/codemirror2012-04-15.css?plug=none>
 
 <style>
   html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-  .CodeMirror-scroll {position: fixed; top: 0px; bottom: 0px; height: auto; width: 100%;}
+  .CodeMirror-scroll {position: fixed; top: 0px; bottom: 28px; height: auto; width: 100%;}
+  .toolbar {position: fixed; bottom: 0px; height: 28px; width: 100%; text-align: right;}
+  .btn-group {display: inline;}
   .left {position: fixed; margin: 0px; bottom: 0px; left: 0px; z-index: 42;}
   .right {position: fixed; margin: 0px; bottom: 0px; right: 0px; z-index: 42;}
   .box {display: none}
@@ -15,16 +18,29 @@
   .other-user-selection {background: rgba(200, 200, 200, 0.4);}
 </style>
 
-<body class=cm-s-default onload=selectTheme(Scout('#wrenchbox'))>
+<body class=cm-s-default>
 
 <div class=container id=wrapper></div>
 
-<div class=left>
-  <select id=wrenchbox class=box onchange=selectTheme(this) title='change theme'>{{-
-    ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
-    <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
-  </select>
-  <input id=wrench type=button value=&#9881; onmouseover=showbox('wrench') onclick=hidebox('wrench')>
+<div class=toolbar>
+  <div class=btn-group>
+    <a class=btn href="#" title=undo>&#8630;</a>
+    <a class=btn href="#" title=redo>&#8631;</a>
+  </div>
+  <div class=btn-group>
+    <a class=btn href="#" title=bold><b>B</b></a>
+    <a class=btn href="#" title=italic><b><i>I</i></b></a>
+  </div>
+  <div class=btn-group>
+    <a class=btn href="#" title=settings>&#9881;</a>
+    <a class=btn href="#" title=run>&#9654;</a>
+  </div>
+  <div class=btn-group>
+    <select onchange=selectTheme(this) title=theme>{{-
+      ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
+      <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
+    </select>
+  </div>
 </div>
 
 <script src=/cm/codemirror2012-04-15.js?plug=none></script>
@@ -39,42 +55,39 @@
 
     var socket = Scout.socket({{=file.path|json}});
 
-    // uncomment to simulate more latency
-    /*(function () {
-      var emit = socket.emit;
-      var queue = [];
-      socket.emit = function () {
-        queue.push(arguments);
-      };
-      setInterval(function () {
-        if (queue.length) {
-          emit.apply(socket, queue.shift());
-        }
-      }, 800);
-    })();*/
-
-    var name = {{=user|json}};
+    var name = {{=user|json}},
+        mime = {{=file.mime|json}},
+        theme = {{=lookup('theme')|json}} || 'default';
 
     socket.emit('auth', { name: name });
 
     socket.once('doc', function (obj) {
-      var str = obj.str, revision = obj.revision, users = obj.users;
+      var str = obj.str, revision = obj.revision, users = obj.users, delay;
       var wrapper = document.getElementById('wrapper');
 
       var cm = window.cm = CodeMirror(wrapper, {
-        mode: {{=file.mime|json}},
+        mode: mime,
+        theme: theme,
         value: str,
         content: {{=file.content|json|html}},
         lineNumbers: true,
         lineWrapping: true,
-        theme: {{=lookup('theme')|json}} || 'default',
-        keyMap: {{=lookup('keymap')|json}} || 'default'
+        keyMap: {{=lookup('keymap')|json}} || 'default',
+        onChange: function() {
+          clearTimeout(delay);
+          delay = setTimeout(function () {
+            postMessage('changed', '*');
+          }, 300);
+        }
       });
 
       cm.setTheme = function(theme) {
-        cm.setOption("theme", theme);
-        document.body.className = document.body.className.replace(/cm-s-\w+/, "cm-s-"+theme);
+        cm.setOption('theme', theme);
+        document.body.className =
+          document.body.className.replace(/cm-s-\w+/, 'cm-s-' + theme);
       }
+
+      cm.setTheme(theme);
 
       var cmClient = new CodeMirrorClient(revision, cm, socket, name, users);
     });
