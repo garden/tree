@@ -380,8 +380,8 @@ function catchpath (ask, platepaths) {
   var res = ask.res;
 
   if (platepaths.length > 1) {
-    console.error ('More than one template path match', path + ':');
-    platepaths.forEach (function (path) {console.error ('-',path);});
+    console.error ('More than one template path match', ask.path + ':');
+    platepaths.forEach (function (path) {console.error ('-', path[0]);});
   }
   var pathmatch = ask.path.match (RegExp (platepaths[0][0]));
 

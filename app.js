@@ -20,7 +20,6 @@ var camp = require('camp').start({
     ftree = require('./lib/fs'),
     sync = require('./lib/sync'),
     plug = require('./lib/plug'),
-    prof = require('./lib/profiler'),
     driver = require('./lib/driver'),
     nodepath = require('path');
 
@@ -30,7 +29,6 @@ camp.io.configure('development', function () { camp.io.set('log level', 0); });
 
 // Init subroutines
 sync.main(camp);
-prof.main(camp);
 plug.main(camp);
 
 
