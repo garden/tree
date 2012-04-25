@@ -28,7 +28,7 @@ var Camp = require('camp'),
 camp.io.configure('development', function () { camp.io.set('log level', 0); });
 
 Camp.Plate.parsers['script'] = function (text) {
-  return text.replace(/<\/script/g, '\\u003c/script');
+  return text.replace(/</g, '\\u003c');
 };
 
 // Init subroutines
