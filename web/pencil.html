@@ -2,46 +2,32 @@
 <meta charset=utf-8>
 <title> {{=title|html}} </title>
 
-<link rel=stylesheet href=/pencil/pencil.css?plug=none>
 <link rel=stylesheet href=/cm/codemirror2012-04-15.css?plug=none>
-
-<style>
-  html, body {position:absolute; margin:0px; padding:0px; width:100%; height:100%}
-  .CodeMirror-scroll {position:fixed; top:35px; bottom:0px; height:auto; width:100%}
-  .toolbar {
-     position: fixed;
-     top: 0px;
-     height: 28px;
-     width: 100%;
-     padding: 3px 0;
-     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-   }
-  .controls {float:right; margin-right: 3px;}
-  .btn-group, .btn-group select {display:inline; float:left;}
-  .left {position:fixed; margin:0px; bottom:0px; left:0px; z-index:42}
-  .right {position:fixed; margin:0px; bottom:0px; right:0px; z-index:42}
-  .box {display:none}
-  .other-client {position:absolute}
-  .other-client pre {border-left-width:2px; border-left-style:solid; position:absolute; bottom:100%}
-  div.container ul {position:fixed; right:20px; top:40px; margin:0px; list-style:none}
-  div.container ul li {background: #900; color: white; padding:2px 4px 3px;
-    border-radius:2px; margin-bottom:3px; font-family:"Ubuntu Mono", monospace;
-    font-size: 9pt; float:right; clear:right; line-height: 1em;}
-</style>
+<link rel=stylesheet href=/assets/common.css?plug=none>
+<link rel=stylesheet href=/pencil/pencil.css?plug=none>
 
 <body class=cm-s-default>
 
 <div class=container id=wrapper></div>
 
-<div class='toolbar CodeMirror-gutter'>
-  <div class=controls>
+<div id='toolbar' class='CodeMirror-gutter'>
+  <nav id="location-zone">
+    <div id=crumbs>{{-
+      nav|crumb|i;
+      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}</a>}}
+    </div>
+  </nav>
+  <div id="controls-zone">
     <div class=btn-group>
       <a class='btn disabled' title=undo href='javascript:void 0'>&#8630;</a>
       <a class='btn disabled' title=redo href='javascript:void 0'>&#8631;</a>
     </div>
     <div class=btn-group>
       <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
-      <a class=btn href='javascript:void 0' title=run>&#9654;</a>
+      <a class=btn href='{{?
+      file.mime === 'text/html';{{=file.path|uri}}?plug=none}}{{?
+      file.mime === 'text/x-markdown';{{=file.path|uri}}?plug=showdown}}{{?
+      file.mime === 'text/javascript';javascript:runJS()}}' title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
