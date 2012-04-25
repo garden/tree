@@ -1,11 +1,18 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>Profiling Tree Systems</title>
+<title> Profiling Tree Systems </title>
 
-{{-profiles|profile|profilename;
-<h1>{{=profilename|html}}</h1>
-<ul>{{-profile|info|i;
-  <li>{{=info.doc|html}}: {{=info.data|json 2|html}}</li>
-}}</ul>
+<style>
+  html { font-family: monospace; }
+  tr { background: #faf7fe; }
+  th, td { width: 50%; }
+  th { color: #aaa; text-align: right; }
+</style>
+
+{{-prof()|profile|profilename;
+<h1> {{=profilename|html}} </h1>
+<table> {{-profile|info|i;
+  <tr><th> {{=info.doc|html}}: <td> {{=info.data|json 2|html}}
+}}</table>
 }}
 
