@@ -12,7 +12,7 @@
   <nav id="location-zone">
     <div id=crumbs>{{-
     nav|crumb|i;
-      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}/</a>}}
+      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}</a>}}
     </div>
     <input id=search type=search class=input autofocus>
     <div id=controls style='display:none'>
@@ -37,7 +37,7 @@
   </li>}}
 </ul>
 
-<script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js></script>
+<!-- <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js></script> -->
 <script src=/sc/scout.js?plug=none></script>
 <script src=/gateway/gateway.js?plug=none></script>
 

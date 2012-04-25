@@ -14,7 +14,7 @@
   <nav id="location-zone">
     <div id=crumbs>{{-
       nav|crumb|i;
-      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}/</a>}}
+      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}</a>}}
     </div>
   </nav>
   <div id="controls-zone">
@@ -24,7 +24,10 @@
     </div>
     <div class=btn-group>
       <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
-      <a class=btn href='javascript:void 0' title=run>&#9654;</a>
+      <a class=btn href='{{?
+      file.mime === 'text/html';{{=file.path|uri}}?plug=none}}{{?
+      file.mime === 'text/x-markdown';{{=file.path|uri}}?plug=showdown}}{{?
+      file.mime === 'text/javascript';javascript:runJS()}}' title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
