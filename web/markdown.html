@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name=viewport content='width=device-width'>
+<title> {{=title|html}} </title>
+
+<style>
+  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
+  iframe {height:100%;width:50%;border:0px;outline:0px;float:left}
+</style>
+
+<iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
+<iframe id=preview src="{{=file.path|uri}}?plug=showdown"></iframe>
+
+<script>
+  var source =  document.getElementById('source'),
+      preview = document.getElementById('preview');
+  
+  source.contentWindow.addEventListener('message', function(event) {
+    if (event.data === 'changed') { preview.src += ''; }
+  });
+</script>
+
+<!-- Google Analytics -->
+<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-27876347-1']);_gaq.push(['_trackPageview']);(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})()</script>
+
