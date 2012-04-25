@@ -1,30 +1,54 @@
 /* 2011-2012 © Gateway Aesthetics Work Force. */
 
 /* HTML5 requirement */
-article, aside, figure, footer, header, hgroup, menu, nav, section { display: block; }
-html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-
-/* Search bar. */
-form#toolbar {padding: 10px; white-space: nowrap;}
-ul#fuzzy {margin: 10px; margin-top: 0px;}
-
-/* Entries have the following properties */
-a.crumb, ul#fuzzy>li>a, .input, .cursor {
-  color: #396fac; text-decoration: none; font-family: "Ubuntu Mono", monospace; margin: 0px;
+article, aside, figure, footer, header, hgroup, menu, nav, section {
+  display: block;
 }
-a.crumb:hover, ul#fuzzy>li>a:hover {text-decoration: underline;}
-div#crumbs a.crumb {padding-left: 5px; padding-right: 0px; border-right: 0px;}
-div#crumbs {display: inline;}
 
-.input {-webkit-appearance: initial; font-size: 0.9em; border: 1px solid silver; width: 250px; margin-left: 5px;}
-.input:focus {outline: 0px; border-color: #9fbddf;}
+body {
+  margin-top: 40px;
+}
+
+ul#fuzzy {
+  margin: 10px;
+  margin-top: 0;
+}
+
+.input {
+  -webkit-appearance: initial;
+  font-size: 0.9em;
+  border: 1px solid silver;
+  width: 250px;
+  margin-left: 5px;
+}
+
+.input:focus {
+  outline: 0;
+  border-color: #9fbddf;
+}
 
 /* The cursor is used to select the entry we want. */
 div.cursor {
-  width: 20px; float: left; text-align: center; font-family: arial, sans-serif; font-size: 10px; margin-top: 3px;
+  width: 20px;
+  float: left;
+  text-align: center;
+  font-family: arial, sans-serif;
+  font-size: 10px;
+  margin-top: 3px;
 }
 
 /* Fuzzy completion. */
-span.fuzzymatch {font-weight: bolder;}
-ul#fuzzy {list-style-type: none; padding-left: 0px;}
-ul#fuzzy>li {display: block; padding: 5px; border-bottom: 0px;}
+span.fuzzymatch {
+  font-weight: bolder;
+}
+
+ul#fuzzy {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+ul#fuzzy > li {
+  display: block;
+  padding: 5px;
+  border-bottom: 0;
+}
