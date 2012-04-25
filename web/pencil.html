@@ -60,7 +60,7 @@
     // CodeMirror
     var cm = window.cm = CodeMirror(wrapper, {
       mode: mime,
-      value: {{=file.content|json|html}}, // FIXME why is this always null?
+      value: {{=file.content|json|script}},
       lineNumbers: lineNumbers,
       lineWrapping: lineWrapping,
       theme: theme,
