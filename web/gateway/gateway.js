@@ -294,9 +294,9 @@ function setCursor (entry) {
   if (slots.length === 0) return;
   entry %= slots.length;
   if (entry < 0)  entry = slots.length - 1;
-  if (pointer >= 0)  { slots[pointer].firstChild.innerHTML = '&nbsp;'; }
+  if (pointer >= 0)  { slots[pointer].firstElementChild.innerHTML = '&nbsp;'; }
   pointer = entry;
-  slots[pointer].firstChild.innerHTML = '&#9654;';
+  slots[pointer].firstElementChild.innerHTML = '&#9654;';
   slots[pointer].scrollIntoView(false);
 }
 
@@ -319,7 +319,7 @@ function keyListener (e) {
     e.preventDefault();
   } else if (e.keyCode === 13 || (empty && e.keyCode === 39)) {
     // Enter or (Empty and Right).
-    window.location = slots[pointer].firstChild.nextSibling.href;
+    window.location = slots[pointer].firstElementChild.nextElementSibling.href;
   } else if (empty && (e.keyCode === 8 || e.keyCode === 37)) {
     // Empty and (Backspace or Left).
     //history.go(-1);
