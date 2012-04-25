@@ -9,7 +9,8 @@
 //
 
 // Import modules
-var camp = require('camp').start({
+var Camp = require('camp'),
+    camp = Camp.start({
       port: +process.argv[2],
       secure: process.argv[3] === 'yes',
       debug: +process.argv[4],
@@ -26,6 +27,9 @@ var camp = require('camp').start({
 // Socket.io: silence will fall!
 camp.io.configure('development', function () { camp.io.set('log level', 0); });
 
+Camp.Plate.parsers['script'] = function (text) {
+  return text.replace(/</g, '\\u003c');
+};
 
 // Init subroutines
 sync.main(camp);
