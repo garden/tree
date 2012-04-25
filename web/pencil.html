@@ -52,15 +52,17 @@
     var mime = {{=file.mime|json}},
         theme = {{=lookup('theme')|json}} || 'default',
         keymap = {{=lookup('keymap')|json}} || 'default',
+        lineNumbers = {{=lookup('lineNumbers')|json}} || true,
+        lineWrapping = {{=lookup('lineWrapping')|json}} || true,
         wrapper = document.getElementById('wrapper'),
         delay;
 
     // CodeMirror
     var cm = window.cm = CodeMirror(wrapper, {
       mode: mime,
-      value: {{=file.content|json|html}}, // FIXME why is this always null?
-      lineNumbers: true,
-      lineWrapping: true,
+      value: {{=file.content|json|script}},
+      lineNumbers: lineNumbers,
+      lineWrapping: lineWrapping,
       theme: theme,
       keyMap: keymap,
       onChange: function() {
