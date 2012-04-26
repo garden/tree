@@ -15,5 +15,5 @@ fi
 git checkout "$gardenbranch" &&
 git pull "$from" master &&
 touch node.log &&
-make debug DEBUG=10 && tail -f node.log
+node app 1234
 
