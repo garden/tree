@@ -68,7 +68,7 @@
       onChange: function() {
         clearTimeout(delay);
         delay = setTimeout(function () {
-          postMessage('changed', '*');
+          postMessage(cm.getValue(), '*');
         }, 300);
       }
     });

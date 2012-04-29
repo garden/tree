@@ -9,14 +9,17 @@
 </style>
 
 <iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
-<iframe id=preview src="{{=file.path|uri}}?plug=none"></iframe>
+<iframe id=preview></iframe>
 
 <script>
   var source =  document.getElementById('source'),
-      preview = document.getElementById('preview');
+      preview = document.getElementById('preview'),
+      doc = preview.contentDocument || preview.contentWindow.document;
   
   source.contentWindow.addEventListener('message', function(event) {
-    if (event.data === 'changed') { preview.src += ''; }
+    doc.open();
+    doc.write(event.data);
+    doc.close();
   });
 </script>
 
