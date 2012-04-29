@@ -66,10 +66,12 @@
       theme: theme,
       keyMap: keymap,
       onChange: function() {
+        postMessage(cm.getValue(), '*');
+        /* // Use this is CPU load is too heavy:
         clearTimeout(delay);
         delay = setTimeout(function () {
           postMessage(cm.getValue(), '*');
-        }, 300);
+        }, 150); */
       }
     });
 
