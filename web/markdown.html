@@ -3,10 +3,7 @@
 <meta name=viewport content='width=device-width'>
 <title> {{=title|html}} </title>
 
-<style>
-  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-  iframe {height:100%;width:50%;border:0px;outline:0px;float:left}
-</style>
+<link rel=stylesheet href=/assets/preview.css?plug=none>
 
 <iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
 <div id=preview></div>
