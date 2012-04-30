@@ -24,13 +24,9 @@
       <a class='btn disabled' id=redo title=redo>&#8631;</a>
     </div>
     <div class=btn-group>
-      <a class=btn title=settings
+      <a class=btn id=settings title=settings
         href='{{=file.path|uri}}?plug=meta'>&#9881;</a>
-      <a class=btn href='{{?
-      file.mime === 'text/html';{{=file.path|uri}}?plug=none}}{{?
-      file.mime === 'text/x-markdown';{{=file.path|uri}}?plug=showdown}}{{?
-      file.mime === 'text/javascript';javascript:runJS()}}'
-         title=run>&#9654;</a>
+      <a class=btn id=run title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
