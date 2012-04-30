@@ -4,6 +4,8 @@ index c1d9156..7764744 100644
 +++ b/index.html
 @@ -95,7 +95,8 @@ StringStream.prototype = {
      <script>
+     you bet
+     yeah lol
        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
          lineNumbers: true,
 -        autoMatchBrackets: true

@@ -151,7 +151,7 @@ a.crumb:active {
 
 a.crumb.root-crumb {
   padding-left: 28px;
-  background-image: url(./TheFileIcon.png?plug=none);
+  background-image: url(/lib/img/TheFileIcon.png?plug=none);
   background-repeat: no-repeat;
   background-position: 2px 50%;
 }
