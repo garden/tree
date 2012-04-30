@@ -3,21 +3,22 @@
 <meta name=viewport content='width=device-width'>
 <title> {{=title|html}} </title>
 
-<style>
-  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-  iframe {height:100%;width:50%;border:0px;outline:0px;float:left}
-</style>
+<link rel=stylesheet href=/assets/preview.css?plug=none>
 
 <iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
-<iframe id=preview src="{{=file.path|uri}}?plug=none"></iframe>
+<iframe id=preview></iframe>
 
 <script>
   var source =  document.getElementById('source'),
-      preview = document.getElementById('preview');
-  
+      preview = document.getElementById('preview'),
+      doc = preview.contentDocument || preview.contentWindow.document;
+
   source.contentWindow.addEventListener('message', function(event) {
-    if (event.data === 'changed') { preview.src += ''; }
-  });
+    // Avoids filling up the history stack – http://dev.w3.org/html5/spec/dynamic-markup-insertion.html#dynamic-markup-insertion
+    doc.open("text/html", "replace");
+    doc.write(event.data);
+    doc.close();
+  }, false);
 </script>
 
 <!-- Google Analytics -->

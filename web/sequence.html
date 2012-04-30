@@ -8,15 +8,16 @@
 <iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
 <div id=preview></div>
 
-<script src=/showdown/showdown.js?plug=none></script>
+<script src=/sequence/OpenSequenceDiagrams.js?plug=none></script>
 
 <script>
   var source =  document.getElementById('source'),
-      preview = document.getElementById('preview'),
-      converter = new Showdown.converter();
+      preview = document.getElementById('preview');
   
   source.contentWindow.addEventListener('message', function(event) {
-    preview.innerHTML = converter.makeHtml(event.data);
+	var schema = new Schema(),
+	    error = schema.parseLines(event.data);
+    preview.innerHTML = schema.getSVG();
   });
 </script>
 

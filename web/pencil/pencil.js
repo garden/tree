@@ -4,60 +4,54 @@
 // The following code is covered by the GPLv2 license.
 
 
+function stopEvent (e) {
+  if (e.preventDefault) { e.preventDefault(); }
+  if (e.stopPropagation) { e.stopPropagation(); }
+};
 
-// UI
+
+// Controls
 //
 
-// CodeMirror theme
-function selectTheme(node) {
-  window.cm.setTheme(node.options[node.selectedIndex].innerHTML);
-};
+// Undo / Redo buttons
+Scout('#undo').onclick = function (e) { cm.undo(); stopEvent(e); };
+Scout('#redo').onclick = function (e) { cm.redo(); stopEvent(e); };
 
-// Code execution
-function runCode() {
+var disabledRegex = /(^|\s+)disabled($|\s+)/;
 
-  var lang = document.runform.lang.value;
-  console.log(lang);
+function enable (el) {
+  el.className = el.className.replace(disabledRegex, ' ');
+}
 
-  // In browser
-  if (lang === 'JavaScript') {
-    setTimeout(runJS, 0);
-    return false;
+function disable (el) {
+  if (!disabledRegex.test(el.className)) {
+    el.className += ' disabled';
   }
+}
 
-  // Validators
-  if (lang === 'HTML' || lang === 'XHTML' || lang === 'CSS' || lang === 'XML') {
-    document.runform.action = 'http://validator.w3.org/unicorn/check#validate-by-input';
-    document.runform.ucn_text.value = window.cm.getValue();
-    switch (lang) {
-      case 'HTML': document.runform.ucn_text_mime.value = 'text/html'; break;
-      case 'XHTML': document.runform.ucn_text_mime.value = 'application/xhtml+xml'; break;
-      case 'CSS': document.runform.ucn_text_mime.value = 'text/css'; break;
-      case 'XML': document.runform.ucn_text_mime.value = 'text/xml'; break;
-    }
-    return true;
+function maybeEnable(stack, el) {
+  if (stack.length === 0) {
+    disable(el);
+  } else {
+    enable(el);
   }
+}
 
-  // CodePad.org
-  document.runform.action = 'http://codepad.org/';
-  document.runform.code.value = window.cm.getValue();
-  return true;
-};
-
-// Run JavaScript
+// Run button
 function runJS() {
   var result;
-  try {
-    result = eval(window.cm.getValue());
-  } catch (e) {
-    result = e;
-  }
+  try { result = eval(window.cm.getValue()); } catch (e) { result = e; }
   if (result === undefined) result = 'No errors!';
   alert(result);
 }
 
+// Theme button
+function selectTheme(node) {
+  window.cm.setTheme(node.options[node.selectedIndex].innerHTML);
+};
 
-// Navigation
+
+// Hot back navigation
 //
 
 (function() {
