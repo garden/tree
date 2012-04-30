@@ -1,7 +1,0 @@
-participant Bob
-participant Alice
-participant "I have a really\nlong name" as L
-
-Alice->Bob: Authentication Request
-Bob-->Alice: Authentication Response
-Bob->L: Log transaction
