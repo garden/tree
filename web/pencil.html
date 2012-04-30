@@ -14,24 +14,24 @@
   <nav id="location-zone">
     <div id=crumbs>{{-
       nav|crumb|i;
-      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}</a>}}
+      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">
+        {{=crumb.name|html}}</a>}}
     </div>
   </nav>
   <div id="controls-zone">
     <div class=btn-group>
-      <a class='btn disabled' title=undo href='javascript:void 0'>&#8630;</a>
-      <a class='btn disabled' title=redo href='javascript:void 0'>&#8631;</a>
+      <a class='btn disabled' id=undo title=undo>&#8630;</a>
+      <a class='btn disabled' id=redo title=redo>&#8631;</a>
     </div>
     <div class=btn-group>
-      <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
-      <a class=btn href='{{?
-      file.mime === 'text/html';{{=file.path|uri}}?plug=none}}{{?
-      file.mime === 'text/x-markdown';{{=file.path|uri}}?plug=showdown}}{{?
-      file.mime === 'text/javascript';javascript:runJS()}}' title=run>&#9654;</a>
+      <a class=btn id=settings title=settings
+        href='{{=file.path|uri}}?plug=meta'>&#9881;</a>
+      <a class=btn id=run title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
-        ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
+        ['default','night','neat','monokai','elegant',
+         'cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
         <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
       </select>
     </div>
@@ -46,18 +46,32 @@
 
 <script>
   (function () {
-    var socket = Scout.socket({{=file.path|json}});
+    var wrapper = Scout('#wrapper'), delay;
 
     // Templated information
-    var mime = {{=file.mime|json}},
+    var socket = Scout.socket({{=file.path|json}}),
+        mime = {{=file.mime|json}},
         theme = {{=lookup('theme')|json}} || 'default',
         keymap = {{=lookup('keymap')|json}} || 'default',
         lineNumbers = {{=lookup('lineNumbers')|json}} || true,
-        lineWrapping = {{=lookup('lineWrapping')|json}} || true,
-        wrapper = document.getElementById('wrapper'),
-        delay;
+        lineWrapping = {{=lookup('lineWrapping')|json}} || true;
 
-    // CodeMirror
+    function onChange() {
+      postMessage(cm.getValue(), '*');
+
+      // Use this instead if browser CPU load is too intense:
+      /* clearTimeout(delay);
+      delay = setTimeout(function () {
+        postMessage(cm.getValue(), '*');
+      }, 150); */
+
+      if (cmClient) {
+        maybeEnable(cmClient.undoStack, Scout('#undo'));
+        maybeEnable(cmClient.redoStack, Scout('#redo'));
+      }
+    }
+
+    // CodeMirror editor
     var cm = window.cm = CodeMirror(wrapper, {
       mode: mime,
       value: {{=file.content|json|script}},
@@ -65,25 +79,32 @@
       lineWrapping: lineWrapping,
       theme: theme,
       keyMap: keymap,
-      onChange: function() {
-        clearTimeout(delay);
-        delay = setTimeout(function () {
-          postMessage('changed', '*');
-        }, 300);
-      }
+      onChange: onChange
     });
-
-    // CodeMirror Themes
-    cm.setTheme = function(theme) {
-      cm.setOption('theme', theme);
-      document.body.className =
-        document.body.className.replace(/cm-s-\w+/, 'cm-s-' + theme);
-    }
-    cm.setTheme(theme);
 
     // Operational Transformation
     var cmClient = new ot.CodeMirrorClient(socket, cm);
     wrapper.appendChild(cmClient.clientListEl);
+
+    // CodeMirror themes
+    cm.setTheme = function(theme) {
+      cm.setOption('theme', theme);
+      document.body.className =
+        document.body.className.replace(/cm-s-\w+/, 'cm-s-' + theme);
+    };
+    cm.setTheme(theme);
+
+    switch(mime) {
+      case 'text/html':
+        Scout('#run').href = '{{=file.path|uri}}?plug=none' ;
+        break;
+      case 'text/x-markdown': 
+        Scout('#run').href = '{{=file.path|uri}}?plug=showdown';
+        break;
+      case 'text/javascript':
+        Scout('#run').onclick = function(e) { runJS(); stopEvent(e) };
+        break;
+    }
   })();
 
 </script>
