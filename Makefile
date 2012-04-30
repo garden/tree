@@ -45,6 +45,9 @@ clean:
 	@echo "clean"
 	@rm -rf $(LOG)
 
+init:
+	@git clone git@github.com:garden/web
+
 test:
 	node lib/test.js
 
