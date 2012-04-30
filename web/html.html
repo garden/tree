@@ -12,12 +12,13 @@
   var source =  document.getElementById('source'),
       preview = document.getElementById('preview'),
       doc = preview.contentDocument || preview.contentWindow.document;
-  
+
   source.contentWindow.addEventListener('message', function(event) {
-    doc.open();
+    // Avoids filling up the history stack – http://dev.w3.org/html5/spec/dynamic-markup-insertion.html#dynamic-markup-insertion
+    doc.open("text/html", "replace");
     doc.write(event.data);
     doc.close();
-  });
+  }, false);
 </script>
 
 <!-- Google Analytics -->
