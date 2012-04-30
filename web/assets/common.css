@@ -23,7 +23,7 @@ input[type="file"]{width:auto;padding:initial;line-height:initial;border:initial
 input[type="button"],input[type="reset"],input[type="submit"]{width:auto;height:auto;}
 select,input[type="file"]{height:28px;*margin-top:4px;line-height:28px;}
 input[type="file"]{line-height:18px \9;}
-select{width:150px;background-color:#ffffff;}
+select{width:100px;background-color:#ffffff;}
 select[multiple],select[size]{height:auto;}
 input[type="image"]{-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;}
 textarea{height:auto;}

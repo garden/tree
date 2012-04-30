@@ -3,20 +3,20 @@
 <meta name=viewport content='width=device-width'>
 <title> {{=title|html}} </title>
 
-<style>
-  html, body {position: absolute; margin: 0px; padding: 0px; width: 100%; height: 100%;}
-  iframe {height:100%;width:50%;border:0px;outline:0px;float:left}
-</style>
+<link rel=stylesheet href=/assets/preview.css?plug=none>
 
 <iframe id=source src="{{=file.path|uri}}?plug=pencil"></iframe>
-<iframe id=preview src="{{=file.path|uri}}?plug=showdown"></iframe>
+<div id=preview></div>
+
+<script src=/showdown/showdown.js?plug=none></script>
 
 <script>
   var source =  document.getElementById('source'),
-      preview = document.getElementById('preview');
+      preview = document.getElementById('preview'),
+      converter = new Showdown.converter();
   
   source.contentWindow.addEventListener('message', function(event) {
-    if (event.data === 'changed') { preview.src += ''; }
+    preview.innerHTML = converter.makeHtml(event.data);
   });
 </script>
 
