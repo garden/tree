@@ -14,7 +14,8 @@
   <nav id="location-zone">
     <div id=crumbs>{{-
       nav|crumb|i;
-      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">{{=crumb.name|html}}</a>}}
+      <a href={{=crumb.path|uri}} class="crumb{{? i == 0; root-crumb}}">
+        {{=crumb.name|html}}</a>}}
     </div>
   </nav>
   <div id="controls-zone">
@@ -23,15 +24,18 @@
       <a class='btn disabled' id=redo title=redo>&#8631;</a>
     </div>
     <div class=btn-group>
-      <a class=btn href='{{=file.path|uri}}?plug=meta' title=settings>&#9881;</a>
+      <a class=btn title=settings
+        href='{{=file.path|uri}}?plug=meta'>&#9881;</a>
       <a class=btn href='{{?
       file.mime === 'text/html';{{=file.path|uri}}?plug=none}}{{?
       file.mime === 'text/x-markdown';{{=file.path|uri}}?plug=showdown}}{{?
-      file.mime === 'text/javascript';javascript:runJS()}}' title=run>&#9654;</a>
+      file.mime === 'text/javascript';javascript:runJS()}}'
+         title=run>&#9654;</a>
     </div>
     <div class=btn-group>
       <select onchange=selectTheme(this) title=theme>{{-
-        ['default','night','neat','monokai','elegant','cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
+        ['default','night','neat','monokai','elegant',
+         'cobalt','eclipse','rubyblue','lesser-dark','xq-dark']|theme|i;
         <option{{?theme===lookup('theme'); selected}}>{{=theme|html}}</option>}}
       </select>
     </div>
@@ -56,8 +60,7 @@
         lineNumbers = {{=lookup('lineNumbers')|json}} || true,
         lineWrapping = {{=lookup('lineWrapping')|json}} || true;
 
-    // Update function
-    var onChange = function() {
+    function onChange() {
       postMessage(cm.getValue(), '*');
 
       // Use this instead if browser CPU load is too intense:
