@@ -21,7 +21,14 @@ else
 endif
 DEBUG ?= 0
 
-restart: clean stop start
+start: stop web/404.html
+	@echo "start"
+	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
+	then  \
+	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	else  \
+	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	fi
 
 stop:
 	@echo "stop"
@@ -32,14 +39,8 @@ stop:
 	   fi  \
 	done;  \
 
-start:
-	@echo "start"
-	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
-	then  \
-	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
-	else  \
-	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
-	fi
+web/404.html:
+	@make init
 
 clean:
 	@echo "clean"
