@@ -16,5 +16,5 @@
     "camp": ">=12.04.23",
     "operational-transformation": ">=0.0.5",
     "bcrypt": ">=0.5.0"
-  },
+  }
 }
