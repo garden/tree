@@ -21,7 +21,7 @@ else
 endif
 DEBUG ?= 0
 
-start: stop web/404.html
+start: stop web/ node_modules/bcrypt/
 	@echo "start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
@@ -39,15 +39,16 @@ stop:
 	   fi  \
 	done;  \
 
-web/404.html:
-	@make init
-
 clean:
 	@echo "clean"
 	@rm -rf $(LOG)
 
-init:
-	@git clone git@github.com:garden/web
+init: clean web/ node_modules/bcrypt/
+
+web/:
+	@git clone git@github.com:garden/plugs web
+
+node_modules/bcrypt/:
 	@npm install bcrypt
 
 test:
