@@ -64,6 +64,7 @@ File objects contain the following functions:
   editing a file.
 * `this.close :: function ()`: use it when a user stops editing a file.
   This function is useful to decide when to write to disk (non-blocking).
+* `this.write :: function (cb)`: if you want to write the file to disk.
 * `this.subfiles :: function (cb :: function(err, subfiles))`: gives all the
   leafs of a folder recursively, as an Array, including folders.
 * `this.files :: function (cb :: function(err, files))`: gives all the
