@@ -46,7 +46,7 @@ clean:
 init: clean web/ node_modules/bcrypt/
 
 web/:
-	@git clone git@github.com:garden/plugs web
+	@git clone http://github.com/garden/plugs web
 
 node_modules/bcrypt/:
 	@npm install bcrypt
