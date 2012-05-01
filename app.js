@@ -22,6 +22,7 @@ var Camp = require('camp'),
     sync = require('./lib/sync'),
     plug = require('./lib/plug'),
     driver = require('./lib/driver'),
+    profiler = require('./lib/profiler'),
     nodepath = require('path');
 
 // Socket.io: silence will fall!
@@ -41,9 +42,12 @@ plug.main(camp);
 
 camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
+// Profiler API.
+
+camp.ajax.on ('profiler', function (query, end) { end(profiler.run()); });
 
 
-// AJAX FS API
+// File System API.
 
 camp.ajax.on ('fs', function (query, end) {
   // `query` must have an `op` field, which is a String.
