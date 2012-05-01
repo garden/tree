@@ -9,7 +9,7 @@ The Collaborative Operating System - [thefiletree.com] (https://thefiletree.com)
 
 ## Use it
 
-- `make`
+- `make init; make`
 - [localhost] (http://localhost/)
 - enjoy!
 

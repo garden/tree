@@ -47,6 +47,7 @@ clean:
 
 init:
 	@git clone git@github.com:garden/web
+	@npm install bcrypt
 
 test:
 	node lib/test.js
