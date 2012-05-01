@@ -21,7 +21,14 @@ else
 endif
 DEBUG ?= 0
 
-restart: clean stop start
+start: stop web/ node_modules/bcrypt/
+	@echo "start"
+	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
+	then  \
+	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	else  \
+	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	fi
 
 stop:
 	@echo "stop"
@@ -32,21 +39,16 @@ stop:
 	   fi  \
 	done;  \
 
-start:
-	@echo "start"
-	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
-	then  \
-	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
-	else  \
-	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
-	fi
-
 clean:
 	@echo "clean"
 	@rm -rf $(LOG)
 
-init:
-	@git clone git@github.com:garden/web
+init: clean web/ node_modules/bcrypt/
+
+web/:
+	@git clone http://github.com/garden/plugs web
+
+node_modules/bcrypt/:
 	@npm install bcrypt
 
 test:
