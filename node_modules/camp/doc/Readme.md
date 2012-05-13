@@ -248,6 +248,7 @@ Default macros are the following:
   hurt performance.
 * `{{-object|value|key; rest }}` will parse the rest once for each key in
   `object`, adding the new variables `value` and `key` to the scope.
+  `{{~for|object|value|key; rest}}` works too.
 * `{{# rest }}` will not print anything at all.
 * `{{<template_file}}` will import a partial template in-place.
   This is bad practice, however, as it may hurt performance.
