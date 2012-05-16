@@ -45,6 +45,13 @@ test (
   'there is Thaddee, there is Serge, there is Marie, ...');
 
 test (
+    'Trying to {{~for|sentence|word|i;{{=word|plain}} }}',
+    {
+      sentence: ['complete', 'the', 'sentence.']
+    },
+    'Trying to complete the sentence. ');
+
+test (
   'Escaping {{?pipes|\\| pipes \\|}} ' +
   'and {{?rest|\\; rest \\;...}}',
   {

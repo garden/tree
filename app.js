@@ -19,7 +19,6 @@ var Camp = require('camp'),
       ca: ['https.ca']
     }),
     ftree = require('./lib/fs'),
-    sync = require('./lib/sync'),
     plug = require('./lib/plug'),
     driver = require('./lib/driver'),
     profiler = require('./lib/profiler'),
@@ -33,7 +32,6 @@ Camp.Plate.parsers['script'] = function (text) {
 };
 
 // Init subroutines
-sync.main(camp);
 plug.main(camp);
 
 

@@ -203,6 +203,7 @@ Plate.macros = {
                   || '');
   }
 };
+Plate.macros['for'] = Plate.macros['-'];    // Useful alias.
 
 Plate.parsers = {
   'plain': function (text) { return text; },
