@@ -5,6 +5,7 @@
 
 https.*
 web
+meta
 node_modules
 
 tools/.params
