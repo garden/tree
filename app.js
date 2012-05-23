@@ -46,7 +46,7 @@ camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
 // Profiler API.
 
-camp.ajax.on ('profiler', function (query, end) { end(profiler.run()); });
+camp.ajax.on ('profiler', function (query, end) { end(profiler.run(query)); });
 
 
 // File System API.
