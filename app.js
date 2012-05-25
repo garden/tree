@@ -25,7 +25,11 @@ var Camp = require('camp'),
     nodepath = require('path');
 
 // Socket.io: silence will fall!
-camp.io.configure('development', function () { camp.io.set('log level', 0); });
+camp.io.configure('development', function () {
+  camp.io.set('log level', 0);
+  camp.io.set('browser client minification', true);
+  camp.io.set('browser client gzip', true);
+});
 
 Camp.Plate.parsers['script'] = function (text) {
   return text.replace(/</g, '\\u003c');
@@ -42,7 +46,7 @@ camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
 // Profiler API.
 
-camp.ajax.on ('profiler', function (query, end) { end(profiler.run()); });
+camp.ajax.on ('profiler', function (query, end) { end(profiler.run(query)); });
 
 
 // File System API.
