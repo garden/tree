@@ -129,5 +129,6 @@ camp.ajax.on ('fs', function (query, end) {
 
 // IRC API.
 
+camp.ajax.on ('join', irc.join);
 camp.ajax.on ('say', irc.say);
 
