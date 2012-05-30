@@ -18,9 +18,10 @@ var Camp = require('camp'),
       cert: 'https.crt',
       ca: ['https.ca']
     }),
-    ftree = require('./lib/fs'),
-    plug = require('./lib/plug'),
     driver = require('./lib/driver'),
+    ftree = require('./lib/fs'),
+    irc = require('./lib/irc'),
+    plug = require('./lib/plug'),
     profiler = require('./lib/profiler'),
     nodepath = require('path');
 
@@ -126,5 +127,8 @@ camp.ajax.on ('fs', function (query, end) {
 });
 
 
+// IRC API.
 
+camp.ajax.on ('join', irc.join);
+camp.ajax.on ('say', irc.say);
 
