@@ -29,10 +29,6 @@ will be removed when that is no longer so.
 - `type :: Object`
   See the type API.
 
-- `File :: function (typename :: String, name :: String, getcontent :: function
-  (whengot :: function (err :: Error, content :: Buffer)))`
-  Constructor of the File object. Do not use. Use `getfile` instead.
-
 - `file :: function (path :: String, callback :: function (err :: Error, file
   :: File))`
   Obtain a file, given the "fake" File Tree `path`.
@@ -54,6 +50,8 @@ File objects contain the following functions:
   of a certain type, or falls back to it (ie, derives from it).
 * `this.path :: String` is the path of the file from the root.
 * `this.count :: Number` is the number of users that currently read this file.
+* `this.driver :: {String: {}}` is a map from common file actions to their
+  low-level implementation. See below, at "driver.js".
 
 #### Content
 
@@ -65,6 +63,7 @@ File objects contain the following functions:
 * `this.close :: function ()`: use it when a user stops editing a file.
   This function is useful to decide when to write to disk (non-blocking).
 * `this.write :: function (cb)`: if you want to write the file to disk.
+* `this.writeMeta :: function (cb)`: if you want to write metadata to disk.
 * `this.subfiles :: function (cb :: function(err, subfiles))`: gives all the
   leafs of a folder recursively, as an Array, including folders.
 * `this.files :: function (cb :: function(err, files))`: gives all the
@@ -85,8 +84,6 @@ type.js
 
 This rules the file type system.
 
-### API
-
 - `addType(mimeType :: String, parents :: Array)` adds a new mime type to the
   type system, with fallbacks as a list of types (integers).
 - `fromName :: Object` gives the type (a number) from the mime type (String).
@@ -98,4 +95,30 @@ This rules the file type system.
 - `driver(type :: Number)` yields the driver corresponding to the indicated
   type. Drivers are specified in the `driver.js` file.
 
+
+driver.js
+---------
+
+The need to hide low-level implementation of the different types of file makes
+the driver system necessary. It contains all primitive functions that do basic
+things with each type of file.
+
+- `primitives :: {String: {}}` is a map from internal types to a list of
+  functions like `read`, `write`, `rm`, `mkdir`, `mkfile`, that the file system
+  can use. Each file has a `driver` element that points to the primitives
+  corresponding to its type.
+- `normalize :: function(path :: String)` takes a virtual path and returns the
+  same path, sanitized. For instance, "../foo.html/../bar.html" becomes
+  "/bar.html".
+- `absolute :: function(path :: String)` takes a virtual path and returns the
+  real path on the host file system.
+- `relative :: function(path :: String)` takes a virtual path and returns the
+  path from the current directory to that file.
+- `virtual :: function(path :: String)` takes a real path and returns the
+  corresponding virtual path.
+- `loadMeta :: function(path :: String, cb :: Function)` takes a virtual path
+  and returns an error and the metadata (as an Object) in the callback.
+- `dumpMeta :: function(path :: String, metadata :: Object, cb :: Function)`
+  takes a virtual path and metadata, writes that metadata to disk, and returns
+  an error in the callback.
 
