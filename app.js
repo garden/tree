@@ -19,7 +19,7 @@ var Camp = require('camp'),
       ca: ['https.ca']
     }),
     driver = require('./lib/driver'),
-    ftree = require('./lib/fs'),
+    fs = require('./lib/fs'),
     irc = require('./lib/irc'),
     plug = require('./lib/plug'),
     profiler = require('./lib/profiler'),
@@ -47,37 +47,37 @@ camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
 
 // Profiler API.
 
-camp.ajax.on ('profiler', function (query, end) { end(profiler.run(query)); });
+camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
 
 
 // File System API.
 
-camp.ajax.on ('fs', function (query, end) {
+camp.ajax.on('fs', function (query, end) {
   // `query` must have an `op` field, which is a String.
   // It must also have a `path` field, which is a String.
   var data = {};
   switch (query['op']) {
     case 'ls':
-      ftree.file (query.path, function (err, dir) {
+      fs.file(query.path, function (err, dir) {
         if (err) {
           data.err = err;
           return end(data);
         }
         // ls -r
         if (query.depth && query.depth > 1) {
-          dir.subfiles(function(err, subfiles) {
+          dir.subfiles(function (err, subfiles) {
             data.leafs = subfiles;
             end(data);
           }, query.depth);
         // ls .
         } else {
-          dir.files (function (err, files) {
+          dir.files(function (err, files) {
             if (err) { data.err = err; return end(data); }
             data.files = [];
             for (var i = 0; i < files.length; i++) {
               data.files.push({
                 name: files[i],
-                type: ftree.type.nameFromType[files[i].type]
+                type: fs.type.nameFromType[files[i].type]
               });
             }
             end(data);
@@ -86,7 +86,7 @@ camp.ajax.on ('fs', function (query, end) {
       });
       break;
     case 'cat':
-      ftree.file (query.path, function (err, file) {
+      fs.file(query.path, function (err, file) {
         if (err) { data.err = err; end(data); }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
@@ -98,7 +98,7 @@ camp.ajax.on ('fs', function (query, end) {
       });
       break;
     case 'create':
-      ftree.file (query.path, function(err, file) {
+      fs.file(query.path, function (err, file) {
         // file or folder?
         if (err !== null) {
           console.error('server: file %s asked for. %s', query.path, err);
@@ -106,7 +106,7 @@ camp.ajax.on ('fs', function (query, end) {
           return;
         }
         (query.type === "folder"? file.mkdir: file.mkfile).bind(file)
-          (query.name, function(err) {
+          (query.name, function (err) {
             data.err = err;
             data.path = nodepath.join(query.path, query.name);
             end(data);
@@ -114,7 +114,7 @@ camp.ajax.on ('fs', function (query, end) {
       });
       break;
     case 'rm':
-      ftree.file (query.path, function(err, file) {
+      fs.file(query.path, function (err, file) {
         file.rm(function (err) {
           data.err = err;
           end(data);
@@ -127,8 +127,23 @@ camp.ajax.on ('fs', function (query, end) {
 });
 
 
+// Metadata API.
+
+camp.ajax.on('meta-save', function (query, end) {
+  console.log('meta-save', query.path, query.meta);
+  fs.file(query.path, function (err, file) {
+    if (err) {
+      end({err:err});
+    } else if (file) {
+      file.meta = query.meta;
+      file.writeMeta(function (err) { end({err:err}); });
+    } else end({err:'File ' + query.path + ' is undefined.'});
+  });
+});
+
+
 // IRC API.
 
-camp.ajax.on ('join', irc.join);
-camp.ajax.on ('say', irc.say);
+camp.ajax.on('join', irc.join);
+camp.ajax.on('say', irc.say);
 
