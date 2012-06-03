@@ -322,9 +322,14 @@ function staticUnit (server) {
       }
 
       // Connect the output of the file to the network!
-      var raw = fs.createReadStream(realpath),
-          enc = ask.req.headers['accept-encoding'] || '';
-      
+      var raw, enc;
+      try {
+        raw = fs.createReadStream(realpath),
+        enc = ask.req.headers['accept-encoding'] || '';
+      } catch (e) {
+        ask.res.end('404\n');
+      }
+
       // Compress when possible
       if (enc.match(/\bgzip\b/)) {
         ask.res.setHeader('content-encoding', 'gzip');
@@ -402,8 +407,13 @@ function catchpath (ask, platepaths) {
     if (!ask.res.getHeader('Content-Type'))   // Allow overriding.
       ask.mime(mime[p.extname(pathmatch[0]).slice(1)] || 'text/plain');
 
-    var templatePath = p.join(ask.server.documentRoot, pathmatch[0]),
-        reader = fs.createReadStream(templatePath);
+    var templatePath, reader;
+    try {
+      templatePath = p.join(ask.server.documentRoot, pathmatch[0]),
+      reader = fs.createReadStream(templatePath);
+    } catch (e) {
+      ask.res.end('404\n');
+    }
 
     if (!(params && Object.keys(params).length)) {
       // No data was given. Same behaviour as static.
