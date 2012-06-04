@@ -322,13 +322,12 @@ function staticUnit (server) {
       }
 
       // Connect the output of the file to the network!
-      var raw, enc;
-      try {
-        raw = fs.createReadStream(realpath),
-        enc = ask.req.headers['accept-encoding'] || '';
-      } catch (e) {
+      var enc = ask.req.headers['accept-encoding'] || '',
+          raw = fs.createReadStream(realpath);
+      raw.on('error', function(err) {
+        console.error(err.stack);
         ask.res.end('404\n');
-      }
+      });
 
       // Compress when possible
       if (enc.match(/\bgzip\b/)) {
@@ -407,13 +406,12 @@ function catchpath (ask, platepaths) {
     if (!ask.res.getHeader('Content-Type'))   // Allow overriding.
       ask.mime(mime[p.extname(pathmatch[0]).slice(1)] || 'text/plain');
 
-    var templatePath, reader;
-    try {
-      templatePath = p.join(ask.server.documentRoot, pathmatch[0]),
-      reader = fs.createReadStream(templatePath);
-    } catch (e) {
+    var templatePath = p.join(ask.server.documentRoot, pathmatch[0]),
+        reader = fs.createReadStream(templatePath);
+    reader.on('error', function(err) {
+      console.error(err.stack);
       ask.res.end('404\n');
-    }
+    });
 
     if (!(params && Object.keys(params).length)) {
       // No data was given. Same behaviour as static.

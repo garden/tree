@@ -54,8 +54,8 @@ node_modules/bcrypt/:
 test:
 	node lib/test.js
 
-# We mustn't update everything simultaneously – or else debugging what has
-# broken becomes painful.
+# We mustn't update everything simultaneously – or else debugging
+# whatever might break with the update becomes painful.
 update:
 	@npm update
 
@@ -86,7 +86,7 @@ help:
 wtf ?: help
 
 coffee:
-	@echo "\n           )      (\n           (  )   )\n         _..,-(--,.._\n      .-;'-.,____,.-';\n     (( |            |\n      \`-;            ;\n         \\          /	\n      .-''\`-.____.-'''-.\n     (     '------'     )\n      \`--..________..--'\n";
+	@echo "\n           )      (\n           (  )   )\n         _..,-(--,.._\n      .-;'-.,____,.-';\n     (( |            |\n      \`-;            ;\n         \\          /\n      .-''\`-.____.-'''-.\n     (     '------'     )\n      \`--..________..--'\n";
 
 me a:
 	@cd .
