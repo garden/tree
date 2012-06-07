@@ -52,9 +52,10 @@ web/:
 	@mv web/meta .
 	@rm -rf web/.git
 
-bundle/:
+bundle:
 	# This operation is destructive in web.
 	@cp -r bundle/* web/
+	@rm -r web/meta/
 
 snapshot:
 	@cp -r web/* bundle
@@ -107,5 +108,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean snapshot test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: restart stop start clean snapshot bundle test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
 
