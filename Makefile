@@ -45,11 +45,16 @@ clean:
 
 init: clean web/ node_modules/bcrypt/
 
-web/ bundle/:
+web/:
 	@git clone http://github.com/garden/plugs bundle
 	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
 	@cp -r bundle web
 	@mv web/meta .
+	@rm -rf web/.git
+
+bundle/:
+	# This operation is destructive in web.
+	@cp -r bundle/* web/
 
 snapshot:
 	@cp -r web/* bundle
