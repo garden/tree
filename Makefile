@@ -52,14 +52,16 @@ web/:
 	@mv web/meta .
 	@rm -rf web/.git
 
-bundle:
-	# This operation is destructive in web.
+plugs:
+	@# This operation is destructive in web.
 	@cp -r bundle/* web/
 	@rm -r web/meta/
 
 snapshot:
+	@if [ -e web/.git ]; then mv -r web/.git .git-bk; fi
 	@cp -r web/* bundle
 	@cp -r meta bundle/
+	@if [ -e .git-bk ]; then mv -r .git-bk web/.git; fi
 	@echo 'You may now commit what is in bundle/.'
 
 node_modules/bcrypt/:
@@ -108,5 +110,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean snapshot bundle test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: restart stop start clean snapshot plugs test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
 
