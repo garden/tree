@@ -45,8 +45,16 @@ clean:
 
 init: clean web/ node_modules/bcrypt/
 
-web/:
-	@git clone http://github.com/garden/plugs web
+web/ bundle/:
+	@git clone http://github.com/garden/plugs bundle
+	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
+	@cp -r bundle web
+	@mv web/meta .
+
+snapshot:
+	@cp -r web/* bundle
+	@cp -r meta bundle/
+	@echo 'You may now commit what is in bundle/.'
 
 node_modules/bcrypt/:
 	@npm install bcrypt
@@ -94,5 +102,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: restart stop start clean snapshot test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
 

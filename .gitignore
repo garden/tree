@@ -5,6 +5,7 @@
 
 https.*
 web
+bundle
 meta
 node_modules
 
