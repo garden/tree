@@ -3,9 +3,10 @@
 *.out
 *.pid
 
-https.*
-web
-meta
-node_modules
+/https.*
+/web
+/plugs
+/meta
+/node_modules
 
-tools/.params
+/tools/.params

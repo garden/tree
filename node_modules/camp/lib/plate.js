@@ -89,7 +89,7 @@ Plate.format = function (input, output, literal) {
   });
   input.on ('end', function template () {
     Plate.formatString (text, function write (text) {
-      output.write(Plate._escape(text));
+      output.write (text);
     }, literal);
     output.end ();
   });
@@ -101,10 +101,10 @@ Plate.formatString = function (text, write, literal) {
       macro = text[boundaries[0] + 2],
       params = fragparams(span);    // Fragment the parameters.
 
-  if (!macro) { write (text); return; }
+  if (!macro) { write (Plate._escape (text)); return; }
 
   // Call the macro.
-  write (text.slice (0, boundaries[0]));
+  write (Plate._escape (text.slice (0, boundaries[0])));
   try {
     Plate.macros[macro] (write, literal, params);
   } catch (e) {

@@ -46,7 +46,24 @@ clean:
 init: clean web/ node_modules/bcrypt/
 
 web/:
-	@git clone http://github.com/garden/plugs web
+	@git clone http://github.com/garden/plugs
+	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
+	@if [ -e meta ]; then rm -r meta; fi
+	@cp -r plugs web
+	@mv web/meta .
+	@rm -rf web/.git
+
+plugs:
+	@# This operation is destructive in web.
+	@cp -rf plugs/* web/
+	@rm -rf web/meta/
+
+snapshot:
+	@if [ -e web/.git ]; then mv -rf web/.git .git-bk; fi
+	@cp -r web/* plugs
+	@cp -r meta plugs/
+	@if [ -e .git-bk ]; then mv -r .git-bk web/.git; fi
+	@echo 'You may now commit what is in plugs/.'
 
 node_modules/bcrypt/:
 	@npm install bcrypt
@@ -54,8 +71,8 @@ node_modules/bcrypt/:
 test:
 	node lib/test.js
 
-# We mustn't update everything simultaneously – or else debugging what has
-# broken becomes painful.
+# We mustn't update everything simultaneously – or else debugging
+# whatever might break with the update becomes painful.
 update:
 	@npm update
 
@@ -86,7 +103,7 @@ help:
 wtf ?: help
 
 coffee:
-	@echo "\n           )      (\n           (  )   )\n         _..,-(--,.._\n      .-;'-.,____,.-';\n     (( |            |\n      \`-;            ;\n         \\          /	\n      .-''\`-.____.-'''-.\n     (     '------'     )\n      \`--..________..--'\n";
+	@echo "\n           )      (\n           (  )   )\n         _..,-(--,.._\n      .-;'-.,____,.-';\n     (( |            |\n      \`-;            ;\n         \\          /\n      .-''\`-.____.-'''-.\n     (     '------'     )\n      \`--..________..--'\n";
 
 me a:
 	@cd .
@@ -94,5 +111,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: restart stop start clean snapshot plugs test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
 

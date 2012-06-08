@@ -126,6 +126,8 @@ test (
 
 // parser tests.
 test ('Plain {{=data|plain}}.', {data:'text'}, 'Plain text.');
+test ('Escaping {{=data|plain}}', {data:'{{=data|plain}}'},
+      'Escaping {{=data|plain}}');
 test ('Html {{=data|html}}.', {data:'<text & stuff>'},
       'Html &lt;text &amp; stuff&gt;.');
 test ('Xml {{=data|xml}}.', {data:'<text & stuff>'},
