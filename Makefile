@@ -54,15 +54,15 @@ web/:
 
 plugs:
 	@# This operation is destructive in web.
-	@cp -r bundle/* web/
+	@cp -r plugs/* web/
 	@rm -r web/meta/
 
 snapshot:
 	@if [ -e web/.git ]; then mv -r web/.git .git-bk; fi
 	@cp -r web/* bundle
-	@cp -r meta bundle/
+	@cp -r meta plugs/
 	@if [ -e .git-bk ]; then mv -r .git-bk web/.git; fi
-	@echo 'You may now commit what is in bundle/.'
+	@echo 'You may now commit what is in plugs/.'
 
 node_modules/bcrypt/:
 	@npm install bcrypt
