@@ -46,20 +46,21 @@ clean:
 init: clean web/ node_modules/bcrypt/
 
 web/:
-	@git clone http://github.com/garden/plugs bundle
+	@git clone http://github.com/garden/plugs
 	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
-	@cp -r bundle web
+	@if [ -e meta ]; then rm -r meta; fi
+	@cp -r plugs web
 	@mv web/meta .
 	@rm -rf web/.git
 
 plugs:
 	@# This operation is destructive in web.
-	@cp -r plugs/* web/
-	@rm -r web/meta/
+	@cp -rf plugs/* web/
+	@rm -rf web/meta/
 
 snapshot:
-	@if [ -e web/.git ]; then mv -r web/.git .git-bk; fi
-	@cp -r web/* bundle
+	@if [ -e web/.git ]; then mv -rf web/.git .git-bk; fi
+	@cp -r web/* plugs
 	@cp -r meta plugs/
 	@if [ -e .git-bk ]; then mv -r .git-bk web/.git; fi
 	@echo 'You may now commit what is in plugs/.'
