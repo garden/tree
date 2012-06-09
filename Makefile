@@ -45,24 +45,26 @@ clean:
 
 init: clean web/ node_modules/bcrypt/
 
-web/:
-	@git clone http://github.com/garden/plugs
+web/: plugs/
 	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
 	@if [ -e meta ]; then rm -r meta; fi
 	@cp -r plugs web
 	@mv web/meta .
 	@rm -rf web/.git
 
-plugs:
+plugs/:
+	@git clone http://github.com/garden/plugs
+
+load:
 	@# This operation is destructive in web.
 	@cp -rf plugs/* web/
 	@rm -rf web/meta/
 
-snapshot:
-	@if [ -e web/.git ]; then mv -rf web/.git .git-bk; fi
+save:
+	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
 	@cp -r web/* plugs
 	@cp -r meta plugs/
-	@if [ -e .git-bk ]; then mv -r .git-bk web/.git; fi
+	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
 	@echo 'You may now commit what is in plugs/.'
 
 node_modules/bcrypt/:
@@ -111,5 +113,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean snapshot plugs test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: restart stop start clean save load test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
 
