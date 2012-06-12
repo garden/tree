@@ -90,7 +90,7 @@ camp.ajax.on('fs', function (query, end) {
         if (err) { data.err = err; end(data); }
         data.type = file.type;  // eg, 'text/html'
         data.name = nodepath.basename(query.path);
-        file.open (function (err) {
+        file.open (function (err, content) {
           if (err) { data.err = err; end(data); }
           data.content = content;
           end(data);
