@@ -92,7 +92,7 @@ camp.ajax.on('fs', function (query, end) {
         data.path = query.path;
         file.open (function (err, content) {
           if (err) { data.err = err; end(data); }
-          data.content = content;
+          data.content = (content == null ? file.content : content);
           end(data);
         });
       });
