@@ -87,12 +87,12 @@ camp.ajax.on('fs', function (query, end) {
       break;
     case 'cat':
       fs.file(query.path, function (err, file) {
-        if (err) { data.err = err; return end(data); }
+        if (err) { data.err = err; end(data); return; }
         data.meta = file.meta;
         data.path = query.path;
         file.open (function (err, content) {
           if (err) { data.err = err; end(data); }
-          data.content = (content == null ? file.content : content);
+          data.content = file.content;
           end(data);
         });
       });
