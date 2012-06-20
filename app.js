@@ -1,4 +1,4 @@
-/* server.js: run this with Node.js in the publish/ folder to start your server.
+/* app.js: run this with node to start your tree server.
  * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 

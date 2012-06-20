@@ -1,4 +1,4 @@
-This is documentation for the `server.js` file.  Please edit if you find it
+This is documentation for the `app.js` server file.  Please edit if you find it
 out-of-date or incomplete.
 
 # Rerouted paths

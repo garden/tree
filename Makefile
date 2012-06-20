@@ -1,16 +1,12 @@
-# Makefile: Publish your website and start/stop your server.
+# Makefile: start/stop and manage your tree server.
 # Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
-# Code covered by the LGPL license.
+# The following code is covered by the GPLv2 license.
 
 # The output of console.log statements goes in this file when you `make`.
-# Note: when you `make debug`, the output appears on the console.
 LOG = node.log
 
-# The name you gave your main server file.
+# The name of your main server file.
 SERVER = app.js
-
-# The folder where your awesome website is.
-WEB = web
 
 ifdef SECURE
   PORT ?= 443
@@ -40,10 +36,28 @@ stop:
 	done;  \
 
 clean:
+	@# WARNING: This operation deletes server logs.
 	@echo "clean"
 	@rm -rf $(LOG)
 
-init: clean web/ node_modules/bcrypt/
+save:
+	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
+	@cp -r web/* plugs/
+	@cp -r meta plugs/
+	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
+	@echo 'You may now commit what is in plugs/.'
+
+load:
+	@# WARNING: This operation overwrites files in web/.
+	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
+	@cp -rf plugs/* web/
+	@rm -rf web/meta/
+	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
+
+test:
+	node lib/test.js
+
+init: web/ node_modules/bcrypt/
 
 web/: plugs/
 	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
@@ -55,23 +69,8 @@ web/: plugs/
 plugs/:
 	@git clone http://github.com/garden/plugs
 
-load:
-	@# This operation is destructive in web.
-	@cp -rf plugs/* web/
-	@rm -rf web/meta/
-
-save:
-	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
-	@cp -r web/* plugs
-	@cp -r meta plugs/
-	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
-	@echo 'You may now commit what is in plugs/.'
-
 node_modules/bcrypt/:
 	@npm install bcrypt
-
-test:
-	node lib/test.js
 
 # We mustn't update everything simultaneously – or else debugging
 # whatever might break with the update becomes painful.
@@ -113,5 +112,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: restart stop start clean save load test update update-camp update-ot https https.key https.csr https.crt help wtf ? coffee me a sandwich
+.PHONY: start stop clean save load test update update-camp update-ot https help wtf ? coffee me a sandwich
 

@@ -9,12 +9,12 @@ will have to be self-hosted, like the Pencil and the Gateway.  This means we
 will have figured out a way to know when to send files directly and when to open
 them through file tree plugins.
 
-This was done as of 2012-04-04.
+EDIT: This was done as of 2012-04-04.
 
 
-## OT
+## Operational Transformation
 
-The current Operation Transformation in use (apart from being buggy) uses up a
+The current Operational Transformation in use (apart from being buggy) uses up a
 lot of space on the server side (we have to store a copy of the file for each
 client editing it, which makes a lot of copies!), and the transformation
 operation used (patch) is quite expansive CPU-wise.
@@ -26,8 +26,8 @@ relevant documentation files (probably along `/lib/sync.js`).
 
   [1] http://delivery.acm.org/10.1145/220000/215706/p111-nichols.pdf
 
-This was done as of 2012-04-18. Special thanks to
-[Tim Baumann](https://github.com/timjb/javascript-operational-transformation).
+EDIT: This was done as of 2012-04-18. Special thanks to
+[Tim Baumann] (https://github.com/timjb/javascript-operational-transformation).
 
 
 ## Security

@@ -1,12 +1,12 @@
 {
   "author": "TheFileTree <warden@thefiletree.com> (https://thefiletree.com/)",
   "name": "filetree",
-  "description": "Web-based Collaborative File System; a multiplayer notepad!",
-  "version": "12.05.01",
+  "description": "Web-based collaborative file system; a multiplayer notepad!",
+  "version": "12.06.19",
   "homepage": "https://thefiletree.com",
   "repository": {
     "type": "git",
-    "url": "http://github.com/garden/tree"
+    "url": "https://github.com/garden/tree"
   },
   "scripts": {
     "test": "make test"
