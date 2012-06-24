@@ -9,7 +9,7 @@ gardenbranch=$(cat ./tools/.params | awk '/garden-branch/ { print $2; exit }')
 if [ "$1" ]; then
   from=$1
 else
-  from=cat ./tools/.params | awk '/default-pull-from/ { print $2; exit }'
+  from=$(cat ./tools/.params | awk '/default-pull-from/ { print $2; exit }')
 fi
 
 git checkout "$gardenbranch" &&
