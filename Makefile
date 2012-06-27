@@ -51,6 +51,7 @@ load:
 	@# WARNING: This operation overwrites files in web/.
 	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
 	@cp -rf plugs/* web/
+	@cp -rf web/meta/* meta/
 	@rm -rf web/meta/
 	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
 
