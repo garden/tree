@@ -7,6 +7,7 @@
 var Plate = require ('./plate');
 
 var EventEmitter = require ('events').EventEmitter,
+    inherits = require('util').inherits,
     http = require('http'),
     https = require('https'),
     p = require('path'),
@@ -78,7 +79,7 @@ function Camp() {
     this.stack.push(defaultRoute[i](this));
   this.on('request', listener.bind(this));
 }
-Camp.prototype = new http.Server();
+inherits(Camp, http.Server);
 
 function SecureCamp(opts) {
   https.Server.call(this, opts);
@@ -87,8 +88,7 @@ function SecureCamp(opts) {
     this.stack.push(defaultRoute[i](this));
   this.on('request', listener.bind(this));
 }
-// The following `requestCert` thing seems required by node.
-SecureCamp.prototype = new https.Server({requestCert:null});
+inherits(SecureCamp, https.Server);
 
 
 
@@ -97,7 +97,7 @@ SecureCamp.prototype = new https.Server({requestCert:null});
 Camp.prototype.insertListener = SecureCamp.prototype.insertListener =
 function addListenerBefore(listn, type, listener) {
 
-  // this._events is an EventEmitter thing, a list of functions.
+  // this._events is a map from event types to a list of functions.
 
   if (this._events && this._events[type] && Array.isArray(this._events[type])) {
     var index = 0;
@@ -464,16 +464,15 @@ function startServer (settings) {
 
   // Are we running https?
   if (settings.secure) { // Yep
-    server = new SecureCamp ({
-      key:  fs.readFileSync(settings.security.key),
-      cert: fs.readFileSync(settings.security.cert),
-      ca:   settings.security.ca.map(function(file) {
-        try {
-          var ca = fs.readFileSync(file);
-          return ca;
-        } catch (e) { console.error('CA file not found:', file); }
-      })
-    }).listen(settings.port);
+    settings.key  = fs.readFileSync(settings.key);
+    settings.cert = fs.readFileSync(settings.cert);
+    settings.ca   = settings.ca.map(function(file) {
+      try {
+        var ca = fs.readFileSync(file);
+        return ca;
+      } catch (e) { console.error('CA file not found:', file); }
+    });
+    server = new SecureCamp(settings).listen(settings.port);
   } else { // Nope
     server = new Camp().listen(settings.port);
   }
@@ -484,28 +483,16 @@ function startServer (settings) {
 
 // Each camp instance creates an HTTP / HTTPS server automatically.
 //
-function start (options) {
+function start (settings) {
 
-  // Settings.
-  //
-  // By settings I mean data that was set when starting the server, and that is
-  // not meant to be changed thereafter.
-  var settings = {
-    port: 80,
-    security: {}
-  };
-
-  options = options || {};
-
-  for (var setting in options) {
-    settings[setting] = options[setting];
-  }
+  settings = settings || {};
 
   // Populate security values with the corresponding files.
-  if (options.secure) {
-    settings.security.key = options.key || 'https.key';
-    settings.security.cert = options.cert || 'https.crt';
-    settings.security.ca = options.ca || [];
+  if (settings.secure) {
+    settings.passphrase = settings.passphrase || '1234';
+    settings.key = settings.key || 'https.key';
+    settings.cert = settings.cert || 'https.crt';
+    settings.ca = settings.ca || [];
   }
 
   settings.port = settings.port || (settings.secure ? 443 : 80);
