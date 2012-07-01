@@ -2,6 +2,7 @@
 *.dat
 *.out
 *.pid
+*.swp
 
 /https.*
 /web
