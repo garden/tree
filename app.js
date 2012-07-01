@@ -29,7 +29,7 @@ var Camp = require('camp'),
 camp.io.configure('development', function () {
   camp.io.set('log level', 0);
   camp.io.set('browser client minification', true);
-//  camp.io.set('browser client gzip', true); // FIXME broken since v0.8.0
+  camp.io.set('browser client gzip', true);
 });
 
 Camp.Plate.parsers['script'] = function (text) {
