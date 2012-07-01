@@ -16,7 +16,7 @@ var Camp = require('camp'),
       debug: +process.argv[4],
       key: 'https.key',
       cert: 'https.crt',
-      ca: ['https.ca']
+      ca: ['https.ca'],
     }),
     driver = require('./lib/driver'),
     fs = require('./lib/fs'),
