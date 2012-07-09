@@ -17,7 +17,9 @@ else
 endif
 DEBUG ?= 0
 
-start: stop web/ node_modules/bcrypt/
+restart: stop start
+
+start: web/ node_modules/bcrypt/
 	@echo "start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
 	then  \
