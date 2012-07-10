@@ -124,5 +124,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop clean save load test update update-camp update-ot https help wtf ? coffee me a sandwich
+.PHONY: restart start stop clean save load backup test update update-camp update-ot https help wtf ? coffee me a sandwich
 
