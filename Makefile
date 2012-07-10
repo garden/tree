@@ -3,10 +3,13 @@
 # The following code is covered by the GPLv2 license.
 
 # The output of console.log statements goes in this file when you `make`.
-LOG = node.log
+LOG = Log
 
 # The name of your main server file.
 SERVER = app.js
+
+# The pid of the process (stored in a file).
+PID = .pid
 
 ifdef SECURE
   PORT ?= 443
@@ -17,25 +20,27 @@ else
 endif
 DEBUG ?= 0
 
-restart: stop start
+RUNTREE = '  \
+  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 &  \
+  if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
+  chmod a+w $(PID);'
 
-start: web/ node_modules/bcrypt/
+start: stop web/ node_modules/bcrypt/
 	@echo "start"
-	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ] ;  \
+	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
 	then  \
-	  sudo node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	  sudo -p 'Password to run server as root: ' echo;  \
+	  sudo -n sh -c $(RUNTREE);  \
 	else  \
-	  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 ;  \
+	  sh -c $(RUNTREE); \
 	fi
 
 stop:
 	@echo "stop"
-	@for pid in `ps aux | grep -v make | grep node | grep $(SERVER) | awk '{print $$2}'` ; do  \
-	   kill -9 $$pid 2> /dev/null ;  \
-	   if [ "$$?" -ne "0" ] ; then  \
-	     sudo kill -9 $$pid 2> /dev/null ;  \
-	   fi  \
-	done;  \
+	@if [ -e $(PID) ]; then  \
+	  kill $$(cat $(PID)) 2>/dev/null || sudo kill $$(cat $(PID));  \
+	  rm $(PID);  \
+	fi
 
 clean:
 	@# WARNING: This operation deletes server logs.
