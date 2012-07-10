@@ -19,7 +19,7 @@ var Camp = require('camp'),
       ca: ['https.ca'],
     }),
     driver = require('./lib/driver'),
-    fshooks = require('./lib/fshooks'),
+    fsapi = require('./lib/fsapi'),
     irc = require('./lib/irc'),
     plug = require('./lib/plug'),
     profiler = require('./lib/profiler'),
@@ -50,11 +50,11 @@ camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
 
 
 // File System API.
-camp.ajax.on('fs', fshooks.fs);
+camp.ajax.on('fs', fsapi.fs);
 
 
 // Metadata API.
-camp.ajax.on('meta-save', fshooks.meta);
+camp.ajax.on('meta-save', fsapi.meta);
 
 
 // IRC API.
