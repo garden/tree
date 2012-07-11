@@ -8,6 +8,9 @@ LOG = node.log
 # The name of your main server file.
 SERVER = app.js
 
+# The current date in yyyy-mm-dd format.
+DATE = $$(date "+%Y-%m-%d")
+
 ifdef SECURE
   PORT ?= 443
   SECURE = yes
@@ -56,6 +59,12 @@ load:
 	@cp -rf web/meta/* meta/
 	@rm -rf web/meta/
 	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
+
+backup:
+	@mkdir web$(DATE)
+	@cp -r web/* web$(DATE)/
+	@cp -r meta/ web$(DATE)/
+	@echo "Copied web/ and meta/ to new web$(DATE)/ backup folder."
 
 test:
 	node lib/test.js
@@ -115,5 +124,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop clean save load test update update-camp update-ot https help wtf ? coffee me a sandwich
+.PHONY: restart start stop clean save load backup test update update-camp update-ot https help wtf ? coffee me a sandwich
 
