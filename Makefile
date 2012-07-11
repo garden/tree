@@ -62,8 +62,8 @@ load:
 
 backup:
 	@mkdir web$(DATE)
-	@cp -r web{/*,$(DATE)}
-	@cp -r meta web$(DATE)
+	@cp -r web/* web$(DATE)/
+	@cp -r meta/ web$(DATE)/
 	@echo "Copied web/ and meta/ to new web$(DATE)/ backup folder."
 
 test:
