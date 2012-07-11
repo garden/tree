@@ -34,6 +34,7 @@ start: stop web/ node_modules/bcrypt/
 	then  \
 	  sudo -p 'Password to run server as root: ' echo;  \
 	  sudo -n sh -c $(RUNTREE);  \
+	  sudo chmod a+w $(LOG);  \
 	else  \
 	  sh -c $(RUNTREE); \
 	fi
