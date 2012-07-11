@@ -3,7 +3,7 @@
 # The following code is covered by the GPLv2 license.
 
 # The output of console.log statements goes in this file when you `make`.
-LOG = Log
+LOG = tree.log
 
 # The name of your main server file.
 SERVER = app.js

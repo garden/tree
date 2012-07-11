@@ -1,4 +1,4 @@
-Log
+*.log
 *.dat
 *.out
 *.pid
