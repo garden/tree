@@ -72,6 +72,16 @@ backup:
 	@cp -r meta/ web$(DATE)/
 	@echo "Copied web/ and meta/ to new web$(DATE)/ backup folder."
 
+gc:
+	@# WARNING: If web/ doesn't exist, meta/ will be deleted entirely.
+	@for file in `cd meta && find . -name '*' -print`; do  \
+	  if [ -d "meta/$$file" ] && ! [ -d "web/$$file" ] ||  \
+	     [ -f "meta/$$file" ] && ! [ -f "web/$$file" ] &&  \
+	     [ "$${file##*/}" != ".DS-Store" ]; then  \
+	    echo "rm -rf meta/$$file"; rm -rf "meta/$$file"; \
+	  fi;  \
+	done
+
 test:
 	node lib/test.js
 
