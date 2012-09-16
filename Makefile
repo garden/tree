@@ -90,11 +90,9 @@ test:
 init: web/ node_modules/bcrypt/
 
 web/: plugs/
-	@if [ -e web ]; then rm -r web; fi  # Otherwise cp -r would behave wrong.
-	@if [ -e meta ]; then rm -r meta; fi
-	@cp -r plugs web
-	@mv web/meta .
-	@rm -rf web/.git
+	@if [ ! -e web ] && [ ! -e meta ];  \
+	  then cp -r plugs/ web/ && mv web/meta . && rm -rf web/.git;  \
+	fi;
 
 plugs/:
 	@git clone http://github.com/garden/plugs
