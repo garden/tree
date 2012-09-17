@@ -50,12 +50,12 @@ function Ask (server, req, res) {
   this.server = server;
   this.req = req;
   this.res = res;
+  this.uri = url.parse(req.url, true);
   try {
-    this.uri = url.parse(decodeURI(req.url), true);
-  } catch (e) {     // Using `escape` should not kill the server.
-    this.uri = url.parse(unescape(req.url), true);
+    this.path = decodeURI(this.uri.pathname);
+  } catch (e) {  // Using `escape` should not kill the server.
+    this.path = unescape(this.uri.pathname);
   }
-  this.path = this.uri.pathname;
   this.query = this.uri.query;
 }
 
