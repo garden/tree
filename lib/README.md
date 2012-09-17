@@ -67,6 +67,28 @@ File objects contain the following functions:
   current file, which must be a directory.
 
 
+lookup.js
+---------
+
+This module provides the functionality necessary for looking up metadata values.
+
+The exported object is a function which you can feed a file and a query object
+(as is given in an HTTP request). It returns a lookup function.
+
+* `makeLookup :: Function(file, query)` returns the function below.
+* `lookup :: Function(key :: String, callback :: Function(value))` takes a key
+  (which is a JS property accessor-ish, such as 'foo.bar["baz"]'). It returns
+  the first value, first in the query string, then in the metadata of the file,
+  that matches this key. If a callback is given, it also looks for this key in
+  the metadata of the file's parent, and so on until it reaches the root of the
+  tree.
+* `parseJSONQuery :: Function(key :: String)` is a property of the `makeLookup`
+  function, and returns a list of all successive keys that are to be looked up
+  for a specific property accessor, given as a string. This function is used by
+  the `lookup()` function, and is exported for testing purposes. The parser in
+  use does not accept spaces (except in strings), nor comments.
+
+
 type.js
 -------
 
