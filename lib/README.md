@@ -4,32 +4,20 @@ THE FILE TREE LIBRARY
 
 These are the gears of the File Tree.
 
-[diff\_match\_patch.js] (http://code.google.com/p/google-diff-match-patch)
-------------------------------------------------------------------------
-
-We use this when handling diff and delta changes.
-Please see the website for up-to-date API information.
-
-Note: the API defined on the website is clearly not exhaustively described. We
-used non-public APIs that optimally compress the delta information in order to
-send it to the server.  
-We discovered those secret functions by browsing through the code. When in
-doubt, may the source be with you.
-
 fs.js
 -----
 
 This is our filesystem. Files and folders are loaded from `../root/`.
 
 A word of warning: the apis are in furious development right now. This notice
-will be removed when that is no longer so.    
+will be removed when that is no longer so.
 
 ### API:
 
 - `type :: Object`
   See the type API.
 
-- `file :: function (path :: String, callback :: function (err :: Error, file
+- `file :: Function (path :: String, callback :: Function (err :: Error, file
   :: File))`
   Obtain a file, given the "fake" File Tree `path`.
 
@@ -46,7 +34,7 @@ File objects contain the following functions:
 
 * `this.meta :: Object` contains all meta information, such as the type
   (`this.meta.type`).
-* `this.isOfType :: function (mimeType :: String)` checks whether the file is
+* `this.isOfType :: Function (mimeType :: String)` checks whether the file is
   of a certain type, or falls back to it (ie, derives from it).
 * `this.path :: String` is the path of the file from the root.
 * `this.count :: Number` is the number of users that currently read this file.
@@ -58,25 +46,47 @@ File objects contain the following functions:
 * `this.content :: Object` lets you obtain the contents of the file.
   The content may be `null` (in order not to waste precious memory) unless you
   have opened the file.
-* `this.open :: function ( cb :: function (err) )`: use it when a user starts
+* `this.open :: Function ( cb :: Function (err) )`: use it when a user starts
   editing a file.
-* `this.close :: function ()`: use it when a user stops editing a file.
+* `this.close :: Function ()`: use it when a user stops editing a file.
   This function is useful to decide when to write to disk (non-blocking).
-* `this.write :: function (cb)`: if you want to write the file to disk.
-* `this.writeMeta :: function (cb)`: if you want to write metadata to disk.
-* `this.subfiles :: function (cb :: function(err, subfiles))`: gives all the
+* `this.write :: Function (cb)`: if you want to write the file to disk.
+* `this.writeMeta :: Function (cb)`: if you want to write metadata to disk.
+* `this.subfiles :: Function (cb :: Function(err, subfiles))`: gives all the
   leafs of a folder recursively, as an Array, including folders.
-* `this.files :: function (cb :: function(err, files))`: gives all the
+* `this.files :: Function (cb :: Function(err, files))`: gives all the
   children of a folder as an Array of files (whilst its content gives an Array
   of Strings).
 
 #### Extensibility
 
-* `this.rm :: function` lets you remove the file from the tree.
-* `this.mkdir :: function(name, cb(err))` lets you add a directory as a child of
+* `this.rm :: Function(name, cb(err))` lets you remove the file from the tree.
+* `this.mkdir :: Function(name, cb(err))` lets you add a directory as a child of
   the current file, which must itself be a directory.
-* `this.mkfile :: function(name, cb(err))` lets you add a file as a child of the
+* `this.mkfile :: Function(name, cb(err))` lets you add a file as a child of the
   current file, which must be a directory.
+
+
+lookup.js
+---------
+
+This module provides the functionality necessary for looking up metadata values.
+
+The exported object is a function which you can feed a file and a query object
+(as is given in an HTTP request). It returns a lookup function.
+
+* `makeLookup :: Function(file, query)` returns the function below.
+* `lookup :: Function(key :: String, callback :: Function(value))` takes a key
+  (which is a JS property accessor-ish, such as 'foo.bar["baz"]'). It returns
+  the first value, first in the query string, then in the metadata of the file,
+  that matches this key. If a callback is given, it also looks for this key in
+  the metadata of the file's parent, and so on until it reaches the root of the
+  tree.
+* `parseJSONQuery :: Function(key :: String)` is a property of the `makeLookup`
+  function, and returns a list of all successive keys that are to be looked up
+  for a specific property accessor, given as a string. This function is used by
+  the `lookup()` function, and is exported for testing purposes. The parser in
+  use does not accept spaces (except in strings), nor comments.
 
 
 type.js
@@ -107,18 +117,18 @@ things with each type of file.
   functions like `read`, `write`, `rm`, `mkdir`, `mkfile`, that the file system
   can use. Each file has a `driver` element that points to the primitives
   corresponding to its type.
-- `normalize :: function(path :: String)` takes a virtual path and returns the
+- `normalize :: Function(path :: String)` takes a virtual path and returns the
   same path, sanitized. For instance, "../foo.html/../bar.html" becomes
   "/bar.html".
-- `absolute :: function(path :: String)` takes a virtual path and returns the
+- `absolute :: Function(path :: String)` takes a virtual path and returns the
   real path on the host file system.
-- `relative :: function(path :: String)` takes a virtual path and returns the
+- `relative :: Function(path :: String)` takes a virtual path and returns the
   path from the current directory to that file.
-- `virtual :: function(path :: String)` takes a real path and returns the
+- `virtual :: Function(path :: String)` takes a real path and returns the
   corresponding virtual path.
-- `loadMeta :: function(path :: String, cb :: Function)` takes a virtual path
+- `loadMeta :: Function(path :: String, cb :: Function)` takes a virtual path
   and returns an error and the metadata (as an Object) in the callback.
-- `dumpMeta :: function(path :: String, metadata :: Object, cb :: Function)`
+- `dumpMeta :: Function(path :: String, metadata :: Object, cb :: Function)`
   takes a virtual path and metadata, writes that metadata to disk, and returns
   an error in the callback.
 
