@@ -34,6 +34,7 @@ File objects contain the following functions:
 
 * `this.meta :: Object` contains all meta information, such as the type
   (`this.meta.type`).
+* `this.updateLastModified :: Function` updates the `Last-Modified` metadata.
 * `this.isOfType :: Function (mimeType :: String)` checks whether the file is
   of a certain type, or falls back to it (ie, derives from it).
 * `this.path :: String` is the path of the file from the root.
