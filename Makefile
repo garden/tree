@@ -28,7 +28,7 @@ RUNTREE = '  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
-start: stop web/ node_modules/bcrypt/
+start: init stop
 	@echo "start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
 	then  \
@@ -87,7 +87,7 @@ gc:
 test:
 	node lib/test.js
 
-init: web/ node_modules/bcrypt/
+init: web/ node_modules/formidable/
 
 web/: plugs/
 	@if [ ! -e web ] && [ ! -e meta ];  \
@@ -100,10 +100,8 @@ plugs/:
 node_modules/bcrypt/:
 	@npm install bcrypt
 
-# We mustn't update everything simultaneously – or else debugging
-# whatever might break with the update becomes painful.
-update:
-	@npm update
+node_modules/formidable/:
+	@npm install formidable@latest
 
 update-camp:
 	@npm update camp
@@ -140,5 +138,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop clean save load backup gc test update update-camp update-ot https help wtf ? coffee me a sandwich
+.PHONY: start stop clean save load backup gc test init update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
 
