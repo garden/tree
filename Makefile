@@ -28,35 +28,32 @@ RUNTREE = '  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
-start: stop web/ node_modules/bcrypt/
-	@echo "start"
+start: init stop
+	@echo "[tree] start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
 	then  \
-	  sudo -p 'Password to run server as root: ' echo;  \
+	  sudo -p '[sudo] password for $(USER): ' echo;  \
 	  sudo -n sh -c $(RUNTREE);  \
 	  sudo chmod a+w $(LOG);  \
 	else  \
 	  sh -c $(RUNTREE); \
-	fi
+	fi; \
+	echo "[info] tree running on port $(PORT) (see $(LOG))"; \
+	echo "[info] use 'make stop' to kill it"
 
 stop:
-	@echo "stop"
+	@echo "[tree] stop"
 	@if [ -e $(PID) ]; then  \
 	  kill $$(cat $(PID)) 2>/dev/null || sudo kill $$(cat $(PID));  \
 	  rm $(PID);  \
 	fi
-
-clean:
-	@# WARNING: This operation deletes server logs.
-	@echo "clean"
-	@rm -rf $(LOG)
 
 save:
 	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
 	@cp -r web/* plugs/
 	@cp -r meta plugs/
 	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
-	@echo 'You may now commit what is in plugs/.'
+	@echo "[info] you may now commit what is in plugs/"
 
 load:
 	@# WARNING: This operation overwrites files in web/.
@@ -65,12 +62,13 @@ load:
 	@cp -rf web/meta/* meta/
 	@rm -rf web/meta/
 	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
+	@echo "[info] deployed web/ and meta/ from plugs/"
 
 backup:
 	@mkdir web$(DATE)
 	@cp -r web/* web$(DATE)/
 	@cp -r meta/ web$(DATE)/
-	@echo "Copied web/ and meta/ to new web$(DATE)/ backup folder."
+	@echo "[info] copied web/ and meta/ to new backup web$(DATE)/"
 
 # When files move around in web/, some dead metadata entries stay in meta/.
 # They need to be garbage collected from time to time.
@@ -87,44 +85,46 @@ gc:
 test:
 	node lib/test.js
 
-init: web/ node_modules/bcrypt/
+# List all first-launch dependencies here
+init: web/
 
 web/: plugs/
 	@if [ ! -e web ] && [ ! -e meta ];  \
+	  echo "[init] deploying web/ and meta/ from plugs/"; \
 	  then cp -r plugs/ web/ && mv web/meta . && rm -rf web/.git;  \
 	fi;
 
 plugs/:
 	@git clone http://github.com/garden/plugs
+	@echo "[init] obtaining plugs"
 
 node_modules/bcrypt/:
-	@npm install bcrypt
-
-# We mustn't update everything simultaneously – or else debugging
-# whatever might break with the update becomes painful.
-update:
-	@npm update
+	npm install bcrypt
 
 update-camp:
-	@npm update camp
+	npm update camp
 
 update-ot:
-	@npm update operational-transformation
+	npm update operational-transformation
 
 https.key:
+	@echo "[https] generating KEY"
 	@openssl genrsa -aes256 -out https.key 1024
 
 https.csr: https.key
+	@echo "[https] generating CSR"
 	@openssl req -new -key https.key -out https.csr
 
 https.crt: https.key https.csr
+	@echo "[https] generating CRT"
 	@openssl x509 -req -days 365 -in https.csr -signkey https.key -out https.crt
 
 rmhttps:
-	@echo "delete https credentials"
+	@echo "[https] deleting https credentials"
 	@rm -rf https.key https.csr https.crt
 
 https: https.crt
+	@echo "[info] you can now use https.key, https.csr, https.crt"
 
 help:
 	@cat Makefile | less
@@ -140,5 +140,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop clean save load backup gc test update update-camp update-ot https help wtf ? coffee me a sandwich
+.PHONY: start stop save load backup gc test init update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
 
