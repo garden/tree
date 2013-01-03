@@ -1,37 +1,41 @@
-/* Run this with node to start your tree server.
+/* Run this with node to start your file tree server.
  * Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
  * The following code is covered by the GPLv2 license. */
 
-// Please look for documentation in `./Server.md`
 
-
-// SERVER CONFIG
+// IMPORT MODULES
 //
 
-// Import modules
-var Camp = require('camp'),
-    camp = Camp.start({
-      port: +process.argv[2],
-      secure: process.argv[3] === 'yes',
-      debug: +process.argv[4],
-      key: 'https.key',
-      cert: 'https.crt',
-      ca: ['https.ca'],
-    }),
-    driver = require('./lib/driver'),
-    fsapi = require('./lib/fsapi'),
-    irc = require('./lib/irc'),
-    plug = require('./lib/plug'),
-    profiler = require('./lib/profiler'),
-    nodepath = require('path');
+var Camp     = require('camp'),
+    nodepath = require('path'),
+    driver   = require('./lib/driver'),
+    fsapi    = require('./lib/fsapi'),
+    irc      = require('./lib/irc'),
+    plug     = require('./lib/plug'),
+    profiler = require('./lib/profiler');
+
+
+// SERVER SETUP
+//
+
+// Start the server with command line options
+var camp = Camp.start({
+  port: +process.argv[2],
+  secure: process.argv[3] === 'yes',
+  debug: +process.argv[4],
+  key: 'https.key',
+  cert: 'https.crt',
+  ca: ['https.ca'],
+});
 
 // Socket.io: silence will fall!
 camp.io.configure('development', function () {
   camp.io.set('log level', 0);
   camp.io.set('browser client minification', true);
-//  camp.io.set('browser client gzip', true); // FIXME broken since v0.8.0
+//camp.io.set('browser client gzip', true); // FIXME broken in Socket.io
 });
 
+// Custom templating filter
 Camp.Plate.parsers['script'] = function (text) {
   return text.replace(/</g, '\\u003c');
 };
@@ -43,19 +47,17 @@ plug.main(camp);
 // ROUTING
 //
 
-camp.route(/\/(.*)/, plug.resolve);  // Redirect all URLs to corresponding plug.
+// Redirect all requests to a templated plug.
+camp.route(/\/(.*)/, plug.resolve);
 
 // Profiler API.
 camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
 
-
 // File System API.
 camp.ajax.on('fs', fsapi.fs);
 
-
 // Metadata API.
 camp.ajax.on('meta-save', fsapi.meta);
-
 
 // IRC API.
 camp.ajax.on('join', irc.join);
