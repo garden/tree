@@ -2,30 +2,29 @@
 
 > It's multiplayer nodepad!
 
-[thefiletree.com] (https://thefiletree.com)
+[thefiletree.com](https://thefiletree.com)
 
 ## Get it
 
-- install [node] (http://nodejs.org)
-- fork or download [tree] (https://github.com/garden/tree)
+- Install [node](http://nodejs.org)
+- Fork or download [tree](https://github.com/garden/tree)
 
 ## Use it
 
 - `make`
-- [localhost] (http://localhost/)
+- [browse](http://localhost/)
 - enjoy!
 
-## Contribute
+## Contribute to it
 
-- open [issues] (https://github.com/garden/tree/issues)
-- send [pull requests] (http://help.github.com/send-pull-requests)
-- contact [Thaddee Tyl] (https://github.com/espadrine), [Jan Keromnes] (https://github.com/jankeromnes)
+- Open [issues](https://github.com/garden/tree/issues)
+- Send [pull requests](http://help.github.com/send-pull-requests)
+- Contact [Thaddee Tyl](https://github.com/espadrine) or [Jan Keromnes](https://github.com/jankeromnes)
 
-## Includes
+## Included
 
 This project is covered by the GNU General Public License (version 2) and contains code from:
 
-- [ScoutCamp] (https://github.com/espadrine/sc/) (LGPL license)
-- [CodeMirror2] (https://github.com/marijnh/CodeMirror2) (MIT license)
-- [javascript-operation-transformation] (https://github.com/timjb/javascript-operational-transformation) (MIT license)
-
+- [ScoutCamp](https://github.com/espadrine/sc/), a powerful web server (LGPL license)
+- [CodeMirror](https://github.com/marijnh/CodeMirror/), a nifty in-browser code editor (MIT license)
+- [ot.js](https://github.com/Operational-Transformation/ot.js/), a real time collaboration system (MIT license)
