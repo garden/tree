@@ -36,8 +36,15 @@ camp.io.configure('development', function () {
 });
 
 // Custom templating filter
-Camp.Plate.parsers['script'] = function (text) {
+Camp.Plate.parsers.script = function (text) {
   return text.replace(/</g, '\\u003c');
+};
+Camp.Plate.macros.lookup = function (write, literal, params) {
+  if (literal.lookup && literal.file) {
+    literal.lookup(params[0], function(value, err) {
+      write(value);
+    });
+  } else write('');
 };
 
 // Init subroutines
