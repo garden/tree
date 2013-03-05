@@ -86,7 +86,7 @@ test:
 	node lib/test.js
 
 # List all first-launch dependencies here
-init: web/
+init: web/ node_modules/formidable/
 
 web/: plugs/
 	@if [ ! -e web ] && [ ! -e meta ];  \
@@ -97,6 +97,9 @@ web/: plugs/
 plugs/:
 	@git clone http://github.com/garden/plugs
 	@echo "[init] obtaining plugs"
+
+node_modules/formidable/:
+	npm install formidable
 
 node_modules/bcrypt/:
 	npm install bcrypt
