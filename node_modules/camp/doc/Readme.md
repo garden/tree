@@ -199,6 +199,26 @@ the following file:
       <li>second comment...</li>
     </ul>
 
+You can tweak how the router works using `end`'s second parameter, an object
+with the following fields:
+
+- `template`: the file (rooted at the `web` directory) to read as the template.
+- `reader`: the template engine to use.
+
+By default, the following will be executed:
+
+    var posts = ['This is the f1rst p0st!'];
+
+    server.route ( /\/first\/post.html/, function ( query, match, end ) {
+      end ({
+        text: posts[0],
+        comments: ['first comment!', 'second comment...']
+      }, {
+        template: '/first/post.html',   // The file given as a regex.
+        reader: server.templateReader
+      });
+    });
+
 ### Diving In
 
 There are two main elements of interest here.  The easiest is the camp.js
