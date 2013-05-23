@@ -1,6 +1,6 @@
 # tree
 
-> A multiplayer nodepad!
+> A multiplayer file system!
 
 [thefiletree.com](https://thefiletree.com)
 
