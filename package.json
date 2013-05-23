@@ -14,7 +14,7 @@
   "dependencies": {
     "async": ">=0.1.18",
     "camp": ">=12.04.23",
-    "operational-transformation": ">=0.0.5",
+    "ot": ">=0.0.12",
     "bcrypt": ">=0.5.0"
   }
 }

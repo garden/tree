@@ -1,0 +1,13 @@
+script: "make test"
+
+language: node_js
+node_js:
+  - 0.8
+
+branches:
+  only:
+    - master
+
+notifications:
+  email:
+    - thaddee.tyl@gmail.com
