@@ -91,7 +91,7 @@ startweb:
 	fi
 
 test:
-	node test/test-plate.js
+	node test/test-api.js
 
 update:
 	@git clone https://github.com/espadrine/sc.git

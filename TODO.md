@@ -1,7 +1,7 @@
-# Those are the things we need to get right before getting public.
+Ideas on future perspectives.
 
 
-## /
+# /
 
 When the file system is mature enough, its root will be accessed directly by `/`
 instead of by `/root/`.  In order to achieve this, some key elements of the tree
@@ -12,7 +12,7 @@ them through file tree plugins.
 EDIT: This was done as of 2012-04-04.
 
 
-## Operational Transformation
+# Operational Transformation
 
 The current Operational Transformation in use (apart from being buggy) uses up a
 lot of space on the server side (we have to store a copy of the file for each
@@ -30,9 +30,31 @@ EDIT: This was done as of 2012-04-18. Special thanks to
 [Tim Baumann] (https://github.com/timjb/javascript-operational-transformation).
 
 
-## Security
+# Sandbox
 
-### Old design.
+We wish to have the following functionalities:
+
+- Run some programs (such as compilers) as an FFI.
+- The program cannot see or go above the root directory.
+- The program is limited in time and memory.
+- (Future requirement:) The program cannot modify password-protected files
+  without input from the user.
+
+Ideas:
+
+- Use `bash -rs` (or `zsh`, for that matter)
+  (Is that really useful? Can we run `bash` from there? Through vi?)
+- Use a custom `rc` file that resets all shell variables.
+- Use `ulimit` in that bash
+
+Issues:
+
+- Can this be cross-platform? The above ideas are Unix-only.
+
+
+# Security
+
+## Old design.
 
 We get a salt from the server.  We send a PBKDF2ed SHA256 key from the
 passphase the user enters.  On receiving the SHA, the server makes it go
@@ -48,7 +70,7 @@ We absolutely need TLS (otherwise the whole security system crumbles down).
 We can get it free from StartCom, whose root certificate is in Firefox (and
 probably everywhere else, too).
 
-### Reasons that design cannot succeed.
+## Reasons that design cannot succeed.
 
 That design isn't aware of the Read/Write access differences that we want,
 instead encrypting all the data, even if unnecessary. This results in a lot of
@@ -65,7 +87,7 @@ code breaking techniques to brute-force the key fast: increasing the number of
 iterations makes normal use have an increase in execution time that is a lot
 smaller for code breaking use.
 
-### New design.
+## New design.
 
 Metadata access and write access requires the following:
 
@@ -74,7 +96,7 @@ Metadata access and write access requires the following:
 
 Read access requires more engineering (and a little bit more design effort).
 
-#### Metadata access
+### Metadata access
 
 Users can restrict metadata access by using a passphrase. That passphrase is
 stored with bcrypt in the file's metadata, under the name `metakey`.
@@ -96,7 +118,7 @@ link to a great library:
 
 Why [bcrypt](http://codahale.com/how-to-safely-store-a-password/)?
 
-#### Write access
+### Write access
 
 Users can restrict write access by using a passphrase. That passphrase is stored
 with bcrypt in the file's metadata, under the name `writekey`.
@@ -112,12 +134,14 @@ A request for write access will follow these steps:
 3. If the bcrypt we got is the same as the one that is in `writekey`, the user
    gets write access. Otherwise, he is granted read-only access.
 
-#### Read access
+### Read access
 
 Users can restrict read access by using a passphrase. The system knows that a
 file has a read access restriction if the file's metadata has an `encryption`
 key with a valid value (eg. "OCB3-AES128"). In that case, the data is encrypted
 using OCB3-AES128.
+
+Maybe look into GCM mode instead of OCB.
 
 Requests for read and write access follow these steps:
 
@@ -130,3 +154,22 @@ passphrase and the OCB-AES key. Sending only the OCB-AES key will result in
 read-only access. Otherwise, read/write access is granted to those that send the
 OCB-AES key.
 
+
+
+# User-Space File System
+
+Create a proper distributed file system.
+
+Ideas:
+
+- FUSE
+
+
+# Fork/Join
+
+Allow a user to fork a file.
+That FS-level operation forces the system to keep track of all changes made to
+that file.
+Once done, the user can join back to the origin file.
+The system should prevent conflicts from ever happening (which is theoretically
+possible).
