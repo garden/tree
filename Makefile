@@ -12,7 +12,7 @@ SERVER = app.js
 PID = .pid
 
 # The current date in yyyy-mm-dd format.
-DATE = $$(date "+%Y-%m-%d")
+DATE = $$(date "+%Y%m%dT%H%M%S%z")
 
 ifdef SECURE
   PORT ?= 443
@@ -47,6 +47,8 @@ stop:
 	  kill $$(cat $(PID)) 2>/dev/null || sudo kill $$(cat $(PID));  \
 	  rm $(PID);  \
 	fi
+
+restart: stop start
 
 save:
 	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
