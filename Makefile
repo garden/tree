@@ -60,6 +60,7 @@ load:
 	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
 	@cp -rf plugs/* web/
 	@cp -rf web/meta/* meta/
+	@cp -f web/meta/.DS-Store meta/
 	@rm -rf web/meta/
 	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
 	@echo "[info] deployed web/ and meta/ from plugs/"
@@ -86,7 +87,7 @@ test:
 	node lib/test.js
 
 # List all first-launch dependencies here
-init: web/ node_modules/formidable/
+init: web/
 
 web/: plugs/
 	@if [ ! -e web ] && [ ! -e meta ];  \
@@ -97,9 +98,6 @@ web/: plugs/
 plugs/:
 	@git clone http://github.com/garden/plugs
 	@echo "[init] obtaining plugs"
-
-node_modules/formidable/:
-	npm install formidable
 
 node_modules/bcrypt/:
 	npm install bcrypt
