@@ -11,7 +11,7 @@ SERVER = app.js
 # The pid of the process (stored in a file).
 PID = .pid
 
-# The current date in yyyy-mm-dd format.
+# The current date in ISO8601 format.
 DATE = $$(date "+%Y%m%dT%H%M%S%z")
 
 ifdef SECURE
