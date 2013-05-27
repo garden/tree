@@ -11,8 +11,8 @@ SERVER = app.js
 # The pid of the process (stored in a file).
 PID = .pid
 
-# The current date in yyyy-mm-dd format.
-DATE = $$(date "+%Y-%m-%d")
+# The current date in ISO8601 format.
+DATE = $$(date "+%Y%m%dT%H%M%S%z")
 
 ifdef SECURE
   PORT ?= 443
@@ -47,6 +47,8 @@ stop:
 	  kill $$(cat $(PID)) 2>/dev/null || sudo kill $$(cat $(PID));  \
 	  rm $(PID);  \
 	fi
+
+restart: stop start
 
 save:
 	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
@@ -141,5 +143,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop save load backup gc test init update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
+.PHONY: start stop restart save load backup gc test init update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
 
