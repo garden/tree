@@ -63,6 +63,9 @@ camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
 // File System API.
 camp.ajax.on('fs', fsapi.fs);
 
+// File upload API.
+camp.ajax.on('upload', fsapi.upload);
+
 // Metadata API.
 camp.ajax.on('meta-save', fsapi.meta);
 
