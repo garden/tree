@@ -27,7 +27,7 @@ relevant documentation files (probably along `/lib/sync.js`).
   [1] http://delivery.acm.org/10.1145/220000/215706/p111-nichols.pdf
 
 EDIT: This was done as of 2012-04-18. Special thanks to
-[Tim Baumann] (https://github.com/timjb/javascript-operational-transformation).
+[Tim Baumann] (https://github.com/operational-transformation/ot.js).
 
 
 # Sandbox
@@ -42,6 +42,7 @@ We wish to have the following functionalities:
 
 Ideas:
 
+- Use chroot
 - Use `bash -rs` (or `zsh`, for that matter)
   (Is that really useful? Can we run `bash` from there? Through vi?)
 - Use a custom `rc` file that resets all shell variables.
@@ -101,16 +102,14 @@ Read access requires more engineering (and a little bit more design effort).
 Users can restrict metadata access by using a passphrase. That passphrase is
 stored with bcrypt in the file's metadata, under the name `metakey`.
 
-A request for reading the metadata always succeeds. All passphrases are securely
-stored anyway.
-
 A request for editing the metadata will follow these steps:
 
 1. Get the key from the user.
 2. Get the bcrypt of that key, using the salt and iteration count indicated in
-   `metakey`.
+   `metakey`. Authorize an unlimited number of tries, with a second wait between
+   each try.
 3. If the bcrypt we got is the same as the one that is in `metakey`, the user
-   gets write access to metadata. Otherwise, he is granted read-only access.
+   gets write access to metadata. Otherwise, he is denied access.
 
 Bcrypt doesn't have support in node.js' standard library. However, here goes a
 link to a great library:
@@ -158,11 +157,15 @@ OCB-AES key.
 
 # User-Space File System
 
-Create a proper distributed file system.
+Create a proper distributed file system, using a flexible protocol over a secure
+websocket connection.
+We should have two main frames: content and delta.
+Think of them as I-frames and P-frames in video encoding.
 
-Ideas:
-
-- FUSE
+We should construct a user-space filesystem through FUSE. Make metadata work
+fast (load it all up in memory at startup?) and more flexible (use the SET file
+format instead?) so that we can actually annotate the metadata with comments.
+Of course, we would prettify it on every disk write.
 
 
 # Fork/Join
