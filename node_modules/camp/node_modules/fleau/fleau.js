@@ -288,10 +288,12 @@ var parsers = {
                .replace (/"/g,'&quot;');
   },
   'uri': function (text) {
-    return encodeURI (text);
+    // RFC5987-compliant.
+    return encodeURIComponent (text).replace(/['()]/g, escape)
+      .replace(/\*/g, '%2A').replace(/%(?:7C|60|5E)/g, unescape);
   },
   '!uri': function (text) {
-    return decodeURI (text);
+    return decodeURIComponent (text);
   },
   'jsonstring': function (text) {
     // FIXME: does someone have an idea on how to handle unicode?

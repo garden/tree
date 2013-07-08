@@ -22,10 +22,10 @@ issuing `node app 1234` to the command prompt!
 
 ## Why?
 
-- cool web server with routes, templates and all!
+- cool web server with routes, pluggable templates and all!
 - super easy Ajax scripting!
-- super easy EventSource!
-- build-script to make your app super fast!
+- super easy EventSource and WebSockets!
+- streams!
 - focus on your website, not on the framework!
 
 ## Contribute

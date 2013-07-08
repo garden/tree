@@ -39,6 +39,9 @@ camp.io.configure('development', function () {
 Camp.templateReader.parsers.script = function (text) {
   return text.replace(/</g, '\\u003c');
 };
+Camp.templateReader.parsers.path = function (text) {
+  return encodeURIComponent(text).replace(/%2F/g, unescape);
+};
 Camp.templateReader.macros.lookup = function (write, literal, params) {
   if (literal.lookup && literal.file) {
     literal.lookup(params[0], function(value, err) {
