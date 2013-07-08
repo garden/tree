@@ -202,7 +202,9 @@ the following file:
 You can tweak how the router works using `end`'s second parameter, an object
 with the following fields:
 
-- `template`: the file (rooted at the `web` directory) to read as the template.
+- `template`: the file (rooted at the `web` directory) to read as the template,
+  or a readable stream (see
+  [the standard library](http://nodejs.org/api/stream.html)).
 - `reader`: the template engine to use.
 
 By default, the following will be executed:

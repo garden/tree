@@ -139,8 +139,8 @@ test ('Radix {{= data in {{intradix 2}} }}.', {data:2}, 'Radix 10.');
 test ('Float {{= data in {{float 2}} }}.', {data:73.6}, 'Float 73.60.');
 test ('Exp {{= data in {{exp 2}} }}.', {data:73.6}, 'Exp 7.36e+1.');
 
-test ('Twice {{= data in uri in xmlattr}}', {data:'\"&\"'},
-      'Twice %22&amp;%22');
+test ('http://example.net/{{= data in exp in uri}}', {data:1234},
+      'http://example.net/1e%2B3');
 
 // error test.
 test ('Nonint {{= data in integer}}.', {data:'hi'}, 'Nonint .');
