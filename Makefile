@@ -59,6 +59,8 @@ save:
 
 load:
 	@# WARNING: This operation overwrites files in web/.
+	@if [ ! -e web/ ]; then mkdir web; fi
+	@if [ ! -e meta/ ]; then mkdir meta; fi
 	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
 	@cp -rf plugs/* web/
 	@cp -rf web/meta/* meta/
