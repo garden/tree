@@ -1,6 +1,6 @@
-/* server.js: run this with Node.js in the publish/ folder to start your server.
- * Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
- * Code covered by the LGPL license. */
+// Server demo. Run this with ndoe to start your server.
+// Copyright © 2011 Thaddee Tyl, Jan Keromnes. All rights reserved.
+// Code covered by the LGPL license.
 
 var fleau = require('fleau');
 
@@ -10,8 +10,8 @@ var camp = require('./lib/camp.js').start({
       secure: process.argv[3] === 'yes',
       debug: +process.argv[4],
       templateReader: fleau
-    }),
-    ajax = camp.ajax
+    })
+  , ajax = camp.ajax
 
 // Templating demo
 camp.route('/template.html', function(data, match, end) {
