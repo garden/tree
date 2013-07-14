@@ -38,7 +38,11 @@ function Ask (server, req, res) {
   // FIXME: can we avoid all this allocation?
   // Idea: keeping the same. Would that cause issues?
   this.form = new formidable.IncomingForm();
-  this.path = unescape(this.uri.pathname);
+  try {
+    this.path = decodeURIComponent(this.uri.pathname);
+  } catch(e) {  // Using `escape` should not kill the server.
+    this.path = unescape(this.uri.pathname);
+  }
   this.query = this.uri.query;
 }
 
