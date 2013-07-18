@@ -101,8 +101,6 @@ This rules the file type system.
 - `nameFromType :: Array` gives the mime type from the number type.
 - `isCompatible(type :: Number, ancestor :: Number)` is true if `type` is
   compatible with `ancestor`.
-- `guessType(path :: String, cb :: Function)` The callback has two parameters,
-  an error, and a plausible number type.
 - `driver(type :: Number)` yields the driver corresponding to the indicated
   type. Drivers are specified in the `driver.js` file.
 
