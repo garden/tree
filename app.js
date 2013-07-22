@@ -6,13 +6,14 @@
 // IMPORT MODULES
 //
 
-var Camp     = require('camp'),
-    nodepath = require('path'),
-    driver   = require('./lib/driver'),
-    fsapi    = require('./lib/fsapi'),
-    irc      = require('./lib/irc'),
-    plug     = require('./lib/plug'),
-    profiler = require('./lib/profiler');
+var Camp     = require('camp');
+var nodepath = require('path');
+var fleau    = require('fleau');
+var driver   = require('./lib/driver');
+var fsapi    = require('./lib/fsapi');
+var irc      = require('./lib/irc');
+var plug     = require('./lib/plug');
+var profiler = require('./lib/profiler');
 
 
 // SERVER SETUP
@@ -36,22 +37,25 @@ camp.io.configure('development', function () {
 });
 
 // Custom templating filter
-Camp.templateReader.parsers.script = function (text) {
+function templateScript(text) {
   return text.replace(/</g, '\\u003c');
-};
-Camp.templateReader.parsers.path = function (text) {
+}
+function templatePath(text) {
   return encodeURIComponent(text).replace(/%2F/g, unescape);
-};
-Camp.templateReader.macros.lookup = function (write, literal, params) {
+}
+function templateLookup(write, literal, params) {
   if (literal.lookup && literal.file) {
     literal.lookup(params[0], function(value, err) {
       write(value);
     });
   } else write('');
-};
+}
+Camp.templateReader.parsers.script = fleau.parsers.script = templateScript;
+Camp.templateReader.parsers.path = fleau.parsers.path = templatePath;
+Camp.templateReader.macros.lookup = fleau.macros.lookup = templateLookup;
 
 // Init subroutines
-plug.main(camp);
+plug.main(camp, fleau);
 
 
 // ROUTING
