@@ -2,7 +2,7 @@
   "author": "TheFileTree <warden@thefiletree.com> (https://thefiletree.com/)",
   "name": "filetree",
   "description": "Web-based collaborative file system; a multiplayer notepad!",
-  "version": "12.06.19",
+  "version": "13.7.22",
   "homepage": "https://thefiletree.com",
   "repository": {
     "type": "git",
@@ -15,6 +15,7 @@
   "dependencies": {
     "async": ">=0.1.18",
     "camp": ">=12.04.23",
+    "fleau": ">=13.7.22",
     "ot": ">=0.0.12",
     "bcrypt": ">=0.5.0"
   }
