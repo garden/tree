@@ -97,14 +97,22 @@ test:
 init: web/
 
 web/: plugs/
-	@if [ ! -e web ] && [ ! -e meta ];  \
-	  echo "[init] deploying web/ and meta/ from plugs/"; \
-	  then cp -r plugs/ web/ && mv web/meta . && rm -rf web/.git;  \
+	@if [ ! -e web ] && [ ! -e meta ]; then  \
+	  echo "[init] deploying web/ and meta/ from plugs/";  \
+	  cp -r plugs/ web/ && mv web/meta .;  \
+	  rm -rf web/.git && rm -rf web/.gitignore;  \
 	fi;
 
+links: plugs/
+	@if [ ! -e web ] && [ ! -e meta ]; then  \
+	  echo "[init] setting up symbolic links";  \
+	  ln -s plugs web;  \
+    ln -s plugs/meta meta;  \
+  fi;
+
 plugs/:
-	@git clone http://github.com/garden/plugs
 	@echo "[init] obtaining plugs"
+	@git clone http://github.com/garden/plugs
 
 node_modules/bcrypt/:
 	npm install bcrypt
@@ -148,5 +156,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop restart save load backup gc test init update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
+.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
 
