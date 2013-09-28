@@ -62,10 +62,9 @@ File objects contain the following functions:
 #### Extensibility
 
 * `this.rm :: Function(name, cb(err))` lets you remove the file from the tree.
-* `this.mkdir :: Function(name, cb(err))` lets you add a directory as a child of
-  the current file, which must itself be a directory.
-* `this.mkfile :: Function(name, cb(err))` lets you add a file as a child of the
-  current file, which must be a directory.
+* `this.create :: Function(name, type cb(err))` lets you add a file (of type
+  `type`, which is either 'dir', 'binary' or 'text') as a
+  child of the current file, which must itself be a directory.
 
 
 lookup.js
