@@ -8,7 +8,7 @@
 
 var Camp     = require('camp');
 var nodepath = require('path');
-var fleau    = require('fleau');
+var hun      = require('hun');
 var driver   = require('./lib/driver');
 var fsapi    = require('./lib/fsapi');
 var irc      = require('./lib/irc');
@@ -50,12 +50,12 @@ function templateLookup(write, literal, params) {
     });
   } else write('');
 }
-Camp.templateReader.parsers.script = fleau.parsers.script = templateScript;
-Camp.templateReader.parsers.path = fleau.parsers.path = templatePath;
-Camp.templateReader.macros.lookup = fleau.macros.lookup = templateLookup;
+Camp.templateReader.parsers.script = hun.parsers.script = templateScript;
+Camp.templateReader.parsers.path = hun.parsers.path = templatePath;
+Camp.templateReader.macros.lookup = hun.macros.lookup = templateLookup;
 
 // Init subroutines
-plug.main(camp, fleau);
+plug.main(camp, hun);
 
 
 // ROUTING
