@@ -1,5 +1,5 @@
-/* scout.js: Scout is an ajax object.
- * Copyright © 2010 Thaddee Tyl. All rights reserved.
+/* Scout is an ajax library.
+ * Copyright © 2010-2013 Thaddee Tyl. All rights reserved.
  * Produced under the MIT license.
  *
  * Requires Sizzle.js <http://sizzlejs.com/>
@@ -183,6 +183,24 @@ Scout = (function Scoutmaker () {
       return io.connect(namespace, {
         resource: '$socket.io'
       });
+    };
+  }
+
+  /* If WebSockets are available, have them ready. */
+  if (window.WebSocket) {
+    var wsSend = function wsSendJSON (json) {
+      // Bound by the socket.
+      this.send(JSON.stringify(json));
+    };
+    ret.webSocket = function newWebSocket (channel) {
+      var socket = new WebSocket(
+        // Trick: use the end of either http: or https:.
+        'ws' + window.location.protocol.slice(4) + '//' +
+          window.location.hostname +
+          (window.location.port.length > 0? (':' + window.location.port): '') +
+          '/$websocket:' + channel);
+      socket.sendjson = wsSend.bind(socket);
+      return socket;
     };
   }
 
