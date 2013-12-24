@@ -152,7 +152,7 @@ buildroot/:
 	#sudo mount -t sysfs sys buildroot/sys/
 	#sudo mount -o bind /dev buildroot/dev/
 	sudo chroot buildroot apt-get install g++ make patch binutils-gold curl python ruby sbcl openjdk-7-jdk mono-complete
-	sudo chroot buildroot bash -c 'mkdir /home/node-js && cd /home/node-js && wget -N http://nodejs.org/dist/node-latest.tar.gz && tar xzf node-latest.tar.gz && cd node-v* && ./configure && make && make install'
+	sudo chroot buildroot bash -c 'mkdir /home/node-js && cd /home/node-js && wget -N http://nodejs.org/dist/node-latest.tar.gz && tar xzf node-latest.tar.gz && cd node-v* && ./configure && make && make install && rm -rf /home/node-js'
 	# Requirements for building Firefox.
 	sudo chroot buildroot apt-get install zip unzip mercurial libasound2-dev libcurl4-openssl-dev libnotify-dev libxt-dev libiw-dev libidl-dev mesa-common-dev autoconf2.13 yasm libgtk2.0-dev libdbus-1-dev libdbus-glib-1-dev python-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libpulse-dev
 	# Forbid network access. FIXME: modules.dep.bin not available.
