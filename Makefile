@@ -158,6 +158,11 @@ buildroot/:
 	# Forbid network access. FIXME: modules.dep.bin not available.
 	#sudo chroot buildroot bash -c 'iptables -I OUTPUT -j DROP -m owner --gid-owner root'
 
+rmbuildroot:
+	@echo "[buildroot] Removing the chroot jail."
+	sudo umount -l ./buildroot/proc/
+	sudo rm -rf ./buildroot
+
 help:
 	@cat Makefile | less
 
