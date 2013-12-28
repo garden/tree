@@ -99,39 +99,39 @@ Read access requires more engineering (and a little bit more design effort).
 
 ### Metadata access
 
-Users can restrict metadata access by using a passphrase. That passphrase is
-stored with bcrypt in the file's metadata, under the name `metakey`.
+Users can restrict metadata modification by using a passphrase. That
+passphrase's hash is stored with scrypt in the file's metadata, under the name
+`metakey`. Without the key, users can view all metadata but the keys. With the
+key, they can modify the metadata.
 
 A request for editing the metadata will follow these steps:
 
 1. Get the key from the user.
-2. Get the bcrypt of that key, using the salt and iteration count indicated in
+2. Send the key in the `metakey` field of a server-side request, protected by
+   HTTPS, with the modifications.
+3. Get the scrypt of that key, using the salt and iteration count indicated in
    `metakey`. Authorize an unlimited number of tries, with a second wait between
    each try.
-3. If the bcrypt we got is the same as the one that is in `metakey`, the user
-   gets write access to metadata. Otherwise, he is denied access.
+4. If the hash we got is the same as the one that is in `metakey`, the
+   modifications get applied. Otherwise, they are denied access.
 
-Bcrypt doesn't have support in node.js' standard library. However, here goes a
-link to a great library:
-[node.bcrypt.js](https://github.com/ncb000gt/node.bcrypt.js).
-
-Why [bcrypt](http://codahale.com/how-to-safely-store-a-password/)?
+A request for viewing the metadata that comes with a `Authorization` HTTP header
+with the correct passphrase shows the values of the `metakey` and other key
+fields.
 
 ### Write access
 
 Users can restrict write access by using a passphrase. That passphrase is stored
-with bcrypt in the file's metadata, under the name `writekey`.
+with scrypt in the file's metadata, under the name `writekey`.
 
 A request for read access always succeeds. That property makes encrypting the
 data greatly useless.
 
-A request for write access will follow these steps:
+Any request that modifies the contents of the data, without including a
+`writekey` field with the correct passphrase, will fail. The operational
+transformation will forbid modification.
 
-1. Get the key from the user.
-2. Get the bcrypt of that key, using the salt and iteration count indicated in
-   `writekey`.
-3. If the bcrypt we got is the same as the one that is in `writekey`, the user
-   gets write access. Otherwise, he is granted read-only access.
+Without a correct write key, the user is granted read-only access.
 
 ### Read access
 
