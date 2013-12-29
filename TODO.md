@@ -136,23 +136,18 @@ Without a correct write key, the user is granted read-only access.
 ### Read access
 
 Users can restrict read access by using a passphrase. The system knows that a
-file has a read access restriction if the file's metadata has an `encryption`
-key with a valid value (eg. "OCB3-AES128"). In that case, the data is encrypted
-using OCB3-AES128.
+file has a read access restriction if the file's metadata has a `readkey`
+field. That key overrides the write key; the `writekey` field becomes useless.
 
-Maybe look into GCM mode instead of OCB.
+The `readkey` works similarly to how the `writekey` works, except that it won't
+give read-only access if the supplied password doesn't match the stored scrypt
+hash.
 
-Requests for read and write access follow these steps:
+Also, the files are all encrypted using the standard scrypt system. They are
+decrypted and stored in memory while editing.
 
-1. Get the key from the user.
-2. Try to decipher the data. If it succeeds, user has read/write access.
-3. If it fails, access is completely denied.
-
-If the `writekey` is set, read/write access requires sending both the writekey
-passphrase and the OCB-AES key. Sending only the OCB-AES key will result in
-read-only access. Otherwise, read/write access is granted to those that send the
-OCB-AES key.
-
+Note that this means that users have to wait for the file to be decrypted before
+they can start editing it.
 
 
 # User-Space File System
