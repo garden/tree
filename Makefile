@@ -177,5 +177,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https help wtf ? coffee me a sandwich
+.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https rmbuildroot help wtf ? coffee me a sandwich
 
