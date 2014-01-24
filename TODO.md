@@ -107,41 +107,45 @@ key, they can modify the metadata.
 A request for editing the metadata will follow these steps:
 
 1. Get the key from the user.
-2. Send the key in the `metakey` field of a server-side request, protected by
-   HTTPS, with the modifications.
+2. Send the key in the `metakey` field of a server-side request to
+   `/$meta-save`, protected by HTTPS, with the modifications, or through the
+   Authorization HTTP header field.
 3. Get the scrypt of that key, using the salt and iteration count indicated in
    `metakey`. Authorize an unlimited number of tries, with a second wait between
    each try.
 4. If the hash we got is the same as the one that is in `metakey`, the
-   modifications get applied. Otherwise, they are denied access.
-
-A request for viewing the metadata that comes with a `Authorization` HTTP header
-with the correct passphrase shows the values of the `metakey` and other key
-fields.
+   modifications get applied. Otherwise, they are denied.
 
 ### Write access
 
-Users can restrict write access by using a passphrase. That passphrase is stored
-with scrypt in the file's metadata, under the name `writekey`.
+Users can restrict write access by using a passphrase. The system knows that a
+file has a write access restriction if the file's metadata has a non-empty
+`writekey` field or the first parent folder that has a `readkey` fields is
+non-empty. That passphrase is stored with scrypt in the file's metadata, under
+the name `writekey`.
 
 A request for read access always succeeds. That property makes encrypting the
 data greatly useless.
 
 Any request that modifies the contents of the data, without including a
 `writekey` field with the correct passphrase, will fail. The operational
-transformation will forbid modification.
+transformation system will forbid modification.
 
 Without a correct write key, the user is granted read-only access.
 
 ### Read access
 
 Users can restrict read access by using a passphrase. The system knows that a
-file has a read access restriction if the file's metadata has a `readkey`
-field. That key overrides the write key; the `writekey` field becomes useless.
+file has a read access restriction if the file's metadata has a non-empty
+`readkey` field or the first parent folder that has a `readkey` field is
+non-empty. That key overrides the write key; the `writekey` field becomes
+useless.
 
 The `readkey` works similarly to how the `writekey` works, except that it won't
 give read-only access if the supplied password doesn't match the stored scrypt
-hash.
+hash. Accessing those files either requires a `readkey` or an `Authorization`
+HTTP header, the latter of which is made easier by the fact that sending an
+incorrect key causes serving this page through `WWW-Authenticate`.
 
 Also, the files are all encrypted using the standard scrypt system. They are
 decrypted and stored in memory while editing.
