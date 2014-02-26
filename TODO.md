@@ -99,60 +99,59 @@ Read access requires more engineering (and a little bit more design effort).
 
 ### Metadata access
 
-Users can restrict metadata access by using a passphrase. That passphrase is
-stored with bcrypt in the file's metadata, under the name `metakey`.
+Users can restrict metadata modification by using a passphrase. That
+passphrase's hash is stored with scrypt in the file's metadata, under the name
+`metakey`. Without the key, users can view all metadata but the keys. With the
+key, they can modify the metadata.
 
 A request for editing the metadata will follow these steps:
 
 1. Get the key from the user.
-2. Get the bcrypt of that key, using the salt and iteration count indicated in
+2. Send the key in the `metakey` field of a server-side request to
+   `/$meta-save`, protected by HTTPS, with the modifications, or through the
+   Authorization HTTP header field.
+3. Get the scrypt of that key, using the salt and iteration count indicated in
    `metakey`. Authorize an unlimited number of tries, with a second wait between
    each try.
-3. If the bcrypt we got is the same as the one that is in `metakey`, the user
-   gets write access to metadata. Otherwise, he is denied access.
-
-Bcrypt doesn't have support in node.js' standard library. However, here goes a
-link to a great library:
-[node.bcrypt.js](https://github.com/ncb000gt/node.bcrypt.js).
-
-Why [bcrypt](http://codahale.com/how-to-safely-store-a-password/)?
+4. If the hash we got is the same as the one that is in `metakey`, the
+   modifications get applied. Otherwise, they are denied.
 
 ### Write access
 
-Users can restrict write access by using a passphrase. That passphrase is stored
-with bcrypt in the file's metadata, under the name `writekey`.
+Users can restrict write access by using a passphrase. The system knows that a
+file has a write access restriction if the file's metadata has a non-empty
+`writekey` field or the first parent folder that has a `readkey` fields is
+non-empty. That passphrase is stored with scrypt in the file's metadata, under
+the name `writekey`.
 
 A request for read access always succeeds. That property makes encrypting the
 data greatly useless.
 
-A request for write access will follow these steps:
+Any request that modifies the contents of the data, without including a
+`writekey` field with the correct passphrase, will fail. The operational
+transformation system will forbid modification.
 
-1. Get the key from the user.
-2. Get the bcrypt of that key, using the salt and iteration count indicated in
-   `writekey`.
-3. If the bcrypt we got is the same as the one that is in `writekey`, the user
-   gets write access. Otherwise, he is granted read-only access.
+Without a correct write key, the user is granted read-only access.
 
 ### Read access
 
 Users can restrict read access by using a passphrase. The system knows that a
-file has a read access restriction if the file's metadata has an `encryption`
-key with a valid value (eg. "OCB3-AES128"). In that case, the data is encrypted
-using OCB3-AES128.
+file has a read access restriction if the file's metadata has a non-empty
+`readkey` field or the first parent folder that has a `readkey` field is
+non-empty. That key overrides the write key; the `writekey` field becomes
+useless.
 
-Maybe look into GCM mode instead of OCB.
+The `readkey` works similarly to how the `writekey` works, except that it won't
+give read-only access if the supplied password doesn't match the stored scrypt
+hash. Accessing those files either requires a `readkey` or an `Authorization`
+HTTP header, the latter of which is made easier by the fact that sending an
+incorrect key causes serving this page through `WWW-Authenticate`.
 
-Requests for read and write access follow these steps:
+Also, the files are all encrypted using the standard scrypt system. They are
+decrypted and stored in memory while editing.
 
-1. Get the key from the user.
-2. Try to decipher the data. If it succeeds, user has read/write access.
-3. If it fails, access is completely denied.
-
-If the `writekey` is set, read/write access requires sending both the writekey
-passphrase and the OCB-AES key. Sending only the OCB-AES key will result in
-read-only access. Otherwise, read/write access is granted to those that send the
-OCB-AES key.
-
+Note that this means that users have to wait for the file to be decrypted before
+they can start editing it.
 
 
 # User-Space File System

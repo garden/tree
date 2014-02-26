@@ -45,6 +45,19 @@ function Ask (server, req, res) {
     this.path = unescape(this.uri.pathname);
   }
   this.query = this.uri.query;
+  // Check (and add fields) for basic authentication.
+  this.username = null;
+  this.password = null;
+  if (req.headers.authorization) {
+    var authorization = req.headers.authorization;
+    var authComponent = authorization.split(/\s+/);
+    if (authComponent[0] === 'Basic') {
+      // Username / password.
+      var up = new Buffer(authComponent[1], 'base64').toString().split(':');
+      this.username = up[0];
+      this.password = up[1];
+    }
+  }
 }
 
 // Set the mime type of the response.

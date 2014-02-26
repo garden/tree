@@ -1,5 +1,5 @@
 // Run this with node to start your file tree server.
-// Copyright © 2011-2013 Thaddee Tyl, Jan Keromnes. All rights reserved.
+// Copyright © 2011-2014 Thaddee Tyl, Jan Keromnes. All rights reserved.
 // The following code is covered by the AGPLv3 license.
 
 
