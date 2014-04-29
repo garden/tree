@@ -76,6 +76,9 @@ camp.ajax.on('upload', fsapi.upload);
 // Metadata API.
 camp.ajax.on('meta-save', fsapi.meta);
 
+// Shell API.
+camp.ajax.on('shell', fsapi.shell);
+
 // IRC API.
 camp.ajax.on('join', irc.join);
 camp.ajax.on('say', irc.say);
