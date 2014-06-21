@@ -71,6 +71,31 @@ function addToQuery(ask, obj) {
   }
 }
 
+function jsonFromQuery(query, obj) {
+  obj = obj || Object.create(null);
+  // Decoding the query string from the chunks.
+  // We can't use the querystring library
+  // because we must decode it as JSON.
+  var items = query.split('&');
+  for (var item in items) {
+    // Each element of key=value is then again split along `=`.
+    var elems = items[item].split('=');
+    try {
+      obj[decodeURIComponent(elems[0])] =
+        JSON.parse(decodeURIComponent(elems[1]));
+    } catch (e) {
+      try {
+        obj[decodeURIComponent(elems[0])] =
+          decodeURIComponent(elems[1]);
+      } catch (e) {
+        console.error('Error while parsing query ', items[item]);
+        console.error('(' + e.toString() + ')');
+        console.error('Subsequently returning', JSON.stringify(query));
+      }
+    }
+  }
+}
+
 // We'll need to parse the query (either POST or GET) as a literal.
 // Ask objects already have ask.query set after the URL query part.
 // This function updates ask.query with:
@@ -78,6 +103,7 @@ function addToQuery(ask, obj) {
 // - multipart/form-data
 function getQueries(ask, end) {
   if (ask.req.method === 'GET' || ask.req.method === 'HEAD') {
+    jsonFromQuery(ask.uri.search.slice(1), ask.query);
     end(null);  // It's already parsed in ask.query.
   } else if (ask.req.method === 'POST') {
     var urlencoded = 'application/x-www-form-urlencoded';
@@ -109,32 +135,8 @@ function getQueries(ask, end) {
       ask.req.on('data', gotrequest);
       ask.req.on('end', function(err) {
         var strquery = chunks.toString();
-
-        // Decoding the query string from the chunks.
-        // We can't use the querystring library
-        // because we must decode it as JSON.
-        var items = strquery.split('&');
-        for (var item in items) {
-          // Each element of key=value is then again split along `=`.
-          var elems = items[item].split('=');
-          try {
-            ask.query[decodeURIComponent(elems[0])] =
-              JSON.parse(decodeURIComponent(elems[1]));
-          } catch (e) {
-            try {
-              ask.query[decodeURIComponent(elems[0])] =
-                decodeURIComponent(elems[1]);
-            } catch (e) {
-              console.error('Error while parsing query ', items[item]);
-              console.error('(' + e.toString() + ')');
-              console.error('Subsequently returning', JSON.stringify(query));
-              end(e);
-              return;
-            }
-          }
-        }
-
-        end(null);
+        jsonFromQuery(strquery, ask.query);
+        end(err);
       });
     }
   }
@@ -305,18 +307,18 @@ function ajaxUnit (server) {
   var ajaxReq = server.ajaxReq = new EventEmitter();
 
   return function ajaxLayer (ask, next) {
-    if (ask.path[1] !== '$') return next();
-    var action = ask.path.slice(2),
-        res = ask.res;
+    if (ask.path[1] !== '$') { return next(); }
+    var action = ask.path.slice(2);
+    var res = ask.res;
 
-    if (ajax.listeners(action).length <= 0) return next();
+    if (ajax.listeners(action).length <= 0) { return next(); }
 
     res.setHeader('Content-Type', mime.json);
 
     ajaxReq.emit(action, ask);
     // Get all data requests.
     getQueries(ask, function(err) {
-      if (err === null) {
+      if (err == null) {
         ajax.emit(action, ask.query, function ajaxEnd(data) {
           res.end(JSON.stringify(data || {}));
         }, ask);
@@ -555,14 +557,16 @@ function catchpath (ask, platepaths, templateReader) {
         options = options || {};
         options.template = options.template || pathmatch[0];
         options.reader = options.reader || templateReader;
-        if (!ask.res.getHeader('Content-Type'))   // Allow overriding.
+        if (!ask.res.getHeader('Content-Type')) {  // Allow overriding.
           ask.mime(mime[p.extname(options.template).slice(1)] || 'text/plain');
+        }
 
         if (typeof options.template === 'string') {
+          // `options.template` is a string path for a file.
           var templatePath = p.join(ask.server.documentRoot, options.template);
           var reader = fs.createReadStream(templatePath);
         } else {
-          // Either options.template is a string or a stream.
+          // `options.template` is a stream.
           var reader = options.template;
         }
         reader.on('error', function(err) {
