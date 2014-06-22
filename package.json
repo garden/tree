@@ -2,7 +2,7 @@
   "author": "TheFileTree <warden@thefiletree.com> (https://thefiletree.com/)",
   "name": "filetree",
   "description": "Web-based collaborative file system; a multiplayer notepad!",
-  "version": "13.7.22",
+  "version": "14.6.21",
   "homepage": "https://thefiletree.com",
   "repository": {
     "type": "git",
@@ -13,10 +13,10 @@
     "test": "make test"
   },
   "dependencies": {
-    "async": ">=0.1.18",
-    "camp": "~14.1.25",
-    "hun": ">=13.11.14",
-    "ot": ">=0.0.12",
-    "scrypt": ">=1.7.4"
+    "async": "~0.1.18",
+    "camp": "~14.6.22",
+    "hun": "~13.11.14",
+    "ot": "~0.0.12",
+    "scrypt": "~1.7.4"
   }
 }
