@@ -160,7 +160,7 @@ buildroot/:
 	sudo chroot buildroot useradd --create-home --user-group --key UMASK=022 myself
 
 rmbuildroot:
-	@echo "[buildroot] Removing the chroot jail."
+	@echo "[rmbuildroot] Removing the chroot jail."
 	sudo umount -l ./buildroot/proc/
 	sudo rm -rf ./buildroot
 
