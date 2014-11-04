@@ -47,10 +47,8 @@ File objects contain the following functions:
 * `this.content :: Object` lets you obtain the contents of the file.
   The content may be `null` (in order not to waste precious memory) unless you
   have opened the file.
-* `this.open :: Function ( cb :: Function (err) )`: use it when a user starts
-  editing a file.
-* `this.close :: Function ()`: use it when a user stops editing a file.
-  This function is useful to decide when to write to disk (non-blocking).
+* `this.open :: Function ( cb :: Function (err) )`: populate `this.content`, to
+  manipulate the file's content synchronously.
 * `this.write :: Function (cb)`: if you want to write the file to disk.
 * `this.writeMeta :: Function (cb)`: if you want to write metadata to disk.
 * `this.subfiles :: Function (cb :: Function(err, subfiles))`: gives all the
