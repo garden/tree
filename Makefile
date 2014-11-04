@@ -142,27 +142,27 @@ rmhttps:
 https: https.crt
 	@echo "[info] you can now use https.key, https.csr, https.crt"
 
-buildroot/:
-	@echo "[buildroot] Constructing the chroot jail."
+jail/:
+	@echo "[jail] Constructing the chroot jail."
 	if ! which debootstrap>/dev/null; then sudo apt-get install debootstrap; fi
-	mkdir buildroot
-	sudo debootstrap wheezy buildroot http://http.debian.net/debian
-	sudo chroot buildroot bash -c 'echo -e "#!/bin/sh\nexit 101" | cat >/usr/sbin/policy-rc.d && dpkg-divert --divert /usr/bin/ischroot.debianutils --rename /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot'
-	sudo mount -t proc proc buildroot/proc/
-	#sudo mount -t sysfs sys buildroot/sys/
-	#sudo mount -o bind /dev buildroot/dev/
-	sudo chroot buildroot apt-get install g++ make patch binutils-gold curl zsh python ruby sbcl openjdk-7-jdk mono-complete llvm clang golang scala texlive-full
-	sudo chroot buildroot bash -c 'mkdir /home/node-js && cd /home/node-js && wget -Nq http://nodejs.org/dist/node-latest.tar.gz && tar xzf node-latest.tar.gz && cd node-v* && ./configure && make && make install && rm -rf /home/node-js'
+	mkdir jail
+	sudo debootstrap wheezy jail http://http.debian.net/debian
+	sudo chroot jail bash -c 'echo -e "#!/bin/sh\nexit 101" | cat >/usr/sbin/policy-rc.d && dpkg-divert --divert /usr/bin/ischroot.debianutils --rename /usr/bin/ischroot && ln -s /bin/true /usr/bin/ischroot'
+	sudo mount -t proc proc jail/proc/
+	#sudo mount -t sysfs sys jail/sys/
+	#sudo mount -o bind /dev jail/dev/
+	sudo chroot jail apt-get install g++ make patch binutils-gold curl zsh python ruby sbcl openjdk-7-jdk mono-complete llvm clang golang scala texlive-full
+	sudo chroot jail bash -c 'mkdir /home/node-js && cd /home/node-js && wget -Nq http://nodejs.org/dist/node-latest.tar.gz && tar xzf node-latest.tar.gz && cd node-v* && ./configure && make && make install && rm -rf /home/node-js'
 	# Requirements for building Firefox.
-	sudo chroot buildroot apt-get install zip unzip mercurial libasound2-dev libcurl4-openssl-dev libnotify-dev libxt-dev libiw-dev libidl-dev mesa-common-dev autoconf2.13 yasm libgtk2.0-dev libdbus-1-dev libdbus-glib-1-dev python-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libpulse-dev
+	sudo chroot jail apt-get install zip unzip mercurial libasound2-dev libcurl4-openssl-dev libnotify-dev libxt-dev libiw-dev libidl-dev mesa-common-dev autoconf2.13 yasm libgtk2.0-dev libdbus-1-dev libdbus-glib-1-dev python-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libpulse-dev
 	# Forbid network access. FIXME: modules.dep.bin not available.
-	#sudo chroot buildroot bash -c 'iptables -I OUTPUT -j DROP -m owner --gid-owner root'
-	sudo chroot buildroot useradd --create-home --user-group --key UMASK=022 myself
+	#sudo chroot jail bash -c 'iptables -I OUTPUT -j DROP -m owner --gid-owner root'
+	sudo chroot jail useradd --create-home --user-group --key UMASK=022 myself
 
-rmbuildroot:
-	@echo "[rmbuildroot] Removing the chroot jail."
-	sudo umount -l ./buildroot/proc/
-	sudo rm -rf ./buildroot
+rmjail:
+	@echo "[rmjail] Removing the chroot jail."
+	sudo umount -l ./jail/proc/
+	sudo rm -rf ./jail
 
 help:
 	@cat Makefile | less
@@ -178,5 +178,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https rmbuildroot help wtf ? coffee me a sandwich
+.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https rmjail help wtf ? coffee me a sandwich
 
