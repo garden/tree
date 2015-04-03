@@ -8,7 +8,6 @@
 
 var Camp     = require('camp');
 var nodepath = require('path');
-var hun      = require('hun');
 var driver   = require('./lib/driver');
 var fsapi    = require('./lib/fsapi');
 var irc      = require('./lib/irc');
@@ -43,19 +42,21 @@ function templateScript(text) {
 function templatePath(text) {
   return encodeURIComponent(text).replace(/%2F/g, unescape);
 }
-function templateLookup(write, literal, params) {
-  if (literal.lookup && literal.file) {
-    literal.lookup(params[0], function(value, err) {
-      write(value);
-    });
-  } else write('');
+function templateLookup(params) {
+  return [
+    'if ($_scope.lookup && $_scope.file) {',
+    '  $_scope.lookup(' + JSON.stringify(params[0]) + ', function(value, err) {',
+    '    $_write(value);',
+    '  });',
+    '} else { $_write(""); }'
+  ].join('\n');
 }
-Camp.templateReader.parsers.script = hun.parsers.script = templateScript;
-Camp.templateReader.parsers.path = hun.parsers.path = templatePath;
-Camp.templateReader.macros.lookup = hun.macros.lookup = templateLookup;
+Camp.templateReader.parsers.script = templateScript;
+Camp.templateReader.parsers.path = templatePath;
+Camp.templateReader.macros.lookup = templateLookup;
 
 // Init subroutines
-plug.main(camp, hun);
+plug.main(camp);
 
 
 // ROUTING
