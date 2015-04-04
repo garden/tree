@@ -121,7 +121,9 @@ update-camp:
 	npm update camp
 
 update-ot:
-	npm update operational-transformation
+	npm update ot
+	curl 'https://raw.githubusercontent.com/Operational-Transformation/ot.js/master/dist/ot-min.js' > web/lib/js/ot-min.js
+	curl 'https://raw.githubusercontent.com/Operational-Transformation/ot.js/master/dist/ot.js' > web/lib/js/ot.js
 
 https.key:
 	@echo "[https] generating KEY"
