@@ -63,7 +63,7 @@ plug.main(camp);
 //
 
 // Redirect all requests to a templated plug.
-camp.route(/\/(.*)/, plug.resolve);
+camp.route(/.*/, plug.resolve);
 
 // Profiler API.
 camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
