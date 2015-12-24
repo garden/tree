@@ -94,7 +94,7 @@ test:
 	node lib/test.js
 
 # List all first-launch dependencies here
-init: web/
+init: web/ node_modules/
 
 web/: plugs/
 	@if [ ! -e web ] && [ ! -e meta ]; then  \
@@ -114,8 +114,9 @@ plugs/:
 	@echo "[init] obtaining plugs"
 	@git clone http://github.com/garden/plugs
 
-node_modules/bcrypt/:
-	npm install bcrypt
+node_modules/:
+	@echo "[init] npm dependencies"
+	@npm install
 
 update-camp:
 	npm update camp
