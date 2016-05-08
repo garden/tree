@@ -8,6 +8,7 @@
 /web
 /plugs
 /meta
+/services
 
 /tools/.params
 /node_modules
