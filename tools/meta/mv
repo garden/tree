@@ -4,8 +4,8 @@
 var source = process.argv[2];
 var target = process.argv[3];
 if (!source || !target) {
-  console.log('Usage: ./tools/meta/mv.js /foo/bar /baz/bar');
-  process.exit();
+  console.log('Usage: ./tools/meta/mv /foo/bar /baz/bar');
+  process.exit(1);
 }
 
 var driver = require('../../lib/driver.js');

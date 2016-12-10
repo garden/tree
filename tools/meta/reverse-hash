@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  echo "Get the virtual path corresponding to an on-disk hash."
+  echo "Usage: ./tools/meta/reverse-hash ./meta/CV/zvyykoKe5J66VxI7rqsE0KaCSLRE65tJUtwPG4h1k"
+  exit 1
+fi
+
+HASH_PATH="$1"
+HASH="$( echo -n $HASH_PATH | rev | cut -d/ -f1,2 | rev | sed s,/,,)"
+META="$( echo -n $HASH_PATH | rev | cut -d/ -f1,2 --complement | rev)"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ ! -e "$META"/.index ]; then
+  echo "The index is not built. Please run the following command:"
+  echo
+  echo "    ./tools/meta/build-index ./web/ > ./meta/.index"
+  exit 1
+fi
+
+cat "$META"/.index | grep "$HASH" | cut -d' ' -f1 --complement
