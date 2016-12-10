@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Convert from the old metadata storage design (using .DS-Store for folder
 // metadata) to a new design (using hashed paths /ab/cdefg…).
 

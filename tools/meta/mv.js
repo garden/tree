@@ -1,9 +1,10 @@
+#!/usr/bin/env node
 // Change the position of a file in the tree.
 
 var source = process.argv[2];
 var target = process.argv[3];
 if (!source || !target) {
-  console.log('Usage: node ./tools/meta/mv.js /foo/bar /baz/bar');
+  console.log('Usage: ./tools/meta/mv.js /foo/bar /baz/bar');
   process.exit();
 }
 

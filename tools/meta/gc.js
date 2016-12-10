@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Remove metafiles that have no associated files.
 
 var driver = require('../../lib/driver.js');
@@ -9,7 +10,7 @@ var treeFolder = process.argv[2];
 var metaFolder = process.argv[3];
 
 if (!treeFolder || !metaFolder) {
-  console.log('Usage: node ./tools/meta/gc.js tree/ meta/');
+  console.log('Usage: ./tools/meta/gc.js tree/ meta/');
   process.exit();
 }
 
