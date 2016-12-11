@@ -14,8 +14,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ ! -e "$META"/.index ]; then
   echo "The index is not built. Please run the following command:"
   echo
-  echo "    ./tools/meta/build-index ./web/ > ./meta/.index"
+  echo "    ./tools/meta/build-index ./web/ > $META/.index"
   exit 1
 fi
 
-cat "$META"/.index | grep "$HASH" | cut -d' ' -f1 --complement
+cat "$META"/.index | grep -e "$HASH" | cut -d' ' -f1 --complement

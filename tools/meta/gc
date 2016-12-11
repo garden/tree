@@ -44,3 +44,6 @@ for (var i = 0; i < invalidMetafiles.length; i++) {
     exec('rmdir', [folder]);
   }
 }
+
+// Finally, remove all meta directories that have no content.
+exec('find', [metaFolder, '-type', 'd', '-empty', '-delete'])
