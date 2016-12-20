@@ -67,7 +67,6 @@ load:
 	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
 	@cp -rf plugs/* web/
 	@cp -rf web/meta/* meta/
-	@cp -f web/meta/.DS-Store meta/
 	@rm -rf web/meta/
 	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
 	@echo "[info] deployed web/ and meta/ from plugs/"
@@ -81,14 +80,7 @@ backup:
 # When files move around in web/, some dead metadata entries stay in meta/.
 # They need to be garbage collected from time to time.
 gc:
-	@# WARNING: If web/ doesn't exist, meta/ will be deleted entirely.
-	@for file in `cd meta && find . -name '*' -print`; do  \
-	  if [ -d "meta/$$file" ] && ! [ -d "web/$$file" ] ||  \
-	     [ -f "meta/$$file" ] && ! [ -f "web/$$file" ] &&  \
-	     [ "$${file##*/}" != ".DS-Store" ]; then  \
-	    echo "rm -rf meta/$$file"; rm -rf "meta/$$file"; \
-	  fi;  \
-	done
+	node ./tools/meta/gc.js
 
 test:
 	node lib/test.js
