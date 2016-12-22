@@ -11,7 +11,7 @@ var nodepath = require('path');
 var driver   = require('./lib/driver');
 var fsapi    = require('./lib/fsapi');
 var irc      = require('./lib/irc');
-var plug     = require('./lib/plug');
+var app      = require('./lib/app');
 var profiler = require('./lib/profiler');
 
 
@@ -26,13 +26,6 @@ var camp = Camp.start({
   key: 'https.key',
   cert: 'https.crt',
   ca: ['https.ca'],
-});
-
-// Socket.io: silence will fall!
-camp.io.configure('development', function () {
-  camp.io.set('log level', 0);
-  camp.io.set('browser client minification', true);
-//camp.io.set('browser client gzip', true); // FIXME broken in Socket.io
 });
 
 // Custom templating filter
@@ -56,14 +49,14 @@ Camp.templateReader.parsers.path = templatePath;
 Camp.templateReader.macros.lookup = templateLookup;
 
 // Init subroutines
-plug.main(camp);
+app.main(camp);
 
 
 // ROUTING
 //
 
-// Redirect all requests to a templated plug.
-camp.route(/.*/, plug.resolve);
+// Redirect all requests to a templated app.
+camp.path('*', app.resolve);
 
 // Profiler API.
 camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
