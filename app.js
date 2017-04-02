@@ -30,9 +30,11 @@ var camp = Camp.start({
 
 // Custom templating filter
 function templateScript(text) {
+  if (!text) { return 'undefined'; }
   return text.replace(/</g, '\\u003c');
 }
 function templatePath(text) {
+  if (!text) { return ''; }
   return encodeURIComponent(text).replace(/%2F/g, unescape);
 }
 function templateLookup(params) {
@@ -57,6 +59,7 @@ app.main(camp);
 
 // Redirect all requests to a templated app.
 camp.path('*', app.resolve);
+camp.on('upgrade', app.websocket);
 
 // Profiler API.
 camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
