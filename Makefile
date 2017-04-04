@@ -56,31 +56,29 @@ restart: stop start
 save:
 	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
 	@cp -r web/* plugs/
-	@cp -r meta plugs/
+	@cp -r metadata.json plugs/
 	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
 	@echo "[info] you may now commit what is in plugs/"
 
 load:
 	@# WARNING: This operation overwrites files in web/.
 	@if [ ! -e web/ ]; then mkdir web; fi
-	@if [ ! -e meta/ ]; then mkdir meta; fi
-	@if [ -e web/meta ]; then mv web/meta meta-bk; fi
+	@# We must not copy the metadata to web/.
+	@mv plugs/metadata.json .
 	@cp -rf plugs/* web/
-	@cp -rf web/meta/* meta/
-	@rm -rf web/meta/
-	@if [ -e meta-bk ]; then mv meta-bk web/meta; fi
-	@echo "[info] deployed web/ and meta/ from plugs/"
+	@cp metadata.json plugs
+	@echo "[info] deployed web/ and metadata from plugs/"
 
 backup:
 	@mkdir web$(DATE)
 	@cp -r web/* web$(DATE)/
-	@cp -r meta/ web$(DATE)/
-	@echo "[info] copied web/ and meta/ to new backup web$(DATE)/"
+	@cp -r metadata.json web$(DATE)/
+	@echo "[info] copied web/ and metadata to new backup web$(DATE)/"
 
-# When files move around in web/, some dead metadata entries stay in meta/.
+# When files move around in web/, some dead metadata entries stay in metadata.
 # They need to be garbage collected from time to time.
 gc:
-	node ./tools/meta/gc.js
+	node ./tools/meta/rebuild
 
 test:
 	node lib/test.js
@@ -88,19 +86,7 @@ test:
 # List all first-launch dependencies here
 init: web/ node_modules/
 
-web/: plugs/
-	@if [ ! -e web ] && [ ! -e meta ]; then  \
-	  echo "[init] deploying web/ and meta/ from plugs/";  \
-	  cp -r plugs/ web/ && mv web/meta .;  \
-	  rm -rf web/.git && rm -rf web/.gitignore;  \
-	fi;
-
-links: plugs/
-	@if [ ! -e web ] && [ ! -e meta ]; then  \
-	  echo "[init] setting up symbolic links";  \
-	  ln -s plugs web;  \
-    ln -s plugs/meta meta;  \
-  fi;
+web/: load
 
 plugs/:
 	@echo "[init] obtaining plugs"
@@ -155,5 +141,5 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop restart save load backup gc test init links update-camp update-ot rmhttps https jail help wtf ? coffee me a sandwich
+.PHONY: start stop restart save load backup gc test init update-camp update-ot rmhttps https jail help wtf ? coffee me a sandwich
 
