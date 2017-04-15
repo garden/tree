@@ -7,7 +7,7 @@
 /https.*
 /web
 /plugs
-/meta
+/metadata.json
 /services
 
 /tools/.params
