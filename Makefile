@@ -56,7 +56,8 @@ restart: stop start
 save:
 	@if [ -e web/.git ]; then mv web/.git .git-bk; fi
 	@cp -r web/* plugs/
-	@cp -r metadata.json plugs/
+	@rm -rf plugs/test/
+	@cat metadata.json | jq 'del(.files.test)' > plugs/metadata.json
 	@if [ -e .git-bk ]; then mv .git-bk web/.git; fi
 	@echo "[info] you may now commit what is in plugs/"
 
@@ -66,6 +67,7 @@ load:
 	@# We must not copy the metadata to web/.
 	@mv plugs/metadata.json .
 	@cp -rf plugs/* web/
+	@# FIXME: Override existing paths, but don't delete paths.
 	@cp metadata.json plugs
 	@echo "[info] deployed web/ and metadata from plugs/"
 
