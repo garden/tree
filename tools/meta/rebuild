@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+var exec = require('child_process').execFileSync;
+var path = require('path');
+var fs = require('fs');
+var treefs = require('../../lib/fs.js');
+
+var args = process.argv;
+args.shift();  // Node executable
+args.shift();  // This script
+
+var printDiff = false;  // Whether to print the diff on stderr.
+if (args[0] === '--diff') {
+  printDiff = true;
+  args.shift();
+}
+var metaFile = args[0];
+
+if (!metaFile) {
+  console.log("Print an updated metadata file with files seen on the drive,");
+  console.log("and excluding files not seen on the drive.");
+  console.log("Usage: ./tools/meta/rebuild [--diff] metadata.json");
+  console.log();
+  console.log("  --diff: show changes on stderr");
+  process.exit(1);
+}
+
+var metadata = JSON.parse(fs.readFileSync(metaFile));
+
+function checkFile(file, vpath) {
+  var promises = [];
+  file.meta = file.meta || {};
+  var realPath = treefs.realFromVirtual(vpath);
+  var stat = fs.statSync(realPath);
+  if (stat.isFile()) {
+    if (file.meta.type === 'folder' || file.meta.type === undefined) {
+      promises.push(treefs.guessType(vpath)
+        .then(function(type) { file.meta.type = type; })
+        .catch(console.error));
+    }
+  } else if (stat.isDirectory()) {
+    file.meta.type = 'folder';
+    file.files = file.files || {};
+    var subfiles = fs.readdirSync(realPath);
+    // Remove files that are not on disk.
+    for (var metaSubfile in file.files) {
+      if (subfiles.indexOf(metaSubfile) === -1) {
+        if (printDiff) { console.error('- ' + vpath + '/' + metaSubfile); }
+        delete file.files[metaSubfile];
+      }
+    };
+    // Add files that are on disk.
+    subfiles.forEach(function(subfile) {
+      if (file.files[subfile] === undefined) {
+        if (printDiff) { console.error('+ ' + vpath + '/' + subfile); }
+        file.files[subfile] = {};
+      }
+    });
+  }
+
+  // Remove me: set old metadata information.
+  try {
+    var oldMetaPath = './plugs/meta' + vpath;
+    if (file.meta.type === 'folder') {
+      oldMetaPath += '/.DS-Store';
+    }
+    var oldMeta = JSON.parse('' + fs.readFileSync(oldMetaPath));
+    if (oldMeta.plug !== undefined) {
+      if (oldMeta.plug === 'none') { file.meta.app = 'data'; }
+      else { file.meta.app = oldMeta.plug; }
+    }
+    if (file.meta.type === 'binary' && oldMeta.type !== 'binary') { file.meta.type = oldMeta.type; }
+  } catch(e) {}
+
+  if (file.meta.modified === undefined) {
+    file.meta.modified = (stat.mtime || new Date()).toISOString();
+  }
+  if (file.meta.updated === undefined) {
+    file.meta.updated = (stat.ctime || file.meta.modified).toISOString();
+  }
+
+  for (var filename in file.files) {
+    promises.push(checkFile(file.files[filename], vpath + '/' + filename));
+  }
+  return Promise.all(promises);
+}
+
+checkFile(metadata, '')
+.then(function() {
+  console.log(JSON.stringify(metadata));
+})
+.catch(console.error);
