@@ -13,14 +13,25 @@ if (args[0] === '--diff') {
   printDiff = true;
   args.shift();
 }
+var pathFilter = new RegExp();
+if (args[0] === '--filter') {
+  args.shift();
+  try {
+    pathFilter = new RegExp(args.shift());
+  } catch (e) {
+    console.log("Invalid path filter");
+    process.exit(0);
+  }
+}
 var metaFile = args[0];
 
 if (!metaFile) {
   console.log("Print an updated metadata file with files seen on the drive,");
   console.log("and excluding files not seen on the drive.");
-  console.log("Usage: ./tools/meta/rebuild [--diff] metadata.json");
+  console.log("Usage: ./tools/meta/rebuild [--diff] [--filter PATH] metadata.json");
   console.log();
   console.log("  --diff: show changes on stderr");
+  console.log("  --filter PATH: update metadata for files matching regex PATH");
   process.exit(1);
 }
 
@@ -43,16 +54,22 @@ function checkFile(file, vpath) {
     var subfiles = fs.readdirSync(realPath);
     // Remove files that are not on disk.
     for (var metaSubfile in file.files) {
+      var subfileName = vpath + '/' + metaSubfile;
       if (subfiles.indexOf(metaSubfile) === -1) {
-        if (printDiff) { console.error('- ' + vpath + '/' + metaSubfile); }
-        delete file.files[metaSubfile];
+        if (printDiff) { console.error('- ' + subfileName); }
+        if (pathFilter.test(subfileName)) {
+          delete file.files[metaSubfile];
+        }
       }
     };
     // Add files that are on disk.
     subfiles.forEach(function(subfile) {
+      var subfileName = vpath + '/' + subfile;
       if (file.files[subfile] === undefined) {
-        if (printDiff) { console.error('+ ' + vpath + '/' + subfile); }
-        file.files[subfile] = {};
+        if (printDiff) { console.error('+ ' + subfileName); }
+        if (pathFilter.test(subfileName)) {
+          file.files[subfile] = {};
+        }
       }
     });
   }
