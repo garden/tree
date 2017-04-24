@@ -30,12 +30,17 @@ if (!metaFile) {
   console.log("and excluding files not seen on the drive.");
   console.log("Usage: ./tools/meta/rebuild [--diff] [--filter PATH] metadata.json");
   console.log();
-  console.log("  --diff: show changes on stderr");
+  console.log("  --diff: only show what changes would be made");
   console.log("  --filter PATH: update metadata for files matching regex PATH");
   process.exit(1);
 }
 
-var metadata = JSON.parse(fs.readFileSync(metaFile));
+try {
+  var metadata = JSON.parse(fs.readFileSync(metaFile));
+} catch(e) {
+  console.error(`Could not open ${metaFile}: ${e.message}`);
+  process.exit(0);
+}
 
 function checkFile(file, vpath) {
   var promises = [];
@@ -56,7 +61,7 @@ function checkFile(file, vpath) {
     for (var metaSubfile in file.files) {
       var subfileName = vpath + '/' + metaSubfile;
       if (subfiles.indexOf(metaSubfile) === -1) {
-        if (printDiff) { console.error('- ' + subfileName); }
+        if (printDiff) { console.log('- ' + subfileName); }
         if (pathFilter.test(subfileName)) {
           delete file.files[metaSubfile];
         }
@@ -66,7 +71,7 @@ function checkFile(file, vpath) {
     subfiles.forEach(function(subfile) {
       var subfileName = vpath + '/' + subfile;
       if (file.files[subfile] === undefined) {
-        if (printDiff) { console.error('+ ' + subfileName); }
+        if (printDiff) { console.log('+ ' + subfileName); }
         if (pathFilter.test(subfileName)) {
           file.files[subfile] = {};
         }
@@ -103,6 +108,8 @@ function checkFile(file, vpath) {
 
 checkFile(metadata, '')
 .then(function() {
-  console.log(JSON.stringify(metadata));
+  if (!printDiff) {
+    console.log(JSON.stringify(metadata));
+  }
 })
 .catch(console.error);
