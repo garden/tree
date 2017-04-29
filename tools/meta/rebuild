@@ -17,7 +17,18 @@ var pathFilter = new RegExp();
 if (args[0] === '--filter') {
   args.shift();
   try {
-    pathFilter = new RegExp(args.shift());
+    var filter = args.shift();
+    if (filter[0] !== '/') {
+      console.log("Path filter must start from the root");
+      process.exit(0);
+    }
+    var filterRegex = '^(' + filter.split('/').slice(1)
+    .map(function(elt, idx, arr) {
+      var unescaped = '/' + arr.slice(0, idx + 1).join('/');
+      var escaped = unescaped.replace(/([\.\\\/\?\+])/g, '\\$1');
+      return escaped.replace(/\*/g, '[^/]+');
+    }).join('|') + ')$';
+    pathFilter = new RegExp(filterRegex);
   } catch (e) {
     console.log("Invalid path filter");
     process.exit(0);
@@ -31,7 +42,8 @@ if (!metaFile) {
   console.log("Usage: ./tools/meta/rebuild [--diff] [--filter PATH] metadata.json");
   console.log();
   console.log("  --diff: only show what changes would be made");
-  console.log("  --filter PATH: update metadata for files matching regex PATH");
+  console.log("  --filter PATH: update metadata for files matching PATH");
+  console.log("                 * for globbing, [] for char selection");
   process.exit(1);
 }
 
@@ -46,7 +58,10 @@ function checkFile(file, vpath) {
   var promises = [];
   file.meta = file.meta || {};
   var realPath = treefs.realFromVirtual(vpath);
-  var stat = fs.statSync(realPath);
+  try {
+    var stat = fs.statSync(realPath);
+    // If the path failed, ignore it.
+  } catch(e) { return Promise.resolve(); }
   if (stat.isFile()) {
     if (file.meta.type === 'folder' || file.meta.type === undefined) {
       promises.push(treefs.guessType(vpath)
@@ -60,21 +75,17 @@ function checkFile(file, vpath) {
     // Remove files that are not on disk.
     for (var metaSubfile in file.files) {
       var subfileName = vpath + '/' + metaSubfile;
-      if (subfiles.indexOf(metaSubfile) === -1) {
+      if (subfiles.indexOf(metaSubfile) === -1 && pathFilter.test(subfileName)) {
         if (printDiff) { console.log('- ' + subfileName); }
-        if (pathFilter.test(subfileName)) {
-          delete file.files[metaSubfile];
-        }
+        delete file.files[metaSubfile];
       }
     };
     // Add files that are on disk.
     subfiles.forEach(function(subfile) {
       var subfileName = vpath + '/' + subfile;
-      if (file.files[subfile] === undefined) {
+      if (file.files[subfile] === undefined && pathFilter.test(subfileName)) {
         if (printDiff) { console.log('+ ' + subfileName); }
-        if (pathFilter.test(subfileName)) {
-          file.files[subfile] = {};
-        }
+        file.files[subfile] = {};
       }
     });
   }
