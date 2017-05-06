@@ -12,6 +12,7 @@ var driver   = require('./lib/driver');
 var fsapi    = require('./lib/fsapi');
 var irc      = require('./lib/irc');
 var app      = require('./lib/app');
+var api      = require('./lib/api');
 var profiler = require('./lib/profiler');
 
 
@@ -52,6 +53,7 @@ Camp.templateReader.macros.lookup = templateLookup;
 
 // Init subroutines
 app.main(camp);
+api.main(camp);
 
 
 // ROUTING
