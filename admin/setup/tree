@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /home/dom/tree
+node ./app.js 443 yes >> admin/log/tree.log 2>&1

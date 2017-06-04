@@ -1,0 +1,5 @@
+[Unit]
+Description=Run thefiletree.com certificate renewal daily
+
+[Timer]
+OnCalendar=6/12:42

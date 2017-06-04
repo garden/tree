@@ -2,23 +2,24 @@
   "author": "TheFileTree <warden@thefiletree.com> (https://thefiletree.com/)",
   "name": "filetree",
   "description": "Web-based collaborative file system; a multiplayer notepad!",
-  "version": "14.6.21",
+  "version": "15.0.0",
   "homepage": "https://thefiletree.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/garden/tree"
   },
-  "license": "AGPLv3",
+  "license": "AGPL-3.0",
   "scripts": {
     "test": "make test"
   },
   "dependencies": {
     "async": "~2.0.0",
     "camp": "~17.0.0",
-    "ws": "~2.2.2",
-    "canop": "~0.2.1",
+    "canop": "~0.3.1",
+    "email-login": "^1.1.0",
     "fsos": "~1.1.0",
-    "email-login": "~1.0.1",
-    "irc": "~0.5.2"
+    "irc": "~0.5.2",
+    "pg": "~6.2.3",
+    "ws": "~2.2.2"
   }
 }

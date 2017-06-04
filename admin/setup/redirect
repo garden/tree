@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /home/dom/tree/admin/setup
+node ./redirect.js

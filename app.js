@@ -8,12 +8,8 @@
 
 var Camp     = require('camp');
 var nodepath = require('path');
-var driver   = require('./lib/driver');
-var fsapi    = require('./lib/fsapi');
-var irc      = require('./lib/irc');
 var app      = require('./lib/app');
 var api      = require('./lib/api');
-var profiler = require('./lib/profiler');
 
 
 // SERVER SETUP
@@ -62,23 +58,3 @@ api.main(camp);
 // Redirect all requests to a templated app.
 camp.path('*', app.resolve);
 camp.on('upgrade', app.websocket);
-
-// Profiler API.
-camp.ajax.on('profiler', function (query, end) { end(profiler.run(query)); });
-
-// File System API.
-camp.ajax.on('fs', fsapi.fs);
-
-// File upload API.
-camp.ajax.on('upload', fsapi.upload);
-
-// Metadata API.
-camp.ajax.on('meta-save', fsapi.meta);
-
-// Shell API.
-camp.ajax.on('shell', fsapi.shell);
-
-// IRC API.
-camp.ajax.on('join', irc.join);
-camp.ajax.on('say', irc.say);
-

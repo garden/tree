@@ -28,7 +28,7 @@ RUNTREE = '  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
-start: init stop
+start: install stop
 	@echo "[tree] start"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
 	then  \
@@ -85,18 +85,25 @@ gc:
 test:
 	node lib/test.js
 
-# List all first-launch dependencies here
-init: web/ node_modules/
+# We assume the existence of GNU coreutils, node, npm, and git.
+install: install-bin web/ node_modules/
 
-web/: load
+install-bin: 
+	@echo "[install] git"
+	@bash admin/setup/install.sh
+
+web/: plugs/ load
 
 plugs/:
-	@echo "[init] obtaining plugs"
+	@echo "[install] obtaining plugs"
 	@git clone http://github.com/garden/plugs
 
 node_modules/:
-	@echo "[init] npm dependencies"
+	@echo "[install] npm dependencies"
 	@npm install
+
+uninstall:
+	@bash admin/setup/uninstall.sh
 
 update-camp:
 	npm update camp
@@ -132,16 +139,11 @@ jail:
 help:
 	@cat Makefile | less
 
-wtf ?: help
-
-coffee:
-	@echo "\n           )      (\n           (  )   )\n         _..,-(--,.._\n      .-;'-.,____,.-';\n     (( |            |\n      \`-;            ;\n         \\          /\n      .-''\`-.____.-'''-.\n     (     '------'     )\n      \`--..________..--'\n";
-
 me a:
 	@cd .
 
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: start stop restart save load backup gc test init update-camp update-ot rmhttps https jail help wtf ? coffee me a sandwich
+.PHONY: install install-bin uninstall start stop restart save load backup gc test update-camp update-ot rmhttps https jail help me a sandwich
 

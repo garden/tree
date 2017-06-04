@@ -2,7 +2,7 @@
 var exec = require('child_process').execFileSync;
 var path = require('path');
 var fs = require('fs');
-var treefs = require('../../lib/fs.js');
+var treefs = require('../lib/fs.js');
 
 var args = process.argv;
 args.shift();  // Node executable

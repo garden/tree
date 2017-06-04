@@ -8,7 +8,6 @@
 /web
 /plugs
 /metadata.json
-/services
+/admin/private
 
-/tools/.params
 /node_modules
