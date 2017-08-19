@@ -58,8 +58,8 @@ if ! [[ -d cockroach ]]; then
 fi
 
 if ! cockroach node ls --certs-dir=cockroach/certs >/dev/null 2>&1; then
-  db_database=$(jq <admin/private/"$ENV".json -r ".pg.database")
-  db_host=$(jq <admin/private/"$ENV".json -r ".pg.host")
+  db_database=$(jq <admin/private/"$ENV".json -r .pg.database)
+  db_host=$(jq <admin/private/"$ENV".json -r .pg.host)
 
   pushd cockroach
     cockroach start --background --certs-dir=certs --host="$db_host"

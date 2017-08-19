@@ -1,18 +1,21 @@
 # Makefile: start/stop and manage your tree server.
-# Copyright © 2011 Jan Keromnes, Thaddee Tyl. All rights reserved.
+# Copyright © 2017 Thaddee Tyl, Jan Keromnes. All rights reserved.
 # The following code is covered by the GPLv2 license.
+
+# The environment: while working on tree, "dev". In a live server, "prod".
+ENV ?= dev
+ifneq ('$(ENV)', 'prod')
+  PORT ?= 1234
+endif
 
 # The output of console.log statements goes in this file when you `make`.
 LOG = tree.log
-
-# The name of your main server file.
-SERVER = app.js
 
 # The pid of the process (stored in a file).
 PID = .pid
 
 # The current date in ISO8601 format.
-DATE = $$(date "+%Y%m%dT%H%M%S%z")
+DATE = $(shell date "+%Y%m%dT%H%M%S%z")
 
 ifdef SECURE
   PORT ?= 443
@@ -24,12 +27,12 @@ endif
 DEBUG ?= 0
 
 RUNTREE = '  \
-  node $(SERVER) $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 &  \
+  ENV=$(ENV) node app.js $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 &  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
 start: install stop
-	@echo "[tree] start"
+	@echo "[tree] start $(ENV)"
 	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
 	then  \
 	  sudo -p '[sudo] password for $(USER): ' echo;  \
@@ -42,7 +45,7 @@ start: install stop
 	echo "[info] use 'make stop' to kill it"
 
 stop:
-	@echo "[tree] stop"
+	@echo "[tree] stop $(ENV)"
 	@if [ -e $(PID) ]; then  \
 	  ps -p $$(cat $(PID)) >/dev/null 2>&1;  \
 	  if [ $$? -eq 0 ]; then  \
@@ -65,17 +68,20 @@ load:
 	@# WARNING: This operation overwrites files in web/.
 	@if [ ! -e web/ ]; then mkdir web; fi
 	@# We must not copy the metadata to web/.
-	@mv plugs/metadata.json .
+	@mv plugs/metadata.json plug-metadata.json
 	@cp -rf plugs/* web/
-	@# FIXME: Override existing paths, but don't delete paths.
-	@cp metadata.json plugs
+	@jq -s '.[0] * .[1]' metadata.json plug-metadata.json >new-metadata.json
+	@mv new-metadata.json metadata.json
+	@mv plug-metadata.json plugs/metadata.json
 	@echo "[info] deployed web/ and metadata from plugs/"
 
 backup:
-	@mkdir web$(DATE)
-	@cp -r web/* web$(DATE)/
-	@cp -r metadata.json web$(DATE)/
-	@echo "[info] copied web/ and metadata to new backup web$(DATE)/"
+	@mkdir -p backup
+	@tar cf backup/web$(DATE).tar web
+	@tar --append -f backup/web$(DATE).tar metadata.json
+	@xz <backup/web$(DATE).tar >backup/web$(DATE).tar.xz
+	@rm backup/web$(DATE).tar
+	@echo "[info] copied web/ and metadata to backup/web$(DATE).tar.xz"
 
 # When files move around in web/, some dead metadata entries stay in metadata.
 # They need to be garbage collected from time to time.
@@ -89,10 +95,13 @@ test:
 install: install-bin web/ node_modules/
 
 install-bin: 
-	@echo "[install] git"
-	@bash admin/setup/install.sh
+	@ENV=$(ENV) bash admin/setup/install.sh
 
-web/: plugs/ load
+web/: plugs/
+	@if [ ! -e web/ ]; then \
+		echo "[install] extracting web"; \
+		make load; \
+	fi
 
 plugs/:
 	@echo "[install] obtaining plugs"
