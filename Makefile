@@ -4,9 +4,6 @@
 
 # The environment: while working on tree, "dev". In a live server, "prod".
 ENV ?= dev
-ifneq ('$(ENV)', 'prod')
-  PORT ?= 1234
-endif
 
 # The output of console.log statements goes in this file when you `make`.
 LOG = tree.log
@@ -17,23 +14,15 @@ PID = .pid
 # The current date in ISO8601 format.
 DATE = $(shell date "+%Y%m%dT%H%M%S%z")
 
-ifdef SECURE
-  PORT ?= 443
-  SECURE = yes
-else
-  PORT ?= 80
-  SECURE = no
-endif
-DEBUG ?= 0
-
 RUNTREE = '  \
-  ENV=$(ENV) node app.js $(PORT) $(SECURE) $(DEBUG) >> $(LOG) 2>&1 &  \
+  ENV=$(ENV) node app.js >> $(LOG) 2>&1 &  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
 start: install stop
 	@echo "[tree] start $(ENV)"
-	@if [ `id -u` -ne "0" -a $(PORT) -lt 1024 ];  \
+	@port=$$(jq .port -r <./admin/private/$(ENV).json); \
+	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ];  \
 	then  \
 	  sudo -p '[sudo] password for $(USER): ' echo;  \
 	  sudo -n sh -c $(RUNTREE);  \
@@ -41,7 +30,7 @@ start: install stop
 	else  \
 	  sh -c $(RUNTREE); \
 	fi; \
-	echo "[info] tree running on port $(PORT) (see $(LOG))"; \
+	echo "[info] tree running on port $$port (see $(LOG))"; \
 	echo "[info] use 'make stop' to kill it"
 
 stop:

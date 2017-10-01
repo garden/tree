@@ -10,6 +10,7 @@ var Camp     = require('camp');
 var nodepath = require('path');
 var app      = require('./lib/app');
 var api      = require('./lib/api');
+var configuration = require('./lib/conf');
 
 
 // SERVER SETUP
@@ -17,9 +18,8 @@ var api      = require('./lib/api');
 
 // Start the server with command line options
 var camp = Camp.start({
-  port: +process.argv[2],
-  secure: process.argv[3] === 'yes',
-  debug: +process.argv[4],
+  port: configuration.port,
+  secure: configuration.tls,
   key: 'https.key',
   cert: 'https.crt',
   ca: ['https.ca'],
