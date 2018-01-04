@@ -1,9 +1,9 @@
 #!/bin/bash
 
-cd /home/dom/tree
-letsencrypt renew && (
-cp /etc/letsencrypt/live/thefiletree.com/cert.pem https.crt
-cp /etc/letsencrypt/live/thefiletree.com/chain.pem https.ca
-cp /etc/letsencrypt/live/thefiletree.com/privkey.pem https.key
-cp /etc/letsencrypt/live/thefiletree.com/fullchain.pem https.csr
-)
+cd /home/dom/tree/admin/private/https
+certbot renew && (
+cp /etc/letsencrypt/live/thefiletree.com/cert.pem .
+cp /etc/letsencrypt/live/thefiletree.com/chain.pem .
+cp /etc/letsencrypt/live/thefiletree.com/privkey.pem .
+cp /etc/letsencrypt/live/thefiletree.com/fullchain.pem .
+) && systemctl restart tree.service

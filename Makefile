@@ -6,7 +6,7 @@
 ENV ?= dev
 
 # The output of console.log statements goes in this file when you `make`.
-LOG = tree.log
+LOG = admin/log/tree.log
 
 # The pid of the process (stored in a file).
 PID = .pid
@@ -111,24 +111,24 @@ update-ot:
 	curl 'https://raw.githubusercontent.com/Operational-Transformation/ot.js/master/dist/ot-min.js' > web/lib/js/ot-min.js
 	curl 'https://raw.githubusercontent.com/Operational-Transformation/ot.js/master/dist/ot.js' > web/lib/js/ot.js
 
-https.key:
-	@echo "[https] generating KEY"
-	@openssl genrsa -aes256 -out https.key 1024
+privkey.pem:
+	@echo "[https] generating privkey.pem KEY"
+	@cd admin/private/https; openssl genrsa -aes256 -out privkey.pem 1024
 
-https.csr: https.key
-	@echo "[https] generating CSR"
-	@openssl req -new -key https.key -out https.csr
+fullchain.pem: privkey.pem
+	@echo "[https] generating fullchain.pem CSR"
+	@cd admin/private/https; openssl req -new -key privkey.pem -out fullchain.pem
 
-https.crt: https.key https.csr
-	@echo "[https] generating CRT"
-	@openssl x509 -req -days 365 -in https.csr -signkey https.key -out https.crt
+cert.pem: privkey.pem fullchain.pem
+	@echo "[https] generating cert.pem CRT"
+	@cd admin/private/https; openssl x509 -req -days 365 -in fullchain.pem -signkey privkey.pem -out cert.pem
 
 rmhttps:
 	@echo "[https] deleting https credentials"
-	@rm -rf https.key https.csr https.crt
+	@rm -rf admin/private/https/*
 
-https: https.crt
-	@echo "[info] you can now use https.key, https.csr, https.crt"
+https: cert.pem
+	@echo "[info] you can now use privkey.pem, fullchain.pem, cert.pem"
 
 jail:
 	@echo "[jail] Constructing the program jail."

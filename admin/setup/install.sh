@@ -1,14 +1,21 @@
 #!/bin/bash
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+mkdir -p "$DIR"/admin/log
+mkdir -p "$DIR"/admin/private/https
 
 # This script assumes an Ubuntu installation.
 
-# install git, jq, node, npm
+# install git, curl, jq, node, npm
 
 if ! which git >/dev/null; then
   echo "[install] git"
   sudo apt install git
+fi
+
+if ! which curl >/dev/null; then
+  echo "[install] curl"
+  sudo apt install curl
 fi
 
 if ! which jq >/dev/null; then
@@ -68,10 +75,28 @@ if ! cockroach node ls --certs-dir=cockroach/certs >/dev/null 2>&1; then
   popd
 fi
 
-if [ "$ENV" = prod ]; then
-  echo prod
-  exit 0
-  if [ ! -e /etc/systemd/system/tree.service ]; then
+if [[ "$ENV" == prod ]]; then
+  echo -n "Executing production installation; enter 'yes' to confirm: "
+  read confirmation
+  if [[ "$confirmation" != yes ]]; then
+    exit 0
+  fi
+
+  # Let’s encrypt
+
+  if [[ ! -e "$DIR"/https.crt ]]; then
+    sudo apt-get update
+    sudo apt-get install software-properties-common
+    sudo add-apt-repository ppa:certbot/certbot
+    sudo apt-get update
+    sudo apt-get install certbot
+    sudo certbot certonly --webroot -d thefiletree.com \
+      -w "$DIR"/admin/well-known
+  fi
+
+  # Services
+
+  if [[ ! -e /etc/systemd/system/tree.service ]]; then
     # install service scripts
     sudo cp "$DIR"/admin/setup/tree.service /etc/systemd/system/
     sudo cp "$DIR"/admin/setup/redirect.service /etc/systemd/system/

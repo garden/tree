@@ -4,10 +4,10 @@
 *.pid
 *.swp
 
-/https.*
 /web
 /plugs
 /metadata.json
 /admin/private
+/admin/log
 
 /node_modules

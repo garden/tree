@@ -6,10 +6,10 @@
 // IMPORT MODULES
 //
 
-var Camp     = require('camp');
-var nodepath = require('path');
-var app      = require('./lib/app');
-var api      = require('./lib/api');
+var Camp = require('camp');
+var fs   = require('fs');
+var app  = require('./lib/app');
+var api  = require('./lib/api');
 var configuration = require('./lib/conf');
 
 
@@ -20,9 +20,9 @@ var configuration = require('./lib/conf');
 var camp = Camp.start({
   port: configuration.port,
   secure: configuration.tls,
-  key: 'https.key',
-  cert: 'https.crt',
-  ca: ['https.ca'],
+  key: 'admin/private/https/privkey.pem',
+  cert: 'admin/private/https/cert.pem',
+  ca: ['admin/private/https/fullchain.pem'],
 });
 
 // Custom templating filter
@@ -55,6 +55,13 @@ api.main(camp);
 // ROUTING
 //
 
+// Let’s encrypt
+camp.path('/.well-known/*', (req, res) => {
+  fs.readFile('admin/well-known/' + app.safePath(req.data[0]), (err, data) => {
+    if (err) { res.statusCode = 404; res.end('Page not found'); return; }
+    res.end(data);
+  });
+});
 // Redirect all requests to a templated app.
 camp.path('*', app.resolve);
 camp.on('upgrade', app.websocket);

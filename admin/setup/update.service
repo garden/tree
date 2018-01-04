@@ -2,7 +2,7 @@
 Description=TheFileTree GitHub push hook
 
 [Service]
-ExecStart=/home/dom/tree/admin/update
+ExecStart=/home/dom/tree/admin/setup/update
 Restart=on-failure
 
 [Install]
