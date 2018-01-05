@@ -56,7 +56,7 @@ api.main(camp);
 //
 
 // Let’s encrypt
-camp.path('/.well-known/*', (req, res) => {
+camp.get('/.well-known/*', (req, res) => {
   fs.readFile('admin/well-known/' + app.safePath(req.data[0]), (err, data) => {
     if (err) { res.statusCode = 404; res.end('Page not found'); return; }
     res.end(data);
