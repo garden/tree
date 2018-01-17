@@ -32,12 +32,13 @@ make install
 
 - `rebuild`: reconstruct metadata from files seen on disk. Run without parameters for help.
 - `log/`: log files.
-- `well-known/`: files served by the HTTP server under the `/.well-known/` path. Used for Let’s encrypt.
+- `well-known/`: files served by the HTTP server under the `/.well-known/` path. Used for Let’s Encrypt.
 - `setup/`: installation and systemctl scripts.
   - `tree`: HTTPS server of TheFileTree.
   - `redirect`: HTTP server redirecting to HTTPS.
   - `update`: HTTP server listening for GitHub push events on port 1123 to update your `tree` repo. Deprecated.
-- `private/`: folder with the server’s parameters. It typically contains dev.json for local work and prod.json for production. Also, https certificate files will be in `private/https/`.
+- `private/`: folder with the server’s parameters. It typically contains dev.json for local work and prod.json for production. Also, https certificate files will be in `private/https/`, and the private database root CA keys are in `private/dbcerts`.
+- `db/`: database content and certificates, but not the private root CA key.
 
 A typical prod.json looks like this:
 
@@ -61,10 +62,12 @@ A typical prod.json looks like this:
     "database": "tree",
     "ssl": {
       "rejectUnauthorized": true,
-      "ca": "./cockroach/certs/ca.crt",
-      "key": "./cockroach/certs/client.root.key",
-      "cert": "./cockroach/certs/client.root.crt"
-    }
+      "ca": "./admin/db/certs/ca.crt",
+      "key": "./admin/db/certs/client.root.key",
+      "cert": "./admin/db/certs/client.root.crt"
+    },
+    "cache": "20%",
+    "maxSqlMemory": "20%"
   }
 }
 ```

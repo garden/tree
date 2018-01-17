@@ -9,6 +9,6 @@
 /metadata.json
 /admin/private
 /admin/log
-/cockroach
+/admin/db
 
 /node_modules

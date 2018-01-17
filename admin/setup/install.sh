@@ -46,32 +46,19 @@ if ! which cockroach >/dev/null; then
   wget -Nq "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
   tar xfz cockroach-latest.linux-amd64.tgz
   sudo cp -i cockroach-latest.linux-amd64/cockroach /usr/local/bin
-  rm cockroach-latest.linux-amd64.tgz
+  rm -r cockroach-latest.linux-amd64*
 fi
 
-if ! [[ -d cockroach ]]; then
-  mkdir cockroach
-
-  pushd cockroach
+if ! [[ -d admin/db ]]; then
+  pushd admin/db
     mkdir certs
     mkdir private-certs
     cockroach cert create-ca \
-      --certs-dir=certs --ca-key=private-certs/ca.key
+      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
     cockroach cert create-client root \
-      --certs-dir=certs --ca-key=private-certs/ca.key
+      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
     cockroach cert create-node localhost 127.0.0.1 \
-      --certs-dir=certs --ca-key=private-certs/ca.key
-  popd
-fi
-
-if ! cockroach node ls --certs-dir=cockroach/certs >/dev/null 2>&1; then
-  db_database=$(jq <admin/private/"$ENV".json -r .pg.database)
-  db_host=$(jq <admin/private/"$ENV".json -r .pg.host)
-
-  pushd cockroach
-    cockroach start --background --certs-dir=certs --host="$db_host"
-    cockroach sql --certs-dir=certs --host="$db_host" \
-      --execute "CREATE DATABASE IF NOT EXISTS $db_database"
+      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
   popd
 fi
 
@@ -81,6 +68,13 @@ if [[ "$ENV" == prod ]]; then
   if [[ "$confirmation" != yes ]]; then
     exit 0
   fi
+
+  # Cockroach
+
+  # Admin UI: only allow localhost to connect (use with SOCKS).
+  iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
+  iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
+  # Set NTP: FIXME
 
   # Let’s encrypt
 
@@ -111,4 +105,22 @@ if [[ "$ENV" == prod ]]; then
     sudo systemctl start update.service
     sudo systemctl start renew-cert.timer
   fi
+fi
+
+# start CockroachDB
+
+if ! cockroach node ls --certs-dir=admin/db/certs >/dev/null 2>&1
+then
+  db_database=$(jq <admin/private/"$ENV".json -r .pg.database)
+  db_host=$(jq <admin/private/"$ENV".json -r .pg.host)
+  db_cache=$(jq <admin/private/"$ENV".json -r .pg.cache)
+  db_max_sql_memory=$(jq <admin/private/"$ENV".json -r .pg.maxSqlMemory)
+
+  pushd admin/db
+    cockroach start --host="$db_host" --cache="$db_cache" \
+      --max-sql-memory="$db_max_sql_memory"\
+      --background --certs-dir=certs
+    cockroach sql --execute "CREATE DATABASE IF NOT EXISTS $db_database" \
+      --host="$db_host" --certs-dir=certs
+  popd
 fi
