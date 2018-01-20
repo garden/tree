@@ -25,18 +25,16 @@ fi
 
 if ! which node >/dev/null; then
   echo "[install] node"
-  mkdir bin
   local node_js_version=$(wget -q -O - "https://nodejs.org/dist/index.tab" \
     | tail -n +2 | head -n 1 | cut -f1)
   wget -Nq "https://nodejs.org/dist/${node_js_version}/node-${node_js_version}-linux-x64.tar.xz"
   tar xf node-*.tar.xz
   rm node-*-linux-x64.tar.xz
-  local nodejs_folder=$(ls node-*-linux-x64)
   mv node-*-linux-x64 nodejs
-  for exe in $(ls "${nodejs_folder}"/bin); do
-    sudo mv "${nodejs_folder}/bin/${exe}" /usr/local/bin/"$exe"
+  for exe in $(ls nodejs/bin); do
+    sudo mv nodejs/bin/"${exe}" /usr/local/bin/"$exe"
   done
-  rm -rf "${nodejs_folder}"
+  rm -rf nodejs
 fi
 
 # install cockroachDB
