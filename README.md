@@ -1,25 +1,51 @@
 # tree
 
-> A multiplayer file system!
+> A multiplayer file system.
+> All files *synced* realtime, offline-ready.
+> Use *apps* for each file types.
+> Make your own apps on the platform.
+> *Access control* per-file.
 
 [thefiletree.com](https://thefiletree.com)
 
-## Get it
+## Install
 
-- Install [node](http://nodejs.org)
-- Fork or download [tree](https://github.com/garden/tree)
+```bash
+git clone https://github.com/garden/tree
+cd tree
+make start
+open http://[::1]:1234
+```
 
-## Use it
+## Interface
 
-- `make`
-- [browse](http://localhost/)
-- enjoy!
+- Create
+  - file: `PUT /` (content is body)
+  - folder: `MKCOL /`
+- Read
+  - `GET /` (show in default browser app)
+  - `GET /?app=data` (raw, optional header `Depth:3` for folder; TODO slice)
+  - `GET /?app=metadata Content-Type:multipart/form-data` (JSON)
+- Update
+  - single file:
+    - data:
+      - overwrite: `PUT /`
+      - TODO append: `POST /?op=append`
+      - TODO partial: `PATCH /`
+      - sync: websocket `/?op=edit&app=text` (TODO json, dir)
+    - metadata: `PUT /?app=metadata Content-Type:application/json` (TODO: `PATCH /`)
+  - multiple files: `POST /?op=append&content Content-Type:multipart/form-data`
+  - folder:
+    - TODO copy: `COPY /from Destination:/to Overwrite:T`
+    - TODO move: `MOVE /from Destination:/to Overwrite:F`
+    - TODO shell: `POST /?op=shell&cmd=make&keep=a.out` (stdin is body, stdout is result, unless websocket)
+- Delete: `DELETE /`
 
-## Contribute to it
+## Contribute
 
 - Open [issues](https://github.com/garden/tree/issues)
 - Send [pull requests](http://help.github.com/send-pull-requests)
-- Contact [Thaddee Tyl](https://github.com/espadrine) or [Jan Keromnes](https://github.com/jankeromnes)
+- Contact [Thaddee Tyl](https://twitter.com/espadrine)
 
 ## Included
 
@@ -27,4 +53,4 @@ This project is covered by the GNU General Public License (version 2) and contai
 
 - [ScoutCamp](https://github.com/espadrine/sc/), a powerful web server (LGPL license)
 - [CodeMirror](https://github.com/marijnh/CodeMirror/), a nifty in-browser code editor (MIT license)
-- [ot.js](https://github.com/Operational-Transformation/ot.js/), a real time collaboration system (MIT license)
+- [Canop](https://github.com/espadrine/canop/), a real time sync system (MIT license)
