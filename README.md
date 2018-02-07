@@ -47,10 +47,19 @@ open http://[::1]:1234
 - Send [pull requests](http://help.github.com/send-pull-requests)
 - Contact [Thaddee Tyl](https://twitter.com/espadrine)
 
-## Included
+## Plans
+
+- JSON sync
+- Allow user-made apps
+- File search
+- Snapshots (may require to migrate the file content to CockroachDB)
+- Remote desktop
+
+## Dependencies
 
 This project is covered by the GNU General Public License (version 2) and contains code from:
 
 - [ScoutCamp](https://github.com/espadrine/sc/), a powerful web server (LGPL license)
 - [CodeMirror](https://github.com/marijnh/CodeMirror/), a nifty in-browser code editor (MIT license)
 - [Canop](https://github.com/espadrine/canop/), a real time sync system (MIT license)
+- [CockroachDB](https://www.cockroachlabs.com), a distributed SQL database
