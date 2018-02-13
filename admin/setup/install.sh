@@ -1,8 +1,8 @@
 #!/bin/bash
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-mkdir -p "$DIR"/admin/log
-mkdir -p "$DIR"/admin/private/https
+cd "$DIR"/../..
+mkdir -p admin/log admin/private/https admin/private/dbcerts
 
 # This script assumes an Ubuntu installation.
 
@@ -25,16 +25,20 @@ fi
 
 if ! which node >/dev/null; then
   echo "[install] node"
-  local node_js_version=$(wget -q -O - "https://nodejs.org/dist/index.tab" \
+  node_js_version=$(wget -q -O - "https://nodejs.org/dist/index.tab" \
     | tail -n +2 | head -n 1 | cut -f1)
   wget -Nq "https://nodejs.org/dist/${node_js_version}/node-${node_js_version}-linux-x64.tar.xz"
   tar xf node-*.tar.xz
   rm node-*-linux-x64.tar.xz
-  mv node-*-linux-x64 nodejs
-  for exe in $(ls nodejs/bin); do
-    sudo mv nodejs/bin/"${exe}" /usr/local/bin/"$exe"
+  sudo mv node-*-linux-x64 /usr/local/nodejs
+  for exe in $(ls /usr/local/nodejs/bin); do
+    sudo ln -s /usr/local/nodejs/bin/"${exe}" /usr/local/bin/"$exe"
   done
-  rm -rf nodejs
+fi
+
+if ! which openssl >/dev/null; then
+  echo "[install] openssl"
+  sudo apt install openssl
 fi
 
 # install cockroachDB
@@ -48,6 +52,7 @@ if ! which cockroach >/dev/null; then
 fi
 
 if ! [[ -d admin/db ]]; then
+  mkdir -p admin/db
   pushd admin/db
     mkdir certs
     mkdir private-certs
@@ -70,31 +75,31 @@ if [[ "$ENV" == prod ]]; then
   # Cockroach
 
   # Admin UI: only allow localhost to connect (use with SOCKS).
-  iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
-  iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
+  sudo iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
+  sudo iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
   # Set NTP: FIXME
 
-  # Let’s encrypt
+  # HTTPS (self-signed to bootstrap Let’s encrypt)
 
-  if [[ ! -e "$DIR"/https.crt ]]; then
-    sudo apt-get update
-    sudo apt-get install software-properties-common
-    sudo add-apt-repository ppa:certbot/certbot
-    sudo apt-get update
-    sudo apt-get install certbot
-    sudo certbot certonly --webroot -d thefiletree.com \
-      -w "$DIR"/admin/well-known
+  if [[ ! -e admin/private/https/cert.pem ]]; then
+    pushd admin/private/https
+      openssl genrsa -aes256 -out privkey.pem 1024
+      openssl req -new -nodes -key privkey.pem -out fullchain.pem
+      openssl x509 -req -days 365 -in fullchain.pem -signkey privkey.pem -out cert.pem
+      cp privkey.pem{,.orig}
+      openssl rsa -in privkey.pem.orig -out privkey.pem
+    popd
   fi
 
   # Services
 
   if [[ ! -e /etc/systemd/system/tree.service ]]; then
     # install service scripts
-    sudo cp "$DIR"/admin/setup/tree.service /etc/systemd/system/
-    sudo cp "$DIR"/admin/setup/redirect.service /etc/systemd/system/
-    sudo cp "$DIR"/admin/setup/update.service /etc/systemd/system/
-    sudo cp "$DIR"/admin/setup/renew-cert.service /etc/systemd/system/
-    sudo cp "$DIR"/admin/setup/renew-cert.timer /etc/systemd/system/
+    sudo cp admin/setup/tree.service /etc/systemd/system/
+    sudo cp admin/setup/redirect.service /etc/systemd/system/
+    sudo cp admin/setup/update.service /etc/systemd/system/
+    sudo cp admin/setup/renew-cert.service /etc/systemd/system/
+    sudo cp admin/setup/renew-cert.timer /etc/systemd/system/
     sudo systemctl daemon-reload
 
     # start all services
@@ -102,6 +107,19 @@ if [[ "$ENV" == prod ]]; then
     sudo systemctl start redirect.service
     sudo systemctl start update.service
     sudo systemctl start renew-cert.timer
+  fi
+
+  # Let’s encrypt
+
+  if [[ ! -e admin/private/https/letsencrypt ]]; then
+    sudo apt-get update
+    sudo apt-get install software-properties-common
+    sudo add-apt-repository ppa:certbot/certbot
+    sudo apt-get update
+    sudo apt-get install certbot
+    sudo certbot certonly --webroot -d thefiletree.com \
+      -w admin/private/https
+    touch admin/private/https/letsencrypt
   fi
 fi
 

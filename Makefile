@@ -59,7 +59,10 @@ load:
 	@# We must not copy the metadata to web/.
 	@mv plugs/metadata.json plug-metadata.json
 	@cp -rf plugs/* web/
-	@jq -s '.[0] * .[1]' metadata.json plug-metadata.json >new-metadata.json
+	@cp plug-metadata.json new-metadata.json
+	@if [ -e metadata.json ]; then \
+	  jq -s '.[0] * .[1]' metadata.json plug-metadata.json >new-metadata.json; \
+	fi
 	@mv new-metadata.json metadata.json
 	@mv plug-metadata.json plugs/metadata.json
 	@echo "[info] deployed web/ and metadata from plugs/"
@@ -98,6 +101,8 @@ plugs/:
 
 node_modules/:
 	@echo "[install] npm dependencies"
+	# libicu-dev is needed for nodemailer.
+	@sudo apt install libicu-dev
 	@npm install
 
 uninstall:

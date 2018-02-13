@@ -13,7 +13,8 @@
 ```bash
 git clone https://github.com/garden/tree
 cd tree
-make start
+mkdir -p admin/private; cp dev.json admin/private/  # or prod.json
+make start  # or ENV=prod make start
 open http://[::1]:1234
 ```
 
