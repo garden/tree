@@ -46,13 +46,17 @@ A typical prod.json looks like this:
 {
   "port": 443,
   "tls": true,
+  "website": "https://thefiletree.com",
   "mailer": {
     "secure": true,
-    "host": "mail.provider.net",
-    "from": "hi@example.com",
+    "requireTLS": true,
+    "host": "in.mailjet.com",
+    "port": 2525,
+    "from": "hi@thefiletree.com",
     "auth": {
-      "user": "hi@example.com",
-      "pass": "2gjc5N7FJV4dFd3kV5qLIZs"
+      // Fake; insert the real ones.
+      "user": "d5e5b767ecc46c6f83e0d4a969bccbd3",
+      "pass": "44de026d1b312dcfa905225ff3c37d4c"
     }
   },
   "pg": {
