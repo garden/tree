@@ -32,7 +32,7 @@ make install
 
 - `rebuild`: reconstruct metadata from files seen on disk. Run without parameters for help.
 - `log/`: log files.
-- `well-known/`: files served by the HTTP server under the `/.well-known/` path. Used for Let’s Encrypt.
+- `.well-known/`: files served by the HTTP server under the `/.well-known/` path. Used for Let’s Encrypt.
 - `setup/`: installation and systemctl scripts.
   - `tree`: HTTPS server of TheFileTree.
   - `redirect`: HTTP server redirecting to HTTPS.
@@ -44,9 +44,14 @@ A typical prod.json looks like this:
 
 ```json
 {
-  "port": 443,
-  "tls": true,
-  "website": "https://thefiletree.com",
+  "http": {
+    "host": "thefiletree.com",
+    "port": 443,
+    "secure": true,
+    "key": "/etc/letsencrypt/live/thefiletree.com/privkey.pem",
+    "cert": "/etc/letsencrypt/live/thefiletree.com/cert.pem",
+    "ca": ["/etc/letsencrypt/live/thefiletree.com/fullchain.pem"]
+  },
   "mailer": {
     "secure": true,
     "requireTLS": true,

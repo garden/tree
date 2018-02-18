@@ -3,6 +3,7 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$DIR"/../..
 mkdir -p admin/log admin/private/https admin/private/dbcerts
+HOST=$(<admin/private/"$ENV".json jq -r .http.host)
 
 # This script assumes an Ubuntu installation.
 
@@ -112,13 +113,15 @@ if [[ "$ENV" == prod ]]; then
   # Let’s encrypt
 
   if [[ ! -e admin/private/https/letsencrypt ]]; then
-    sudo apt-get update
-    sudo apt-get install software-properties-common
-    sudo add-apt-repository ppa:certbot/certbot
-    sudo apt-get update
-    sudo apt-get install certbot
-    sudo certbot certonly --webroot -d thefiletree.com \
-      -w admin/private/https
+    if ! which certbot >/dev/null; then
+      echo "[install] certbot"
+      sudo apt-get update
+      sudo apt-get install software-properties-common
+      sudo add-apt-repository ppa:certbot/certbot
+      sudo apt-get update
+      sudo apt-get install certbot
+    fi
+    sudo certbot certonly --webroot -d "$HOST" -w admin && \
     touch admin/private/https/letsencrypt
   fi
 fi

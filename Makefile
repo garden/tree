@@ -21,7 +21,7 @@ RUNTREE = '  \
 
 start: install stop
 	@echo "[tree] start $(ENV)"
-	@port=$$(jq .port -r <./admin/private/$(ENV).json); \
+	@port=$$(jq .http.port -r <./admin/private/$(ENV).json); \
 	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ];  \
 	then  \
 	  sudo -p '[sudo] password for $(USER): ' echo;  \
@@ -149,4 +149,3 @@ sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
 .PHONY: install install-bin uninstall start stop restart save load backup gc test update-camp update-ot rmhttps https jail help me a sandwich
-

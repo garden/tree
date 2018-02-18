@@ -17,13 +17,7 @@ var configuration = require('./lib/conf');
 //
 
 // Start the server with command line options
-var camp = Camp.start({
-  port: configuration.port,
-  secure: configuration.tls,
-  key: 'admin/private/https/privkey.pem',
-  cert: 'admin/private/https/cert.pem',
-  ca: ['admin/private/https/fullchain.pem'],
-});
+var camp = Camp.start(configuration.http);
 
 // Custom templating filter
 function templateScript(text) {
@@ -57,8 +51,8 @@ api.main(camp);
 
 // Let’s encrypt
 camp.get('/.well-known/*', (req, res) => {
-  fs.readFile('admin/well-known/' + app.safePath(req.data[0]), (err, data) => {
-    if (err) { res.statusCode = 404; res.end('Page not found'); return; }
+  fs.readFile('admin/.well-known/' + app.safePath(req.data[0]), (err, data) => {
+    if (err) { res.statusCode = 404; res.end('Page not found\n'); return; }
     res.end(data);
   });
 });
