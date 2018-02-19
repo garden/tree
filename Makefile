@@ -2,9 +2,6 @@
 # Copyright © 2017 Thaddee Tyl, Jan Keromnes. All rights reserved.
 # The following code is covered by the GPLv2 license.
 
-# The environment: while working on tree, "dev". In a live server, "prod".
-ENV ?= dev
-
 # The output of console.log statements goes in this file when you `make`.
 LOG = admin/log/tree.log
 
@@ -15,13 +12,13 @@ PID = .pid
 DATE = $(shell date "+%Y%m%dT%H%M%S%z")
 
 RUNTREE = '  \
-  ENV=$(ENV) node app.js >> $(LOG) 2>&1 &  \
+  node app.js >> $(LOG) 2>&1 &  \
   if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
   chmod a+w $(PID);'
 
 start: install stop
-	@echo "[tree] start $(ENV)"
-	@port=$$(jq .http.port -r <./admin/private/$(ENV).json); \
+	@echo "[tree] start"
+	@port=$$(jq .http.port -r <./admin/private/env.json); \
 	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ];  \
 	then  \
 	  sudo -p '[sudo] password for $(USER): ' echo;  \
@@ -34,7 +31,7 @@ start: install stop
 	echo "[info] use 'make stop' to kill it"
 
 stop:
-	@echo "[tree] stop $(ENV)"
+	@echo "[tree] stop"
 	@if [ -e $(PID) ]; then  \
 	  ps -p $$(cat $(PID)) >/dev/null 2>&1;  \
 	  if [ $$? -eq 0 ]; then  \
@@ -87,7 +84,7 @@ test:
 install: install-bin web/ node_modules/
 
 install-bin: 
-	@ENV=$(ENV) bash admin/setup/install.sh
+	@bash admin/setup/install.sh
 
 web/: plugs/
 	@if [ ! -e web/ ]; then \

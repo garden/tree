@@ -13,9 +13,14 @@
 ```bash
 git clone https://github.com/garden/tree
 cd tree
-mkdir -p admin/private; cp dev.json admin/private/  # or prod.json
-make start  # or ENV=prod make start
+mkdir -p admin/private; cp env.json admin/private/  # See admin/README.md
+# For development:
+make start
 open http://[::1]:1234
+# For production:
+make install
+tail -f admin/log/tree.log # to see errors.
+sudo systemctl restart tree # when you need to restart the server.
 ```
 
 ## Interface

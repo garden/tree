@@ -3,7 +3,7 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$DIR"/../..
 mkdir -p admin/log admin/private/https admin/private/dbcerts
-HOST=$(<admin/private/"$ENV".json jq -r .http.host)
+HOST=$(<admin/private/env.json jq -r .http.host)
 
 # This script assumes an Ubuntu installation.
 
@@ -66,12 +66,9 @@ if ! [[ -d admin/db ]]; then
   popd
 fi
 
-if [[ "$ENV" == prod ]]; then
-  echo -n "Executing production installation; enter 'yes' to confirm: "
-  read confirmation
-  if [[ "$confirmation" != yes ]]; then
-    exit 0
-  fi
+echo -n "Executing production installation; enter 'yes' to confirm: "
+read confirmation
+if [[ "$confirmation" == yes ]]; then
 
   # Cockroach
 
@@ -130,10 +127,10 @@ fi
 
 if ! cockroach node ls --certs-dir=admin/db/certs >/dev/null 2>&1
 then
-  db_database=$(jq <admin/private/"$ENV".json -r .pg.database)
-  db_host=$(jq <admin/private/"$ENV".json -r .pg.host)
-  db_cache=$(jq <admin/private/"$ENV".json -r .pg.cache)
-  db_max_sql_memory=$(jq <admin/private/"$ENV".json -r .pg.maxSqlMemory)
+  db_database=$(jq <admin/private/env.json -r .pg.database)
+  db_host=$(jq <admin/private/env.json -r .pg.host)
+  db_cache=$(jq <admin/private/env.json -r .pg.cache)
+  db_max_sql_memory=$(jq <admin/private/env.json -r .pg.maxSqlMemory)
 
   pushd admin/db
     cockroach start --host="$db_host" --cache="$db_cache" \

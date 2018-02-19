@@ -2,8 +2,6 @@
 
 Service scripts for managing a secure [file tree] (https://github.com/garden/tree) instance.
 
-The default environment is dev; in production, do the following: `export ENV=prod`.
-
 - `make install`: provision a new computer.
 - `make start`: launch the HTTP server (and associated services, if needed, like the database).
 - `make stop`: stop the HTTP server.
@@ -18,13 +16,12 @@ useradd --create-home --user-group --key UMASK=022 dom
 passwd dom
 usermod -aG sudo dom
 cd /home/dom
-echo export ENV=prod >>.bashrc
-source .bashrc
 # Clone the project.
 sudo apt update
 sudo apt install git
 git clone https://github.com/garden/tree.git
 cd tree
+mkdir -p admin/private; cp env.json admin/private/
 make install
 ```
 
@@ -37,10 +34,10 @@ make install
   - `tree`: HTTPS server of TheFileTree.
   - `redirect`: HTTP server redirecting to HTTPS.
   - `update`: HTTP server listening for GitHub push events on port 1123 to update your `tree` repo. Deprecated.
-- `private/`: folder with the server’s parameters. It typically contains dev.json for local work and prod.json for production. Also, https certificate files will be in `private/https/`, and the private database root CA keys are in `private/dbcerts`.
+- `private/`: folder with the server’s parameters. It typically contains env.json. Also, https certificate files will be in `private/https/`, and the private database root CA keys are in `private/dbcerts`.
 - `db/`: database content and certificates, but not the private root CA key.
 
-A typical prod.json looks like this:
+A typical env.json looks like this:
 
 ```json
 {
