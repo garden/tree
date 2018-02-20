@@ -55,8 +55,10 @@ sudo systemctl restart tree # when you need to restart the server.
 
 ## Plans
 
-- JSON sync
 - Allow user-made apps
+  - Send `APP_AUTH`
+  - Use a safe templating system
+- JSON sync
 - File search
 - Snapshots (may require to migrate the file content to CockroachDB)
 - Remote desktop
