@@ -77,3 +77,15 @@ A typical env.json looks like this:
   }
 }
 ```
+
+When starting out on a new server, you will first need to use a self-signed TLS
+certificate to perform the Let's Encrypt DNS validation and. For that purpose,
+you need to change the certificate paths to the ones we generate for you:
+
+```json
+{
+  "key": "admin/private/https/privkey.pem",
+  "cert": "admin/private/https/cert.pem",
+  "ca": ["admin/private/https/fullchain.pem"]
+}
+```
