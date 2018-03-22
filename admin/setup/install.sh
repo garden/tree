@@ -24,6 +24,11 @@ if ! which jq >/dev/null; then
   sudo apt install jq
 fi
 
+if ! which g++ >/dev/null; then
+  echo "[install] g++"
+  sudo apt install g++
+fi
+
 if ! which node >/dev/null; then
   echo "[install] node"
   node_js_version=$(wget -q -O - "https://nodejs.org/dist/index.tab" \
