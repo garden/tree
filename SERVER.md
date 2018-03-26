@@ -3,11 +3,11 @@ it out-of-date or incomplete.
 
 # Routing requests
 
-* Requested resources are templated into plugs if metadata or type require it:
+* Requested resources are templated into plugs if metadata or the type requires it:
   - If resource is a zip file, serve directly (do not template / route).
   - If resource is a text file, embed its content into a text editor.
   - If resource is a folder, embed a list of its files into a file explorer.
-  - If resource metadata require a specific plug, use that plug as template.
+  - If resource metadata requires a specific plug, use that plug as a template.
 
 # Ajax actions
 
