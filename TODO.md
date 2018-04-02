@@ -14,15 +14,11 @@ EDIT: This was done as of 2012-04-04.
 
 # Operational Transformation
 
-The current Operational Transformation in use (apart from being buggy) uses up a
-lot of space on the server side (we have to store a copy of the file for each
-client editing it, which makes a lot of copies!), and the transformation
-operation used (patch) is quite expansive CPU-wise.
+The current Operational Transformation in use (apart from having software bugs) depletes much space on the server side (we have to store a copy of the file for each edit by a client, which creates a lot of copies!), and the transformation
+operation used (patch) is quite expensive CPU-wise.
 
 We intend to use finer Operation Transformations such as those devised in Xerox
-PARC [1]. We may add information as we go, since those algorithms have been more
-heavily understood and optimized since then. We will document our effort in
-relevant documentation files (probably along `/lib/sync.js`).
+PARC [1]. We may add information as we go, since those algorithms have been well understood and optimized since then. We will document our effort in relevant documentation files (probably along `/lib/sync.js`).
 
   [1] http://delivery.acm.org/10.1145/220000/215706/p111-nichols.pdf
 
@@ -73,19 +69,19 @@ probably everywhere else, too).
 
 ## Reasons that design cannot succeed.
 
-That design isn't aware of the Read/Write access differences that we want,
-instead encrypting all the data, even if unnecessary. This results in a lot of
+That design isn't aware of the Read/Write access differences that we want.
+Instead, it encrypts all the data even when unnecessary. This results in a lot of
 encrypting / decrypting that doesn't need to be there.
 
-Beyond taking a lot of CPU cycles, it also takes a lot of effort to engineer,
+In addition to taking a lot of CPU cycles, it also takes a lot of effort for engineers
 mainly because all of the system needs to be implemented at once.
 
 Besides, having the key both encrypted in a PBKDF2 and used in encrypting the
 data raises differential cryptanalysis concerns.
 
-Finally, the use of PBKDF2 is slower on a CPU than on a GPU, allowing advanced
+Finally, the performance of PBKDF2 is slower on a CPU than on a GPU, allowing advanced
 code breaking techniques to brute-force the key fast: increasing the number of
-iterations makes normal use have an increase in execution time that is a lot
+iterations makes normal use to have an increase in execution time that is a lot
 smaller for code breaking use.
 
 ## New design.
@@ -99,7 +95,7 @@ Read access requires more engineering (and a little bit more design effort).
 
 ### Metadata access
 
-Users can restrict metadata modification by using a passphrase. That
+Users can restrict the metadata modification by using a passphrase. That
 passphrase's hash is stored with scrypt in the file's metadata, under the name
 `metakey`. Without the key, users can view all metadata but the keys. With the
 key, they can modify the metadata.
@@ -125,7 +121,7 @@ non-empty. That passphrase is stored with scrypt in the file's metadata, under
 the name `writekey`.
 
 A request for read access always succeeds. That property makes encrypting the
-data greatly useless.
+data useless.
 
 Any request that modifies the contents of the data, without including a
 `writekey` field with the correct passphrase, will fail. The operational
@@ -142,13 +138,13 @@ non-empty. That key overrides the write key; the `writekey` field becomes
 useless.
 
 The `readkey` works similarly to how the `writekey` works, except that it won't
-give read-only access if the supplied password doesn't match the stored scrypt
+give read-only access if the provided password doesn't match the stored scrypt
 hash. Accessing those files either requires a `readkey` or an `Authorization`
 HTTP header, the latter of which is made easier by the fact that sending an
 incorrect key causes serving this page through `WWW-Authenticate`.
 
 Also, the files are all encrypted using the standard scrypt system. They are
-decrypted and stored in memory while editing.
+decrypted and stored in the memory while editing.
 
 Note that this means that users have to wait for the file to be decrypted before
 they can start editing it.
@@ -172,6 +168,6 @@ Of course, we would prettify it on every disk write.
 Allow a user to fork a file.
 That FS-level operation forces the system to keep track of all changes made to
 that file.
-Once done, the user can join back to the origin file.
+Once done, the user can join back to the original file.
 The system should prevent conflicts from ever happening (which is theoretically
 possible).
