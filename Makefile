@@ -40,6 +40,9 @@ stop:
 	  rm $(PID);  \
 	fi
 
+stopdb:
+	@cockroach quit --certs-dir admin/db/certs
+
 restart: stop start
 
 save:
