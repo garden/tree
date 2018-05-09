@@ -110,6 +110,8 @@ if [[ "$confirmation" == yes ]]; then
     sudo systemctl start redirect.service
     sudo systemctl start update.service
     sudo systemctl start renew-cert.timer
+    sudo systemctl enable tree.service
+    sudo systemctl enable redirect.service
   fi
 
   # Let’s encrypt
