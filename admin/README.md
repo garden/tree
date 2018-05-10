@@ -47,7 +47,10 @@ A typical env.json looks like this:
     "secure": true,
     "key": "/etc/letsencrypt/live/thefiletree.com/privkey.pem",
     "cert": "/etc/letsencrypt/live/thefiletree.com/cert.pem",
-    "ca": ["/etc/letsencrypt/live/thefiletree.com/fullchain.pem"]
+    "ca": ["/etc/letsencrypt/live/thefiletree.com/fullchain.pem"],
+    "cors": {
+      "origin": "https://thefiletree.com"
+    }
   },
   "mailer": {
     "secure": true,
