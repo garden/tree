@@ -41,6 +41,8 @@ A typical env.json looks like this:
 
 ```json
 {
+  // Enforce production restrictions.
+  "env": "production",
   "http": {
     "host": "thefiletree.com",
     "port": 443,

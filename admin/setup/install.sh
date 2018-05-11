@@ -47,7 +47,7 @@ if ! which openssl >/dev/null; then
   sudo apt install openssl
 fi
 
-# install cockroachDB
+# install CockroachDB
 
 if ! which cockroach >/dev/null; then
   echo "[install] cockroach"

@@ -96,7 +96,7 @@ test:
 # We assume the existence of GNU coreutils, node, npm, and git.
 install: install-bin web/ node_modules/
 
-install-bin: 
+install-bin:
 	@bash admin/setup/install.sh
 
 web/: plugs/
