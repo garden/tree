@@ -1,9 +1,10 @@
 #!/bin/bash
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd "$DIR"/../..
+dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+cd "$dir"/../..
 mkdir -p admin/log admin/private/https admin/private/dbcerts
-HOST=$(<admin/private/env.json jq -r .http.host)
+host=$(<admin/private/env.json jq -r .http.host)
+env=$(<admin/private/env.json jq -r .env)
 
 # This script assumes an Ubuntu installation.
 
@@ -71,9 +72,7 @@ if ! [[ -d admin/db ]]; then
   popd
 fi
 
-echo -n "Executing production installation; enter 'yes' to confirm: "
-read confirmation
-if [[ "$confirmation" == yes ]]; then
+if [[ "$env" == production ]]; then
 
   # Cockroach
 
@@ -125,7 +124,7 @@ if [[ "$confirmation" == yes ]]; then
       sudo apt-get update
       sudo apt-get install certbot
     fi
-    sudo certbot certonly --webroot -d "$HOST" -w admin && \
+    sudo certbot certonly --webroot -d "$host" -w admin && \
     touch admin/private/https/letsencrypt
   fi
 fi
