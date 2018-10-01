@@ -3,8 +3,6 @@
 dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 cd "$dir"/../..
 mkdir -p admin/log admin/private/https admin/private/dbcerts
-host=$(<admin/private/env.json jq -r .http.host)
-env=$(<admin/private/env.json jq -r .env)
 
 # This script assumes an Ubuntu installation.
 
@@ -47,6 +45,9 @@ if ! which openssl >/dev/null; then
   echo "[install] openssl"
   sudo apt install openssl
 fi
+
+host=$(<admin/private/env.json jq -r .http.host)
+env=$(<admin/private/env.json jq -r .env)
 
 # install CockroachDB
 
