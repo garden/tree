@@ -52,14 +52,15 @@ env=$(<admin/private/env.json jq -r .env)
 # install CockroachDB
 
 if ! which cockroach >/dev/null; then
-  echo "[install] cockroach"
+  echo "[install] cockroach: binary"
   wget -Nq "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
   tar xfz cockroach-latest.linux-amd64.tgz
-  sudo cp -i cockroach-latest.linux-amd64/cockroach /usr/local/bin
-  rm -r cockroach-latest.linux-amd64*
+  sudo cp -i cockroach-*.linux-amd64/cockroach /usr/local/bin
+  rm -r cockroach-*.linux-amd64*
 fi
 
 if ! [[ -d admin/db ]]; then
+  echo "[install] cockroach: generate certificates"
   mkdir -p admin/db
   pushd admin/db
     mkdir certs
@@ -78,12 +79,14 @@ if [[ "$env" == production ]]; then
   # Cockroach
 
   # Admin UI: only allow localhost to connect (use with SOCKS).
+  echo "[install] cockroach: limit admin UI access"
   sudo iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
   sudo iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
   # Set NTP: FIXME
 
   # HTTPS (self-signed to bootstrap Let’s encrypt)
 
+  echo "[install] tls: self-signed"
   if [[ ! -e admin/private/https/cert.pem ]]; then
     pushd admin/private/https
       openssl genrsa -aes256 -out privkey.pem 1024
@@ -96,6 +99,7 @@ if [[ "$env" == production ]]; then
 
   # Services
 
+  echo "[install] systemd: services for auto restart"
   if [[ ! -e /etc/systemd/system/tree.service ]]; then
     # install service scripts
     sudo cp admin/setup/tree.service /etc/systemd/system/
@@ -116,6 +120,7 @@ if [[ "$env" == production ]]; then
 
   # Let’s encrypt
 
+  echo "[install] tls: let’s encrypt"
   if [[ ! -e admin/private/https/letsencrypt ]]; then
     if ! which certbot >/dev/null; then
       echo "[install] certbot"
@@ -132,6 +137,7 @@ fi
 
 # start CockroachDB
 
+echo "[install] cockroach: spawn"
 if ! cockroach node ls --certs-dir=admin/db/certs >/dev/null 2>&1
 then
   db_database=$(jq <admin/private/env.json -r .pg.database)

@@ -69,19 +69,19 @@ load:
 
 backup:
 	@mkdir -p backup
-	@tar cf backup/web$(DATE).tar web
-	@tar --append -f backup/web$(DATE).tar metadata.json
-	@cockroach dump tree --certs-dir admin/db/certs >tree.sql
-	@tar --append -f backup/web$(DATE).tar tree.sql
-	@xz <backup/web$(DATE).tar >backup/web$(DATE).tar.xz
-	@rm backup/web$(DATE).tar
-	@echo "[info] copied web/, metadata and database to backup/web$(DATE).tar.xz"
+	@tar cf backup/web-$(DATE).tar web
+	@tar --append -f backup/web-$(DATE).tar metadata.json
+	@cockroach dump tree --certs-dir admin/db/certs >backup/tree-$(DATE).sql
+	@tar --append -f backup/web-$(DATE).tar tree.sql
+	@xz <backup/web-$(DATE).tar >backup/web-$(DATE).tar.xz
+	@rm backup/web-$(DATE).tar
+	@echo "[info] copied web/, metadata and database to backup/web-$(DATE).tar.xz"
 
 restore:
 	@tar xf "$(ls backup/*.tar.xz | tail -1)"
 	@db_host=$(jq <admin/private/env.json -r .pg.host); \
-	cockroach sql -e 'drop database '"$db_host"' cascade; '\
-	'create database '"$db_host" --certs-dir admin/db/certs && \
+	cockroach sql -e 'drop database '"$$db_host"' cascade; '\
+	'create database '"$$db_host" --certs-dir admin/db/certs && \
 	cockroach sql -d tree <tree.sql --certs-dir admin/db/certs
 	@echo '[info] deployed web/, metadata and database from '"$(ls backup/*.tar.xz | tail -1)"
 
