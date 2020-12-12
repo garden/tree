@@ -46,31 +46,31 @@ if ! which openssl >/dev/null; then
   sudo apt install openssl
 fi
 
-host=$(<admin/private/env.json jq -r .http.host)
-env=$(<admin/private/env.json jq -r .env)
-
 # install CockroachDB
 
 if ! which cockroach >/dev/null; then
   echo "[install] cockroach: binary"
   wget -Nq "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
-  tar xfz cockroach-latest.linux-amd64.tgz
+  tar xfz cockroach-*.linux-amd64.tgz
   sudo cp -i cockroach-*.linux-amd64/cockroach /usr/local/bin
   rm -r cockroach-*.linux-amd64*
 fi
 
+host=$(<admin/private/env.json jq -r .http.host)
+env=$(<admin/private/env.json jq -r .env)
+ca_key=../private/dbcerts/ca.key
+
 if ! [[ -d admin/db ]]; then
-  echo "[install] cockroach: generate certificates"
   mkdir -p admin/db
   pushd admin/db
     mkdir certs
     mkdir private-certs
     cockroach cert create-ca \
-      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
-    cockroach cert create-client root \
-      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
+      --certs-dir=certs --ca-key="$ca_key"
     cockroach cert create-node localhost 127.0.0.1 \
-      --certs-dir=certs --ca-key=../private/dbcerts/ca.key
+      --certs-dir=certs --ca-key="$ca_key"
+    cockroach cert create-client root \
+      --certs-dir=certs --ca-key="$ca_key"
   popd
 fi
 
@@ -78,7 +78,8 @@ if [[ "$env" == production ]]; then
 
   # Cockroach
 
-  # Admin UI: only allow localhost to connect (use with SOCKS).
+  # Admin UI: only allow localhost to connect.
+  # To use it, build an SSH tunnel: ssh -L 8080:127.0.0.1:8080 tree -N
   echo "[install] cockroach: limit admin UI access"
   sudo iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
   sudo iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
@@ -120,10 +121,10 @@ if [[ "$env" == production ]]; then
 
   # Let’s encrypt
 
-  echo "[install] tls: let’s encrypt"
   if [[ ! -e admin/private/https/letsencrypt ]]; then
+    echo "[install] tls: let’s encrypt setup"
     if ! which certbot >/dev/null; then
-      echo "[install] certbot"
+      echo "[install] tls: certbot"
       sudo apt-get update
       sudo apt-get install software-properties-common
       sudo add-apt-repository ppa:certbot/certbot
@@ -137,17 +138,20 @@ fi
 
 # start CockroachDB
 
-echo "[install] cockroach: spawn"
 if ! cockroach node ls --certs-dir=admin/db/certs >/dev/null 2>&1
 then
   db_database=$(jq <admin/private/env.json -r .pg.database)
   db_host=$(jq <admin/private/env.json -r .pg.host)
+  db_port=$(jq <admin/private/env.json -r .pg.port)
+  db_leader=$(jq <admin/private/env.json -r .pg.leader)
   db_cache=$(jq <admin/private/env.json -r .pg.cache)
   db_max_sql_memory=$(jq <admin/private/env.json -r .pg.maxSqlMemory)
 
   pushd admin/db
-    cockroach start --host="$db_host" --cache="$db_cache" \
-      --max-sql-memory="$db_max_sql_memory"\
+    cockroach version
+    cockroach start --host="$db_host" --join="$db_leader" \
+      --listen-addr=localhost:"$db_port" \
+      --cache="$db_cache" --max-sql-memory="$db_max_sql_memory"\
       --background --certs-dir=certs
     cockroach sql --execute "CREATE DATABASE IF NOT EXISTS $db_database" \
       --host="$db_host" --certs-dir=certs
