@@ -18,10 +18,23 @@ usermod -aG sudo dom
 cd /home/dom
 # Clone the project.
 sudo apt update
-sudo apt install git
+sudo apt install git make
 git clone https://github.com/garden/tree.git
 cd tree
-mkdir -p admin/private; cp env.json admin/private/
+mkdir -p admin/private
+```
+
+Back on your local directory:
+
+```bash
+scp admin/private/prod.json tree:/home/dom/tree/admin/private/env.json
+# If you need to restore data:
+scp backup/web*.tar.xz tree:/home/dom/tree/backup/
+```
+
+Back in the remote production server in /home/dom/tree:
+
+```
 make install
 ```
 

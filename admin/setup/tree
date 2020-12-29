@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd /home/dom/tree
-make
-ENV=prod node ./app.js >> admin/log/tree.log 2>&1
+export ENV=prod
+make run

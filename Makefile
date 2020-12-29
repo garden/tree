@@ -1,32 +1,34 @@
 # Makefile: start/stop and manage your tree server.
-# Copyright © 2017 Thaddee Tyl, Jan Keromnes. All rights reserved.
-# The following code is covered by the GPLv2 license.
+SHELL = bash
 
 # The output of console.log statements goes in this file when you `make`.
 LOG = admin/log/tree.log
-
 # The pid of the process (stored in a file).
 PID = .pid
-
-# The current date in ISO8601 format.
+# The current date in ISO 8601 format.
 DATE = $(shell date "+%Y%m%dT%H%M%S%z")
+TLS_CIPHER_LIST = 'TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384'
 
-RUNTREE = '  \
-  node app.js >> $(LOG) 2>&1 &  \
-  if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;  \
-  chmod a+w $(PID);'
+default: stop install start
 
-start: install stop
+run:
+	@echo "[tree] run"
+	node --tls-cipher-list=$(TLS_CIPHER_LIST) \
+	  ./app.js >> $(LOG) 2>&1
+	chmod a+w $(PID)
+	chmod a+w $(LOG)
+
+start: stop
 	@echo "[tree] start"
 	@port=$$(jq .http.port -r <./admin/private/env.json); \
 	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ];  \
 	then  \
 	  sudo -p '[sudo] password for $(USER): ' echo;  \
-	  sudo -n sh -c $(RUNTREE);  \
-	  sudo chmod a+w $(LOG);  \
+	  sudo -n bash -c 'make run' &;  \
 	else  \
-	  sh -c $(RUNTREE); \
+	  make run &; \
 	fi; \
+	if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;
 	echo "[info] tree running on port $$port (see $(LOG))"; \
 	echo "[info] use 'make stop' to kill it"
 
@@ -78,12 +80,12 @@ backup:
 	@echo "[info] copied web/, metadata and database to backup/web-$(DATE).tar.xz"
 
 restore:
-	@tar xf "$(ls backup/*.tar.xz | tail -1)"
-	@db_host=$(jq <admin/private/env.json -r .pg.host); \
+	@tar xf "$$(ls backup/*.tar.xz | tail -1)"
+	@db_host=$$(jq <admin/private/env.json -r .pg.host); \
 	cockroach sql -e 'drop database '"$$db_host"' cascade; '\
 	'create database '"$$db_host" --certs-dir admin/db/certs && \
 	cockroach sql -d tree <tree.sql --certs-dir admin/db/certs
-	@echo '[info] deployed web/, metadata and database from '"$(ls backup/*.tar.xz | tail -1)"
+	@echo '[info] deployed web/, metadata and database from '"$$(ls backup/*.tar.xz | tail -1)"
 
 # When files move around in web/, some dead metadata entries stay in metadata.
 # They need to be garbage collected from time to time.
@@ -93,7 +95,6 @@ gc:
 test:
 	node lib/test.js
 
-# We assume the existence of GNU coreutils, node, npm, and git.
 install: install-bin web/ node_modules/
 
 install-bin:
@@ -158,4 +159,4 @@ me a:
 sandwich:
 	@if [ `id -u` = "0" ] ; then echo "OKAY." ; else echo "What? Make it yourself." ; fi
 
-.PHONY: install install-bin uninstall start stop restart save load backup gc test update-camp update-ot rmhttps https jail help me a sandwich
+.PHONY: default run install install-bin uninstall start stop restart save load backup gc test update-camp update-ot rmhttps https jail help me a sandwich
