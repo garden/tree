@@ -2,7 +2,7 @@
   "author": "TheFileTree <warden@thefiletree.com> (https://thefiletree.com/)",
   "name": "filetree",
   "description": "Web-based collaborative file system; a multiplayer notepad!",
-  "version": "15.0.0",
+  "version": "20.0.0",
   "homepage": "https://thefiletree.com",
   "repository": {
     "type": "git",
@@ -16,10 +16,10 @@
     "async": "2.0.1",
     "camp": "^17.2.4",
     "canop": "0.4.1",
-    "email-login": "1.3.1",
+    "email-login": "1.3.2",
     "fsos": "1.1.3",
     "irc": "0.5.2",
-    "pg": "6.2.5",
+    "pg": "8.5.1",
     "ws": "3.3.1"
   }
 }
