@@ -21,15 +21,16 @@ run:
 start: stop
 	@echo "[tree] start"
 	@port=$$(jq .http.port -r <./admin/private/env.json); \
-	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ];  \
-	then  \
-	  sudo -p '[sudo] password for $(USER): ' echo;  \
-	  sudo -n bash -c 'make run' &;  \
-	else  \
-	  make run &; \
+	host=$$(jq .http.host -r <./admin/private/env.json); \
+	if [ `id -u` -ne "0" -a "$$port" -lt 1024 ]; \
+	then \
+	  sudo -p '[sudo] password for $(USER): ' echo; \
+	  sudo -n bash -c 'make run' &  \
+	else \
+	  make run & \
 	fi; \
-	if [ $$! -ne "0" ]; then echo $$! > $(PID); fi;
-	echo "[info] tree running on port $$port (see $(LOG))"; \
+	if [ $$! -ne "0" ]; then echo $$! > $(PID); fi; \
+	echo "[info] tree running on http://$$host:$$port (see $(LOG))"; \
 	echo "[info] use 'make stop' to kill it"
 
 stop:
