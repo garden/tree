@@ -15,8 +15,6 @@ run:
 	@echo "[tree] run"
 	node --tls-cipher-list=$(TLS_CIPHER_LIST) \
 	  ./app.js >> $(LOG) 2>&1
-	chmod a+w $(PID)
-	chmod a+w $(LOG)
 
 start: stop
 	@echo "[tree] start"
@@ -35,12 +33,13 @@ start: stop
 
 stop:
 	@echo "[tree] stop"
-	@if [ -e $(PID) ]; then  \
-	  ps -p $$(cat $(PID)) >/dev/null 2>&1;  \
-	  if [ $$? -eq 0 ]; then  \
-	    kill $$(cat $(PID)) 2>/dev/null || sudo kill $$(cat $(PID));  \
-	  fi;  \
-	  rm $(PID);  \
+	@if [ -e $(PID) ]; then \
+	  ps -p $$(cat $(PID)) >/dev/null 2>&1; \
+	  if [ $$? -eq 0 ]; then \
+	    pgid="$$(ps -q "$$(cat $(PID))" -o pgid=)"; \
+	    pkill -g "$$pgid" 2>/dev/null || sudo pkill -g "$$pgid"; \
+	  fi; \
+	  rm $(PID); \
 	fi
 
 stopdb:
