@@ -1,0 +1,15 @@
+#!/bin/bash
+set -x
+cd /home/tyl/file/tree
+bkexec="$(ssh tree '
+  cd /home/dom/tree;
+  rm backup/*;
+  make backup &&
+  ls backup/*.tar.xz | tail -1
+')"
+echo "$bkexec"
+bkfile="$(echo "$bkexec" | tail -1 | tr -d '\r')"
+scp tree:/home/dom/tree/"$bkfile" backup/
+# Delete older backups.
+rm $(ls backup/*.tar.xz | head -n -1)
+kdialog --passivepopup "Backup completed." --title TheFileTree
