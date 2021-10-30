@@ -80,18 +80,16 @@ A typical env.json looks like this:
     }
   },
   "pg": {
-    "user": "root",
-    "host": "localhost",
+    "user": "tyl",
+    "host": "free-tier5.gcp-europe-west1.cockroachlabs.cloud",
     "port": "26257",
-    "database": "tree",
+    "database": "thefiletree-1974.defaultdb",
+    // Also fake, insert your own.
+    "password": "co-zAZxDUIoiXJ1TeJTz2t",
     "ssl": {
       "rejectUnauthorized": true,
-      "ca": "./admin/db/certs/ca.crt",
-      "key": "./admin/db/certs/client.root.key",
-      "cert": "./admin/db/certs/client.root.crt"
-    },
-    "cache": "20%",
-    "maxSqlMemory": "20%"
+      "ca": "./admin/db/certs/root.crt"
+    }
   }
 }
 ```

@@ -48,51 +48,14 @@ if ! which openssl >/dev/null; then
   sudo apt install openssl
 fi
 
-# install CockroachDB
-
-if ! which cockroach >/dev/null; then
-  echo "[install] cockroach: binary"
-  (set -x
-    wget -Nq "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
-    tar xfz cockroach-*.linux-amd64.tgz
-    sudo cp -i cockroach-*.linux-amd64/cockroach /usr/local/bin
-    rm -r cockroach-*.linux-amd64*
-  )
-fi
-
-host=$(<admin/private/env.json jq -r .http.host)
-env=$(<admin/private/env.json jq -r .env)
-export COCKROACH_CERTS_DIR="$(realpath admin/db/certs)"
-ca_key="$(realpath admin/private/dbcerts/ca.key)"
-
-if ! [[ -d admin/db ]]; then
-  mkdir -p admin/db
-  pushd admin/db
-    mkdir certs
-    mkdir private-certs
-    export COCKROACH_CERTS_DIR="$(realpath certs)"
-    (set -x
-      cockroach cert create-ca --ca-key="$ca_key"
-      cockroach cert create-node localhost 127.0.0.1 --ca-key="$ca_key"
-      cockroach cert create-client root --ca-key="$ca_key"
-    )
-  popd
-fi
-
 if [[ "$env" == production ]]; then
 
-  # Cockroach
+  # Database setup
 
-  # Admin UI: only allow localhost to connect.
-  # To use it, build an SSH tunnel: ssh -L 8080:127.0.0.1:8080 tree -N
-  echo "[install] cockroach: limit admin UI access"
-  (set -x
-    sudo iptables -I INPUT -p tcp -s 127.0.0.1 --dport 8080 -j ACCEPT
-    sudo iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j DROP
-    # Set NTP: FIXME
-  )
+  echo "[install] database: please create a CockroachDB Serverless cluster: https://cockroachlabs.cloud/signup"
+  echo "[install] database: then add its information to admin/private/env.json, see admin/README.md."
 
-    # HTTPS (self-signed to bootstrap Let’s encrypt)
+  # HTTPS (self-signed to bootstrap Let’s encrypt)
 
   echo "[install] tls: self-signed"
   (set -x
@@ -149,29 +112,63 @@ if [[ "$env" == production ]]; then
       touch admin/private/https/letsencrypt
     )
   fi
-fi
 
-# start CockroachDB
+else # Not production
 
-if ! cockroach node ls >/dev/null 2>&1
-then
-  db_database=$(jq <admin/private/env.json -r .pg.database)
-  db_host=$(jq <admin/private/env.json -r .pg.host)
-  db_port=$(jq <admin/private/env.json -r .pg.port)
-  db_leader=$(jq <admin/private/env.json -r .pg.leader)
-  db_cache=$(jq <admin/private/env.json -r .pg.cache)
-  db_max_sql_memory=$(jq <admin/private/env.json -r .pg.maxSqlMemory)
+  # install CockroachDB
 
-  pushd admin/db
-    cockroach version
+  if ! which cockroach >/dev/null; then
+    echo "[install] cockroach: binary"
     (set -x
-      cockroach start --host="$db_host" --join="$db_leader" \
-        --listen-addr=localhost:"$db_port" \
-        --cache="$db_cache" --max-sql-memory="$db_max_sql_memory" \
-        --certs-dir="$COCKROACH_CERTS_DIR" --background
-      cockroach init --host="$db_leader"
-      cockroach sql --host="$db_host" \
-        --execute "CREATE DATABASE IF NOT EXISTS $db_database"
+      wget -Nq "https://binaries.cockroachdb.com/cockroach-latest.linux-amd64.tgz"
+      tar xfz cockroach-*.linux-amd64.tgz
+      sudo cp -i cockroach-*.linux-amd64/cockroach /usr/local/bin
+      rm -r cockroach-*.linux-amd64*
     )
-  popd
-fi
+  fi
+
+  host=$(<admin/private/env.json jq -r .http.host)
+  env=$(<admin/private/env.json jq -r .env)
+  export COCKROACH_CERTS_DIR="$(realpath admin/db/certs)"
+  ca_key="$(realpath admin/private/dbcerts/ca.key)"
+
+  if ! [[ -d admin/db ]]; then
+    mkdir -p admin/db
+    pushd admin/db
+      mkdir certs
+      mkdir private-certs
+      export COCKROACH_CERTS_DIR="$(realpath certs)"
+      (set -x
+        cockroach cert create-ca --ca-key="$ca_key"
+        cockroach cert create-node localhost 127.0.0.1 --ca-key="$ca_key"
+        cockroach cert create-client root --ca-key="$ca_key"
+      )
+    popd
+  fi
+
+  # start CockroachDB
+
+  if ! cockroach node ls >/dev/null 2>&1
+  then
+    db_database=$(jq <admin/private/env.json -r .pg.database)
+    db_host=$(jq <admin/private/env.json -r .pg.host)
+    db_port=$(jq <admin/private/env.json -r .pg.port)
+    db_leader=$(jq <admin/private/env.json -r .pg.leader)
+    db_cache=$(jq <admin/private/env.json -r .pg.cache)
+    db_max_sql_memory=$(jq <admin/private/env.json -r .pg.maxSqlMemory)
+
+    pushd admin/db
+      cockroach version
+      (set -x
+        cockroach start --host="$db_host" --join="$db_leader" \
+          --listen-addr=localhost:"$db_port" \
+          --cache="$db_cache" --max-sql-memory="$db_max_sql_memory" \
+          --certs-dir="$COCKROACH_CERTS_DIR" --background
+        cockroach init --host="$db_leader"
+        cockroach sql --host="$db_host" \
+          --execute "CREATE DATABASE IF NOT EXISTS $db_database"
+      )
+    popd
+  fi
+
+fi # End of non-production scripts.
