@@ -13,7 +13,7 @@ default: stop install start
 
 run:
 	@echo "[tree] run"
-	node --tls-cipher-list=$(TLS_CIPHER_LIST) \
+	node --async-stack-traces --tls-cipher-list=$(TLS_CIPHER_LIST) \
 	  ./app.js >> $(LOG) 2>&1
 
 start: stop
