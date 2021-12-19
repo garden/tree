@@ -11,11 +11,6 @@ TLS_CIPHER_LIST = 'TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_2
 
 default: stop install start
 
-run:
-	@echo "[tree] run"
-	node --async-stack-traces --tls-cipher-list=$(TLS_CIPHER_LIST) \
-	  ./app.js >> $(LOG) 2>&1
-
 start: stop
 	@echo "[tree] start"
 	@port=$$(jq .http.port -r <./admin/private/env.json); \
@@ -30,6 +25,11 @@ start: stop
 	if [ $$! -ne "0" ]; then echo $$! > $(PID); fi; \
 	echo "[info] tree running on http://$$host:$$port (see $(LOG))"; \
 	echo "[info] use 'make stop' to kill it"
+
+run:
+	@echo "[tree] run"
+	node --async-stack-traces --tls-cipher-list=$(TLS_CIPHER_LIST) \
+	  ./app.js >> $(LOG) 2>&1
 
 stop:
 	@echo "[tree] stop"
@@ -81,7 +81,7 @@ restore:
 # When files move around in web/, some dead metadata entries stay in metadata.
 # They need to be garbage collected from time to time.
 gc:
-	node ./tools/meta/rebuild
+	node ./admin/rebuild
 
 test:
 	node lib/test.js
