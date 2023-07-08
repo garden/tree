@@ -13,7 +13,7 @@
     "test": "make test"
   },
   "dependencies": {
-    "async": "2.0.1",
+    "async": "3.2.4",
     "camp": "^17.2.4",
     "canop": "0.4.1",
     "email-login": "1.3.2",
