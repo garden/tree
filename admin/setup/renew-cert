@@ -1,2 +1,4 @@
 #!/bin/bash
-certbot renew && systemctl restart tree.service
+certbot certonly -n --preferred-challenges http --webroot -d thefiletree.com -w /home/dom/tree/admin/
+systemctl restart tree.service
+# If all else fails, try `certbot certonly --manual --preferred-challenges=dns -d thefiletree.com`

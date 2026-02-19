@@ -48,6 +48,9 @@ if ! which openssl >/dev/null; then
   sudo apt install openssl
 fi
 
+host=$(<admin/private/env.json jq -r .http.host)
+env=$(<admin/private/env.json jq -r .env)
+
 if [[ "$env" == production ]]; then
 
   # Database setup
@@ -127,8 +130,6 @@ else # Not production
     )
   fi
 
-  host=$(<admin/private/env.json jq -r .http.host)
-  env=$(<admin/private/env.json jq -r .env)
   export COCKROACH_CERTS_DIR="$(realpath admin/db/certs)"
   ca_key="$(realpath admin/private/dbcerts/ca.key)"
 
