@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:26.04
 MAINTAINER Thaddée Tyl <thaddee.tyl@gmail.com>
 
 RUN apt-get -y update
